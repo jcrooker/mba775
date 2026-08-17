@@ -10,6 +10,12 @@ jupyter: python3
 #| label: setup
 #| include: false
 
+import sys
+
+# fred_tools.py lives in tools/. Quarto runs chunks from the repository root
+# (execute-dir: project in _quarto.yml), so add that folder to the import path.
+sys.path.insert(0, "tools")
+
 import warnings
 
 import matplotlib as mpl

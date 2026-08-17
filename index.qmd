@@ -1,0 +1,55 @@
+---
+title: "MBA 775 — Business Statistics and Data Analytics"
+subtitle: "University of Nevada, Las Vegas"
+author: "Dr. Skip Crooker"
+date: today
+date-format: "MMMM YYYY"
+toc: false
+---
+
+::: {.scarlet}
+**Every number you report must come from code that was actually executed.**
+Never take a figure from an assistant's prose. If you cannot point to the cell
+that produced a number, the number does not go in your submission.
+:::
+
+## Lecture notes
+
+- [Chapter 1 — Introduction to Data Analytics and Modeling](notes/lecture-notes-1000-chapter-01-uses-of-data-analytics-and-modeling.html)
+- [Models with Economic Indicators](notes/lecture_notes-4050-models-with-economic-indicators.html)
+
+## How to run the course code
+
+You do not need to install Python. Everything runs through Claude's code
+execution:
+
+1. **Upload `COURSE_CONTEXT.md`** to your Claude conversation, once per
+   session. It tells Claude how this course expects analytical work to be
+   done.
+2. **Download the script and data file** a lecture note names, from the
+   [course repository](https://github.com/jcrooker/mba775).
+3. **Upload both and paste the prompt** printed in that note.
+
+Every script reads a local CSV. Nothing downloads anything, so nothing depends
+on a network connection or an API key.
+
+## Course materials
+
+| | |
+|---|---|
+| Repository | <https://github.com/jcrooker/mba775> |
+| Scripts | [`scripts/`](https://github.com/jcrooker/mba775/tree/main/scripts) |
+| Data | [`data/`](https://github.com/jcrooker/mba775/tree/main/data) — with [provenance](https://github.com/jcrooker/mba775/blob/main/data/README.md) |
+| Context file | [`COURSE_CONTEXT.md`](https://github.com/jcrooker/mba775/blob/main/COURSE_CONTEXT.md) |
+
+To download everything at once: green **Code** button → **Download ZIP**.
+
+## Using AI in this course
+
+Claude is expected and encouraged everywhere except exams, which are in person
+and closed to AI assistance.
+
+You are responsible for the analytical specification, the verification, the
+interpretation, and the final recommendation. Claude is a capable junior
+analyst, not the decision maker. You must be able to explain any work you
+submit.

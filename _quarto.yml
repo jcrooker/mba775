@@ -2,6 +2,7 @@ project:
   type: default
   output-dir: docs
   render:
+    - "index.qmd"
     - "notes/*.qmd"
   # Run every chunk from the repository root, not from notes/. Without this,
   # a note that reads "data/raw/..." would look for "notes/data/raw/...".

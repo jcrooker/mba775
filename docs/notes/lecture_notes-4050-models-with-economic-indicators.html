@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Dr.&nbsp;Skip Crooker">
+<meta name="author" content="MBA 775">
+<meta name="author" content="University of Nevada, Las Vegas">
+
+<title>Models with Economic Indicators</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="lecture_notes-4050-models-with-economic-indicators_files/libs/clipboard/clipboard.min.js"></script>
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/popper.min.js"></script>
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/anchor.min.js"></script>
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/quarto-syntax-highlighting-2bec29a9bacf2b598905820d71afb463.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/quarto-syntax-highlighting-dark-5fc413f607176f2629b9db3f72267386.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/quarto-html/quarto-syntax-highlighting-2bec29a9bacf2b598905820d71afb463.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="lecture_notes-4050-models-with-economic-indicators_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/bootstrap/bootstrap-004a0a1bbac57e28a506c77bcd8b4855.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/bootstrap/bootstrap-dark-004a0a1bbac57e28a506c77bcd8b4855.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="light">
+<link href="lecture_notes-4050-models-with-economic-indicators_files/libs/bootstrap/bootstrap-004a0a1bbac57e28a506c77bcd8b4855.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#naming-the-series-on-fred" id="toc-naming-the-series-on-fred" class="nav-link active" data-scroll-target="#naming-the-series-on-fred">Naming the series on FRED</a></li>
+  <li><a href="#downloading-from-fred" id="toc-downloading-from-fred" class="nav-link" data-scroll-target="#downloading-from-fred">Downloading from FRED</a></li>
+  <li><a href="#reconciling-the-frequencies" id="toc-reconciling-the-frequencies" class="nav-link" data-scroll-target="#reconciling-the-frequencies">Reconciling the frequencies</a></li>
+  <li><a href="#looking-at-the-indicators" id="toc-looking-at-the-indicators" class="nav-link" data-scroll-target="#looking-at-the-indicators">Looking at the indicators</a></li>
+  <li><a href="#what-to-take-from-this" id="toc-what-to-take-from-this" class="nav-link" data-scroll-target="#what-to-take-from-this">What to take from this</a></li>
+  </ul>
+</nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Models with Economic Indicators</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Dr.&nbsp;Skip Crooker </p>
+             <p>MBA 775 </p>
+             <p>University of Nevada, Las Vegas </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Monday, August 17, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="scarlet">
+<p><strong>AI Prompt</strong></p>
+<p>Can you provide a list of commonly used economic indicators by economic forecasters? Please display the list in a table and group the indicators by their indicator grouping (e.g., Financial, Real Economy, Labor Market, Sentiment and Composite).</p>
+</div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 70%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Category</strong></th>
+<th><strong>Leading Indicators</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Financial Market Indicators</strong></td>
+<td>- Stock Market Indexes (e.g., S&amp;P 500) <br> - Interest Rate Spreads (Yield Curve Slope) <br> - Money Supply (M2, inflation-adjusted)</td>
+</tr>
+<tr class="even">
+<td><strong>Real Economy Indicators</strong></td>
+<td>- Housing Permits and Starts <br> - New Orders for Durable Goods <br> - Manufacturers’ New Orders for Consumer Goods &amp; Materials <br> - Average Weekly Hours in Manufacturing</td>
+</tr>
+<tr class="odd">
+<td><strong>Labor Market Indicators</strong></td>
+<td>- Initial Claims for Unemployment Insurance <br> - Temporary Help Employment</td>
+</tr>
+<tr class="even">
+<td><strong>Sentiment Indicators</strong></td>
+<td>- Consumer Confidence &amp; Expectations <br> - Purchasing Managers’ Index (PMI) / ISM New Orders</td>
+</tr>
+<tr class="odd">
+<td><strong>Composite Measures</strong></td>
+<td>- Conference Board Leading Economic Index (LEI)</td>
+</tr>
+</tbody>
+</table>
+<section id="naming-the-series-on-fred" class="level2">
+<h2 class="anchored" data-anchor-id="naming-the-series-on-fred">Naming the series on FRED</h2>
+<div class="scarlet">
+<p><strong>AI Prompt</strong></p>
+<p>Can you help me identify these leading market indicator time series variable names as used on the St.&nbsp;Louis Federal Reserve Economic Database website? Please prepare them as a <strong>Python</strong> dictionary I can use in my script. I will download these variables from FRED’s public CSV endpoint, and I also want each entry to record the series’ publication frequency, because I will have to reconcile daily, weekly, and monthly data before I can model with them.</p>
+</div>
+<p>The R version of this note stored the series IDs in a named character vector and downloaded them with <code>quantmod::getSymbols()</code>. In Python we use a dictionary of dictionaries so that each series carries its own metadata. The frequency field is not decoration — it is the thing that will bite us in a few cells.</p>
+<div id="cell-symbols" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fred_series <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Financial Market ------------------------------------------------</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SP500"</span>:     {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"D"</span>, <span class="st">"label"</span>: <span class="st">"S&amp;P 500 index"</span>},</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"T10Y3M"</span>:    {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"D"</span>, <span class="st">"label"</span>: <span class="st">"10Y - 3M Treasury spread"</span>},</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"M2REAL"</span>:    {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Real M2 money stock"</span>},</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Housing / Real Economy ------------------------------------------</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"PERMIT"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Building permits (SAAR)"</span>},</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"HOUST"</span>:     {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Housing starts (SAAR)"</span>},</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DGORDER"</span>:   {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"New orders: durable goods"</span>},</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UCOGNO"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"New orders: consumer goods"</span>},</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"AWHMAN"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Avg weekly hours, mfg"</span>},</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Labor Market -----------------------------------------------------</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ICSA"</span>:      {<span class="st">"group"</span>: <span class="st">"Labor"</span>,      <span class="st">"freq"</span>: <span class="st">"W"</span>, <span class="st">"label"</span>: <span class="st">"Initial jobless claims (SA)"</span>},</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TEMPHELPS"</span>: {<span class="st">"group"</span>: <span class="st">"Labor"</span>,      <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Temporary help services (SA)"</span>},</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Sentiment --------------------------------------------------------</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UMCSENT"</span>:   {<span class="st">"group"</span>: <span class="st">"Sentiment"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"U. Michigan consumer sentiment"</span>},</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Composite --------------------------------------------------------</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"USSLIND"</span>:   {<span class="st">"group"</span>: <span class="st">"Composite"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Leading Index for the U.S."</span>},</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>catalog <span class="op">=</span> pd.DataFrame(fred_series).T</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>catalog.index.name <span class="op">=</span> <span class="st">"series_id"</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>catalog</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="symbols" class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">group</th>
+<th data-quarto-table-cell-role="th">freq</th>
+<th data-quarto-table-cell-role="th">label</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">series_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">SP500</th>
+<td>Financial</td>
+<td>D</td>
+<td>S&amp;P 500 index</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">T10Y3M</th>
+<td>Financial</td>
+<td>D</td>
+<td>10Y - 3M Treasury spread</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">M2REAL</th>
+<td>Financial</td>
+<td>M</td>
+<td>Real M2 money stock</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">PERMIT</th>
+<td>Real</td>
+<td>M</td>
+<td>Building permits (SAAR)</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HOUST</th>
+<td>Real</td>
+<td>M</td>
+<td>Housing starts (SAAR)</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">DGORDER</th>
+<td>Real</td>
+<td>M</td>
+<td>New orders: durable goods</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">UCOGNO</th>
+<td>Real</td>
+<td>M</td>
+<td>New orders: consumer goods</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">AWHMAN</th>
+<td>Real</td>
+<td>M</td>
+<td>Avg weekly hours, mfg</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">ICSA</th>
+<td>Labor</td>
+<td>W</td>
+<td>Initial jobless claims (SA)</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">TEMPHELPS</th>
+<td>Labor</td>
+<td>M</td>
+<td>Temporary help services (SA)</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">UMCSENT</th>
+<td>Sentiment</td>
+<td>M</td>
+<td>U. Michigan consumer sentiment</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">USSLIND</th>
+<td>Composite</td>
+<td>M</td>
+<td>Leading Index for the U.S.</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="downloading-from-fred" class="level2">
+<h2 class="anchored" data-anchor-id="downloading-from-fred">Downloading from FRED</h2>
+<p>FRED publishes every series at a public CSV endpoint that needs no API key, and the course module <code>fred_tools.py</code> wraps it. We use <code>fred_frame</code>, which fetches each series <strong>independently</strong> and reports what happened. That matters: a single bulk request for a dozen identifiers fails entirely if any one of them is misspelled or retired, which is a poor way to learn that one identifier was wrong.</p>
+<div id="cell-download" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>START <span class="op">=</span> <span class="st">"1990-01-01"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>raw, status <span class="op">=</span> fred_frame(fred_series.keys(), start<span class="op">=</span>START)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>status.drop(columns<span class="op">=</span>[<span class="st">"detail"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Retrieved 12 of 12 series.</code></pre>
+</div>
+<div id="download" class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">result</th>
+<th data-quarto-table-cell-role="th">n_obs</th>
+<th data-quarto-table-cell-role="th">first</th>
+<th data-quarto-table-cell-role="th">last</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">series_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">SP500</th>
+<td>ok</td>
+<td>2514</td>
+<td>2016-08-15</td>
+<td>2026-08-14</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">T10Y3M</th>
+<td>ok</td>
+<td>9161</td>
+<td>1990-01-02</td>
+<td>2026-08-14</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">M2REAL</th>
+<td>ok</td>
+<td>437</td>
+<td>1990-01-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">PERMIT</th>
+<td>ok</td>
+<td>438</td>
+<td>1990-01-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">HOUST</th>
+<td>ok</td>
+<td>438</td>
+<td>1990-01-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">DGORDER</th>
+<td>ok</td>
+<td>413</td>
+<td>1992-02-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">UCOGNO</th>
+<td>ok</td>
+<td>413</td>
+<td>1992-02-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">AWHMAN</th>
+<td>ok</td>
+<td>439</td>
+<td>1990-01-01</td>
+<td>2026-07-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">ICSA</th>
+<td>ok</td>
+<td>1910</td>
+<td>1990-01-06</td>
+<td>2026-08-08</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">TEMPHELPS</th>
+<td>ok</td>
+<td>439</td>
+<td>1990-01-01</td>
+<td>2026-07-01</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">UMCSENT</th>
+<td>ok</td>
+<td>438</td>
+<td>1990-01-01</td>
+<td>2026-06-01</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">USSLIND</th>
+<td>ok</td>
+<td>362</td>
+<td>1990-01-01</td>
+<td>2020-02-01</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Two things in that table are worth stopping on.</p>
+<p>First, check the <code>first</code> column against the <code>START</code> date we asked for. We requested 1990, but FRED does not serve 1990 for every series — <code>SP500</code>, for instance, is only distributed with a rolling ten-year window. <strong>The start date you request is a ceiling, not a guarantee</strong>, and a model that silently uses whatever it got back will be fit on a much shorter sample than you intended.</p>
+<p>Second, any row marked <code>FAILED</code> is a series that FRED no longer publishes under that ID. Retired IDs are a normal fact of life with FRED, and the reason <code>fred_frame</code> fetches one at a time instead of making one bulk call. The <code>detail</code> column, which we hid above, carries the specific error for each.</p>
+<div id="cell-raw-frame" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>raw<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss"> rows x </span><span class="sc">{</span>raw<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> series"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Index spans </span><span class="sc">{</span>raw<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>raw<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>raw.tail(<span class="dv">8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>11,528 rows x 12 series
+Index spans 1990-01-01 to 2026-08-14</code></pre>
+</div>
+<div id="raw-frame" class="cell-output cell-output-display" data-execution_count="13">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">SP500</th>
+<th data-quarto-table-cell-role="th">T10Y3M</th>
+<th data-quarto-table-cell-role="th">M2REAL</th>
+<th data-quarto-table-cell-role="th">PERMIT</th>
+<th data-quarto-table-cell-role="th">HOUST</th>
+<th data-quarto-table-cell-role="th">DGORDER</th>
+<th data-quarto-table-cell-role="th">UCOGNO</th>
+<th data-quarto-table-cell-role="th">AWHMAN</th>
+<th data-quarto-table-cell-role="th">ICSA</th>
+<th data-quarto-table-cell-role="th">TEMPHELPS</th>
+<th data-quarto-table-cell-role="th">UMCSENT</th>
+<th data-quarto-table-cell-role="th">USSLIND</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-08-06</th>
+<td>7709.96</td>
+<td>0.79</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-08-07</th>
+<td>7757.64</td>
+<td>0.78</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-08-08</th>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>209000.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-08-10</th>
+<td>7753.11</td>
+<td>0.83</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-08-11</th>
+<td>7728.20</td>
+<td>0.81</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-08-12</th>
+<td>7748.50</td>
+<td>0.81</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-08-13</th>
+<td>7798.99</td>
+<td>0.76</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-08-14</th>
+<td>7785.76</td>
+<td>0.82</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>That tail looks alarming — almost every cell is <code>NaN</code>. It is not an error. It is what an outer join across mixed publication frequencies looks like: the daily series create a row for every business day, and the monthly series have a value on only one of those rows per month.</p>
+</section>
+<section id="reconciling-the-frequencies" class="level2">
+<h2 class="anchored" data-anchor-id="reconciling-the-frequencies">Reconciling the frequencies</h2>
+<p>This is the step the R note never had to confront, because it stopped before downloading. Any model using these indicators together needs them on one clock. The defensible choice is to step <em>down</em> to the slowest frequency — monthly — rather than forward-filling monthly data onto daily rows, which would fabricate precision the source data does not have.</p>
+<p>How you aggregate depends on what the series measures:</p>
+<ul>
+<li><strong>Levels and indexes</strong> (<code>SP500</code>, <code>T10Y3M</code>, <code>UMCSENT</code>, <code>AWHMAN</code>) — take the monthly <em>mean</em>, which is the standard convention for converting a high-frequency level to a monthly observation.</li>
+<li><strong>Flows</strong> (<code>ICSA</code>, initial claims) — these are counts accumulated over a week, so a monthly <em>sum</em> is the meaningful aggregate.</li>
+<li><strong>Already monthly</strong> — leave alone.</li>
+</ul>
+<div id="cell-monthly" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>SUM_SERIES <span class="op">=</span> {<span class="st">"ICSA"</span>}</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>available <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> raw.columns]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>raw.resample(<span class="st">"MS"</span>).mean().index)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sid <span class="kw">in</span> available:</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> raw[sid].dropna()</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> fred_series[sid][<span class="st">"freq"</span>] <span class="op">==</span> <span class="st">"M"</span>:</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).last()</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> sid <span class="kw">in</span> SUM_SERIES:</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).<span class="bu">sum</span>()</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).mean()</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    monthly[sid] <span class="op">=</span> m</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> monthly.dropna(how<span class="op">=</span><span class="st">"all"</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>monthly<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss"> monthly rows x </span><span class="sc">{</span>monthly<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> series"</span>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>monthly.tail(<span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>440 monthly rows x 12 series</code></pre>
+</div>
+<div id="monthly" class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">SP500</th>
+<th data-quarto-table-cell-role="th">T10Y3M</th>
+<th data-quarto-table-cell-role="th">M2REAL</th>
+<th data-quarto-table-cell-role="th">PERMIT</th>
+<th data-quarto-table-cell-role="th">HOUST</th>
+<th data-quarto-table-cell-role="th">DGORDER</th>
+<th data-quarto-table-cell-role="th">UCOGNO</th>
+<th data-quarto-table-cell-role="th">AWHMAN</th>
+<th data-quarto-table-cell-role="th">ICSA</th>
+<th data-quarto-table-cell-role="th">TEMPHELPS</th>
+<th data-quarto-table-cell-role="th">UMCSENT</th>
+<th data-quarto-table-cell-role="th">USSLIND</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-03-01</th>
+<td>6654.419091</td>
+<td>0.526818</td>
+<td>6865.4</td>
+<td>1363.0</td>
+<td>1522.0</td>
+<td>320485.0</td>
+<td>269892.0</td>
+<td>41.5</td>
+<td>832000.0</td>
+<td>2479.9</td>
+<td>53.3</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-04-01</th>
+<td>6957.007619</td>
+<td>0.622727</td>
+<td>6859.0</td>
+<td>1423.0</td>
+<td>1414.0</td>
+<td>347767.0</td>
+<td>266116.0</td>
+<td>41.6</td>
+<td>831000.0</td>
+<td>2490.4</td>
+<td>49.8</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-05-01</th>
+<td>7412.551500</td>
+<td>0.798500</td>
+<td>6903.3</td>
+<td>1410.0</td>
+<td>1199.0</td>
+<td>333842.0</td>
+<td>275725.0</td>
+<td>41.6</td>
+<td>1058000.0</td>
+<td>2490.6</td>
+<td>44.8</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-06-01</th>
+<td>7450.032857</td>
+<td>0.659524</td>
+<td>6962.5</td>
+<td>1374.0</td>
+<td>1427.0</td>
+<td>335418.0</td>
+<td>276997.0</td>
+<td>41.7</td>
+<td>890000.0</td>
+<td>2501.6</td>
+<td>49.5</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2026-07-01</th>
+<td>7481.339091</td>
+<td>0.732727</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>41.7</td>
+<td>813000.0</td>
+<td>2505.0</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2026-08-01</th>
+<td>7734.273000</td>
+<td>0.787000</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>409000.0</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-coverage" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>coverage <span class="op">=</span> monthly.notna().<span class="bu">sum</span>().sort_values()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">4.5</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ax.barh(coverage.index, coverage.values, color<span class="op">=</span>UNLV_SCARLET, alpha<span class="op">=</span><span class="fl">0.85</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"months of data"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"How much history do we actually have?"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> y, v <span class="kw">in</span> <span class="bu">enumerate</span>(coverage.values):</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    ax.text(v, y, <span class="ss">f" </span><span class="sc">{</span>v<span class="sc">:,}</span><span class="ss">"</span>, va<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span>UNLV_GRAY)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>ax.grid(axis<span class="op">=</span><span class="st">"y"</span>, visible<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="coverage" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="lecture_notes-4050-models-with-economic-indicators_files/figure-html/coverage-output-1.png" width="1191" height="665" class="figure-img"></p>
+<figcaption>Non-missing observations by series, monthly frequency.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The complete-case sample — the rows where <em>every</em> series is present — is the binding constraint on any model that uses all of them at once:</p>
+<div id="complete-cases" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>complete <span class="op">=</span> monthly.dropna()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(complete):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Complete cases: </span><span class="sc">{</span><span class="bu">len</span>(complete)<span class="sc">:,}</span><span class="ss"> months "</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"(</span><span class="sc">{</span>complete<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>complete<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"No month has all series present."</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Longest common window if we drop the shortest series:"</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>trimmed <span class="op">=</span> monthly.drop(columns<span class="op">=</span>[coverage.index[<span class="dv">0</span>]]).dropna()</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(trimmed):</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="bu">len</span>(trimmed)<span class="sc">:,}</span><span class="ss"> months "</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"(</span><span class="sc">{</span>trimmed<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>trimmed<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Complete cases: 43 months (2016-08-01 to 2020-02-01)
+
+Longest common window if we drop the shortest series:
+  337 months (1992-02-01 to 2020-02-01)</code></pre>
+</div>
+</div>
+</section>
+<section id="looking-at-the-indicators" class="level2">
+<h2 class="anchored" data-anchor-id="looking-at-the-indicators">Looking at the indicators</h2>
+<div id="cell-small-multiples" class="cell" data-fig-height="9" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> monthly[c].notna().<span class="bu">any</span>()]</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>ncol <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>nrow <span class="op">=</span> <span class="op">-</span>(<span class="op">-</span><span class="bu">len</span>(cols) <span class="op">//</span> ncol)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(nrow, ncol, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">2.3</span> <span class="op">*</span> nrow), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> axes.ravel()</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, sid <span class="kw">in</span> <span class="bu">zip</span>(axes, cols):</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> monthly[sid].dropna()</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    ax.plot(s.index, s.values, color<span class="op">=</span>UNLV_SCARLET)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>sid<span class="sc">}</span><span class="ss"> — </span><span class="sc">{</span>fred_series[sid][<span class="st">'label'</span>]<span class="sc">}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="fl">8.5</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    ax.tick_params(labelsize<span class="op">=</span><span class="dv">7</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="bu">len</span>(cols):]:</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    ax.set_visible(<span class="va">False</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="small-multiples" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="lecture_notes-4050-models-with-economic-indicators_files/figure-html/small-multiples-output-1.png" width="1631" height="1369" class="figure-img"></p>
+<figcaption>Leading indicators, monthly. Note the differing vertical scales and start dates.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Plotted on a common time axis, the differing start dates are obvious in a way the status table only hinted at. Several of these series simply do not exist for the early part of the window.</p>
+<div id="cell-correlations" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How you measure "change" depends on what the series is.</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># A percent change is only meaningful for a quantity that cannot be zero or</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># negative. T10Y3M is a SPREAD: it crosses zero every time the yield curve</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># inverts. A spread moving from -0.10 to +0.10 is not a "200% decline" -- that</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># figure is arithmetic nonsense, and dividing by a value at or near zero</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># produces infinities that poison everything downstream.</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co"># For series that can cross zero, the meaningful change is a simple</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># difference, in the series' own units.</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>crosses_zero <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> (monthly[c].dropna() <span class="op">&lt;=</span> <span class="dv">0</span>).<span class="bu">any</span>()]</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>changes <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>monthly.index)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> monthly.columns:</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> col <span class="kw">in</span> crosses_zero:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        changes[col] <span class="op">=</span> monthly[col].diff()</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>        changes[col] <span class="op">=</span> monthly[col].pct_change(fill_method<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>changes <span class="op">=</span> changes.replace([<span class="bu">float</span>(<span class="st">"inf"</span>), <span class="bu">float</span>(<span class="st">"-inf"</span>)], <span class="bu">float</span>(<span class="st">"nan"</span>))</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Percent changes : </span><span class="sc">{</span>[c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> crosses_zero]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Differences     : </span><span class="sc">{</span>crosses_zero<span class="sc">}</span><span class="ss">  (these cross zero)"</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> changes.corr(min_periods<span class="op">=</span><span class="dv">24</span>)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">6.5</span>))</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(corr.values, cmap<span class="op">=</span><span class="st">"RdBu_r"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="bu">len</span>(corr)), corr.columns, rotation<span class="op">=</span><span class="dv">90</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="bu">len</span>(corr)), corr.index, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>ax.grid(visible<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(corr)):</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(corr)):</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> corr.values[i, j]</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pd.notna(v):</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>            ax.text(j, i, <span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:.2f}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">"center"</span>, va<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="fl">6.5</span>,</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span><span class="st">"white"</span> <span class="cf">if</span> <span class="bu">abs</span>(v) <span class="op">&gt;</span> <span class="fl">0.55</span> <span class="cf">else</span> <span class="st">"#333333"</span>)</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax, shrink<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">"correlation"</span>)</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Correlation of monthly percent changes"</span>)</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Percent changes : ['SP500', 'M2REAL', 'PERMIT', 'HOUST', 'DGORDER', 'UCOGNO', 'AWHMAN', 'ICSA', 'TEMPHELPS', 'UMCSENT']
+Differences     : ['T10Y3M', 'USSLIND']  (these cross zero)</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div id="correlations" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="lecture_notes-4050-models-with-economic-indicators_files/figure-html/correlations-output-2.png" width="1100" height="948" class="figure-img"></p>
+<figcaption>Pairwise correlation of month-over-month changes, complete cases only.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Correlating the <em>changes</em> rather than the levels matters here. Most of these series trend, and correlating trending levels will report near-perfect relationships between quantities that have nothing to do with one another.</p>
+<p>But “change” is not one thing. For an index or a level that stays positive, a percent change is the natural measure. For a <strong>spread</strong>, it is meaningless: <code>T10Y3M</code> is the gap between two yields and it goes negative whenever the curve inverts. Ask for a percent change there and you get figures like “-200%” for a move from -0.10 to +0.10, plus an infinity every time the denominator touches zero. One bad column is enough to make the entire correlation matrix uncomputable.</p>
+<div class="scarlet">
+<p>Before transforming a variable, ask what it measures. A ratio, a level, a spread, and a count do not all admit the same operations, and the code will not stop you from applying the wrong one.</p>
+</div>
+</section>
+<section id="what-to-take-from-this" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-take-from-this">What to take from this</h2>
+<ol type="1">
+<li>The series IDs are the easy part. Reconciling <strong>frequency</strong> and <strong>coverage</strong> is where the actual work is, and it is invisible until you download.</li>
+<li><code>start=</code> is a request, not a promise. Always verify the window you got.</li>
+<li>Aggregate flows by summing and levels by averaging — the choice is determined by what the series measures, not by convenience.</li>
+<li>Correlate changes, not levels, unless you have a reason to do otherwise.</li>
+</ol>
+<!-- -->
+
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const cellDetails = window.document.querySelectorAll(".cell details.code-fold");
+        for (let i=0; i<cellDetails.length; i++) {
+          const details = cellDetails[i];
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell div.sourceCode.cell-code");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Models with Economic Indicators"</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">  - "Dr. Skip Crooker"</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">  - "MBA 775"</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">  - "University of Nevada, Las Vegas"</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> today</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="an">date-format:</span><span class="co"> "dddd, MMMM D, YYYY"</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># fred_tools.py lives in tools/. Quarto runs chunks from the repository root</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co"># (execute-dir: project in _quarto.yml), so add that folder to the import path.</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="st">"tools"</span>)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib <span class="im">as</span> mpl</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> fred_tools</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fred_tools <span class="im">import</span> fred_frame</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep an unmodified copy of every download in data/raw/ and reuse it on later</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a><span class="co"># renders, so this note re-renders quickly and identically.</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>fred_tools.set_cache_dir(<span class="st">"data/raw"</span>)</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>)</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.max_rows"</span>, <span class="dv">25</span>)</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.width"</span>, <span class="dv">120</span>)</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>UNLV_SCARLET <span class="op">=</span> <span class="st">"#a03123"</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>UNLV_GRAY <span class="op">=</span> <span class="st">"#666666"</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>mpl.rcParams.update({</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.facecolor"</span>: <span class="st">"white"</span>,</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.facecolor"</span>: <span class="st">"white"</span>,</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.edgecolor"</span>: UNLV_GRAY,</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlecolor"</span>: UNLV_SCARLET,</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titlesize"</span>: <span class="dv">11</span>,</span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.titleweight"</span>: <span class="st">"600"</span>,</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.labelcolor"</span>: UNLV_GRAY,</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.top"</span>: <span class="va">False</span>,</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xtick.color"</span>: UNLV_GRAY,</span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ytick.color"</span>: UNLV_GRAY,</span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>    <span class="st">"grid.color"</span>: <span class="st">"#e6e6e6"</span>,</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>,</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>    <span class="st">"font.size"</span>: <span class="dv">9</span>,</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lines.linewidth"</span>: <span class="fl">1.4</span>,</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>**AI Prompt**</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>Can you provide a list of commonly used economic indicators by economic</span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>forecasters? Please display the list in a table and group the indicators by</span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>their indicator grouping (e.g., Financial, Real Economy, Labor Market,</span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>Sentiment and Composite).</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Category**                    | **Leading Indicators**                                                                                                                                                                   <span class="pp">|</span></span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------------------|---------------------------------------------------|</span></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Financial Market Indicators** <span class="pp">|</span> - Stock Market Indexes (e.g., S&amp;P 500) <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Interest Rate Spreads (Yield Curve Slope) <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Money Supply (M2, inflation-adjusted)                                                      <span class="pp">|</span></span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Real Economy Indicators**     <span class="pp">|</span> - Housing Permits and Starts <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - New Orders for Durable Goods <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Manufacturers' New Orders for Consumer Goods &amp; Materials <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Average Weekly Hours in Manufacturing             <span class="pp">|</span></span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Labor Market Indicators**     <span class="pp">|</span> - Initial Claims for Unemployment Insurance <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Temporary Help Employment                                                                                                             <span class="pp">|</span></span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Sentiment Indicators**        <span class="pp">|</span> - Consumer Confidence &amp; Expectations <span class="dt">&lt;</span><span class="kw">br</span><span class="dt">&gt;</span> - Purchasing Managers' Index (PMI) / ISM New Orders                                                                                             <span class="pp">|</span></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Composite Measures**          <span class="pp">|</span> - Conference Board Leading Economic Index (LEI)                                                                                                                                          <span class="pp">|</span></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a><span class="fu">## Naming the series on FRED</span></span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a>**AI Prompt**</span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>Can you help me identify these leading market indicator time series variable</span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>names as used on the St. Louis Federal Reserve Economic Database website?</span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>Please prepare them as a **Python** dictionary I can use in my script. I will</span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a>download these variables from FRED's public CSV endpoint, and I also want each</span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a>entry to record the series' publication frequency, because I will have to</span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a>reconcile daily, weekly, and monthly data before I can model with them.</span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a>The R version of this note stored the series IDs in a named character vector</span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a>and downloaded them with <span class="in">`quantmod::getSymbols()`</span>. In Python we use a</span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a>dictionary of dictionaries so that each series carries its own metadata. The</span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a>frequency field is not decoration — it is the thing that will bite us in a few</span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a>cells.</span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: symbols</span></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a>fred_series <span class="op">=</span> {</span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Financial Market ------------------------------------------------</span></span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a>    <span class="st">"SP500"</span>:     {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"D"</span>, <span class="st">"label"</span>: <span class="st">"S&amp;P 500 index"</span>},</span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a>    <span class="st">"T10Y3M"</span>:    {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"D"</span>, <span class="st">"label"</span>: <span class="st">"10Y - 3M Treasury spread"</span>},</span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a>    <span class="st">"M2REAL"</span>:    {<span class="st">"group"</span>: <span class="st">"Financial"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Real M2 money stock"</span>},</span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Housing / Real Economy ------------------------------------------</span></span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a>    <span class="st">"PERMIT"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Building permits (SAAR)"</span>},</span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a>    <span class="st">"HOUST"</span>:     {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Housing starts (SAAR)"</span>},</span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DGORDER"</span>:   {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"New orders: durable goods"</span>},</span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UCOGNO"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"New orders: consumer goods"</span>},</span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a>    <span class="st">"AWHMAN"</span>:    {<span class="st">"group"</span>: <span class="st">"Real"</span>,       <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Avg weekly hours, mfg"</span>},</span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Labor Market -----------------------------------------------------</span></span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ICSA"</span>:      {<span class="st">"group"</span>: <span class="st">"Labor"</span>,      <span class="st">"freq"</span>: <span class="st">"W"</span>, <span class="st">"label"</span>: <span class="st">"Initial jobless claims (SA)"</span>},</span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"TEMPHELPS"</span>: {<span class="st">"group"</span>: <span class="st">"Labor"</span>,      <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Temporary help services (SA)"</span>},</span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Sentiment --------------------------------------------------------</span></span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UMCSENT"</span>:   {<span class="st">"group"</span>: <span class="st">"Sentiment"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"U. Michigan consumer sentiment"</span>},</span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Composite --------------------------------------------------------</span></span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a>    <span class="st">"USSLIND"</span>:   {<span class="st">"group"</span>: <span class="st">"Composite"</span>,  <span class="st">"freq"</span>: <span class="st">"M"</span>, <span class="st">"label"</span>: <span class="st">"Leading Index for the U.S."</span>},</span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a>catalog <span class="op">=</span> pd.DataFrame(fred_series).T</span>
+<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a>catalog.index.name <span class="op">=</span> <span class="st">"series_id"</span></span>
+<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a>catalog</span>
+<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a><span class="fu">## Downloading from FRED</span></span>
+<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a>FRED publishes every series at a public CSV endpoint that needs no API key, and</span>
+<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a>the course module <span class="in">`fred_tools.py`</span> wraps it. We use <span class="in">`fred_frame`</span>, which fetches</span>
+<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a>each series **independently** and reports what happened. That matters: a single</span>
+<span id="cb14-139"><a href="#cb14-139" aria-hidden="true" tabindex="-1"></a>bulk request for a dozen identifiers fails entirely if any one of them is</span>
+<span id="cb14-140"><a href="#cb14-140" aria-hidden="true" tabindex="-1"></a>misspelled or retired, which is a poor way to learn that one identifier was</span>
+<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a>wrong.</span>
+<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: download</span></span>
+<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a>START <span class="op">=</span> <span class="st">"1990-01-01"</span></span>
+<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a>raw, status <span class="op">=</span> fred_frame(fred_series.keys(), start<span class="op">=</span>START)</span>
+<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a>status.drop(columns<span class="op">=</span>[<span class="st">"detail"</span>])</span>
+<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a>Two things in that table are worth stopping on.</span>
+<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a>First, check the <span class="in">`first`</span> column against the <span class="in">`START`</span> date we asked for. We</span>
+<span id="cb14-157"><a href="#cb14-157" aria-hidden="true" tabindex="-1"></a>requested 1990, but FRED does not serve 1990 for every series — <span class="in">`SP500`</span>, for</span>
+<span id="cb14-158"><a href="#cb14-158" aria-hidden="true" tabindex="-1"></a>instance, is only distributed with a rolling ten-year window. **The start date</span>
+<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a>you request is a ceiling, not a guarantee**, and a model that silently uses</span>
+<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a>whatever it got back will be fit on a much shorter sample than you intended.</span>
+<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a>Second, any row marked <span class="in">`FAILED`</span> is a series that FRED no longer publishes</span>
+<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a>under that ID. Retired IDs are a normal fact of life with FRED, and the reason</span>
+<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a><span class="in">`fred_frame`</span> fetches one at a time instead of making one bulk call. The</span>
+<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a><span class="in">`detail`</span> column, which we hid above, carries the specific error for each.</span>
+<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: raw-frame</span></span>
+<span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-172"><a href="#cb14-172" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>raw<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss"> rows x </span><span class="sc">{</span>raw<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> series"</span>)</span>
+<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Index spans </span><span class="sc">{</span>raw<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>raw<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a>raw.tail(<span class="dv">8</span>)</span>
+<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a>That tail looks alarming — almost every cell is <span class="in">`NaN`</span>. It is not an error. It</span>
+<span id="cb14-178"><a href="#cb14-178" aria-hidden="true" tabindex="-1"></a>is what an outer join across mixed publication frequencies looks like: the</span>
+<span id="cb14-179"><a href="#cb14-179" aria-hidden="true" tabindex="-1"></a>daily series create a row for every business day, and the monthly series have</span>
+<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a>a value on only one of those rows per month.</span>
+<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reconciling the frequencies</span></span>
+<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a>This is the step the R note never had to confront, because it stopped before</span>
+<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a>downloading. Any model using these indicators together needs them on one</span>
+<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a>clock. The defensible choice is to step *down* to the slowest frequency —</span>
+<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a>monthly — rather than forward-filling monthly data onto daily rows, which</span>
+<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a>would fabricate precision the source data does not have.</span>
+<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a>How you aggregate depends on what the series measures:</span>
+<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Levels and indexes** (<span class="in">`SP500`</span>, <span class="in">`T10Y3M`</span>, <span class="in">`UMCSENT`</span>, <span class="in">`AWHMAN`</span>) — take the</span>
+<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a>  monthly *mean*, which is the standard convention for converting a</span>
+<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a>  high-frequency level to a monthly observation.</span>
+<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Flows** (<span class="in">`ICSA`</span>, initial claims) — these are counts accumulated over a</span>
+<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a>  week, so a monthly *sum* is the meaningful aggregate.</span>
+<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Already monthly** — leave alone.</span>
+<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: monthly</span></span>
+<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a>SUM_SERIES <span class="op">=</span> {<span class="st">"ICSA"</span>}</span>
+<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a>available <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> raw.columns]</span>
+<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>raw.resample(<span class="st">"MS"</span>).mean().index)</span>
+<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sid <span class="kw">in</span> available:</span>
+<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> raw[sid].dropna()</span>
+<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> fred_series[sid][<span class="st">"freq"</span>] <span class="op">==</span> <span class="st">"M"</span>:</span>
+<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).last()</span>
+<span id="cb14-213"><a href="#cb14-213" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> sid <span class="kw">in</span> SUM_SERIES:</span>
+<span id="cb14-214"><a href="#cb14-214" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).<span class="bu">sum</span>()</span>
+<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> s.resample(<span class="st">"MS"</span>).mean()</span>
+<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a>    monthly[sid] <span class="op">=</span> m</span>
+<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-219"><a href="#cb14-219" aria-hidden="true" tabindex="-1"></a>monthly <span class="op">=</span> monthly.dropna(how<span class="op">=</span><span class="st">"all"</span>)</span>
+<span id="cb14-220"><a href="#cb14-220" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>monthly<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">:,}</span><span class="ss"> monthly rows x </span><span class="sc">{</span>monthly<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> series"</span>)</span>
+<span id="cb14-221"><a href="#cb14-221" aria-hidden="true" tabindex="-1"></a>monthly.tail(<span class="dv">6</span>)</span>
+<span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coverage</span></span>
+<span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Non-missing observations by series, monthly frequency."</span></span>
+<span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a>coverage <span class="op">=</span> monthly.notna().<span class="bu">sum</span>().sort_values()</span>
+<span id="cb14-231"><a href="#cb14-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-232"><a href="#cb14-232" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">4.5</span>))</span>
+<span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a>ax.barh(coverage.index, coverage.values, color<span class="op">=</span>UNLV_SCARLET, alpha<span class="op">=</span><span class="fl">0.85</span>)</span>
+<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"months of data"</span>)</span>
+<span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"How much history do we actually have?"</span>)</span>
+<span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> y, v <span class="kw">in</span> <span class="bu">enumerate</span>(coverage.values):</span>
+<span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a>    ax.text(v, y, <span class="ss">f" </span><span class="sc">{</span>v<span class="sc">:,}</span><span class="ss">"</span>, va<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span>UNLV_GRAY)</span>
+<span id="cb14-238"><a href="#cb14-238" aria-hidden="true" tabindex="-1"></a>ax.grid(axis<span class="op">=</span><span class="st">"y"</span>, visible<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-239"><a href="#cb14-239" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb14-240"><a href="#cb14-240" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-241"><a href="#cb14-241" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-242"><a href="#cb14-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-243"><a href="#cb14-243" aria-hidden="true" tabindex="-1"></a>The complete-case sample — the rows where *every* series is present — is the</span>
+<span id="cb14-244"><a href="#cb14-244" aria-hidden="true" tabindex="-1"></a>binding constraint on any model that uses all of them at once:</span>
+<span id="cb14-245"><a href="#cb14-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-248"><a href="#cb14-248" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-249"><a href="#cb14-249" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: complete-cases</span></span>
+<span id="cb14-250"><a href="#cb14-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-251"><a href="#cb14-251" aria-hidden="true" tabindex="-1"></a>complete <span class="op">=</span> monthly.dropna()</span>
+<span id="cb14-252"><a href="#cb14-252" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(complete):</span>
+<span id="cb14-253"><a href="#cb14-253" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Complete cases: </span><span class="sc">{</span><span class="bu">len</span>(complete)<span class="sc">:,}</span><span class="ss"> months "</span></span>
+<span id="cb14-254"><a href="#cb14-254" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"(</span><span class="sc">{</span>complete<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>complete<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb14-255"><a href="#cb14-255" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-256"><a href="#cb14-256" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"No month has all series present."</span>)</span>
+<span id="cb14-257"><a href="#cb14-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-258"><a href="#cb14-258" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Longest common window if we drop the shortest series:"</span>)</span>
+<span id="cb14-259"><a href="#cb14-259" aria-hidden="true" tabindex="-1"></a>trimmed <span class="op">=</span> monthly.drop(columns<span class="op">=</span>[coverage.index[<span class="dv">0</span>]]).dropna()</span>
+<span id="cb14-260"><a href="#cb14-260" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">len</span>(trimmed):</span>
+<span id="cb14-261"><a href="#cb14-261" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="bu">len</span>(trimmed)<span class="sc">:,}</span><span class="ss"> months "</span></span>
+<span id="cb14-262"><a href="#cb14-262" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"(</span><span class="sc">{</span>trimmed<span class="sc">.</span>index<span class="sc">.</span><span class="bu">min</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss"> to </span><span class="sc">{</span>trimmed<span class="sc">.</span>index<span class="sc">.</span><span class="bu">max</span>()<span class="sc">.</span>date()<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb14-263"><a href="#cb14-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-264"><a href="#cb14-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-265"><a href="#cb14-265" aria-hidden="true" tabindex="-1"></a><span class="fu">## Looking at the indicators</span></span>
+<span id="cb14-266"><a href="#cb14-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-269"><a href="#cb14-269" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-270"><a href="#cb14-270" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: small-multiples</span></span>
+<span id="cb14-271"><a href="#cb14-271" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Leading indicators, monthly. Note the differing vertical scales and start dates."</span></span>
+<span id="cb14-272"><a href="#cb14-272" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 9</span></span>
+<span id="cb14-273"><a href="#cb14-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a>cols <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> monthly[c].notna().<span class="bu">any</span>()]</span>
+<span id="cb14-275"><a href="#cb14-275" aria-hidden="true" tabindex="-1"></a>ncol <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb14-276"><a href="#cb14-276" aria-hidden="true" tabindex="-1"></a>nrow <span class="op">=</span> <span class="op">-</span>(<span class="op">-</span><span class="bu">len</span>(cols) <span class="op">//</span> ncol)</span>
+<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(nrow, ncol, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="fl">2.3</span> <span class="op">*</span> nrow), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a>axes <span class="op">=</span> axes.ravel()</span>
+<span id="cb14-280"><a href="#cb14-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-281"><a href="#cb14-281" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, sid <span class="kw">in</span> <span class="bu">zip</span>(axes, cols):</span>
+<span id="cb14-282"><a href="#cb14-282" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> monthly[sid].dropna()</span>
+<span id="cb14-283"><a href="#cb14-283" aria-hidden="true" tabindex="-1"></a>    ax.plot(s.index, s.values, color<span class="op">=</span>UNLV_SCARLET)</span>
+<span id="cb14-284"><a href="#cb14-284" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>sid<span class="sc">}</span><span class="ss"> — </span><span class="sc">{</span>fred_series[sid][<span class="st">'label'</span>]<span class="sc">}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="fl">8.5</span>)</span>
+<span id="cb14-285"><a href="#cb14-285" aria-hidden="true" tabindex="-1"></a>    ax.tick_params(labelsize<span class="op">=</span><span class="dv">7</span>)</span>
+<span id="cb14-286"><a href="#cb14-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-287"><a href="#cb14-287" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="bu">len</span>(cols):]:</span>
+<span id="cb14-288"><a href="#cb14-288" aria-hidden="true" tabindex="-1"></a>    ax.set_visible(<span class="va">False</span>)</span>
+<span id="cb14-289"><a href="#cb14-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-290"><a href="#cb14-290" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb14-291"><a href="#cb14-291" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-292"><a href="#cb14-292" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-293"><a href="#cb14-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-294"><a href="#cb14-294" aria-hidden="true" tabindex="-1"></a>Plotted on a common time axis, the differing start dates are obvious in a way</span>
+<span id="cb14-295"><a href="#cb14-295" aria-hidden="true" tabindex="-1"></a>the status table only hinted at. Several of these series simply do not exist</span>
+<span id="cb14-296"><a href="#cb14-296" aria-hidden="true" tabindex="-1"></a>for the early part of the window.</span>
+<span id="cb14-297"><a href="#cb14-297" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-300"><a href="#cb14-300" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: correlations</span></span>
+<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Pairwise correlation of month-over-month changes, complete cases only."</span></span>
+<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a><span class="co"># How you measure "change" depends on what the series is.</span></span>
+<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a><span class="co"># A percent change is only meaningful for a quantity that cannot be zero or</span></span>
+<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a><span class="co"># negative. T10Y3M is a SPREAD: it crosses zero every time the yield curve</span></span>
+<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a><span class="co"># inverts. A spread moving from -0.10 to +0.10 is not a "200% decline" -- that</span></span>
+<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a><span class="co"># figure is arithmetic nonsense, and dividing by a value at or near zero</span></span>
+<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a><span class="co"># produces infinities that poison everything downstream.</span></span>
+<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a><span class="co"># For series that can cross zero, the meaningful change is a simple</span></span>
+<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a><span class="co"># difference, in the series' own units.</span></span>
+<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>crosses_zero <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> (monthly[c].dropna() <span class="op">&lt;=</span> <span class="dv">0</span>).<span class="bu">any</span>()]</span>
+<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a>changes <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>monthly.index)</span>
+<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> monthly.columns:</span>
+<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> col <span class="kw">in</span> crosses_zero:</span>
+<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a>        changes[col] <span class="op">=</span> monthly[col].diff()</span>
+<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a>        changes[col] <span class="op">=</span> monthly[col].pct_change(fill_method<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a>changes <span class="op">=</span> changes.replace([<span class="bu">float</span>(<span class="st">"inf"</span>), <span class="bu">float</span>(<span class="st">"-inf"</span>)], <span class="bu">float</span>(<span class="st">"nan"</span>))</span>
+<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Percent changes : </span><span class="sc">{</span>[c <span class="cf">for</span> c <span class="kw">in</span> monthly.columns <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> crosses_zero]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Differences     : </span><span class="sc">{</span>crosses_zero<span class="sc">}</span><span class="ss">  (these cross zero)"</span>)</span>
+<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> changes.corr(min_periods<span class="op">=</span><span class="dv">24</span>)</span>
+<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">7.5</span>, <span class="fl">6.5</span>))</span>
+<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(corr.values, cmap<span class="op">=</span><span class="st">"RdBu_r"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="bu">len</span>(corr)), corr.columns, rotation<span class="op">=</span><span class="dv">90</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="bu">len</span>(corr)), corr.index, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a>ax.grid(visible<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(corr)):</span>
+<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(corr)):</span>
+<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> corr.values[i, j]</span>
+<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> pd.notna(v):</span>
+<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a>            ax.text(j, i, <span class="ss">f"</span><span class="sc">{</span>v<span class="sc">:.2f}</span><span class="ss">"</span>, ha<span class="op">=</span><span class="st">"center"</span>, va<span class="op">=</span><span class="st">"center"</span>, fontsize<span class="op">=</span><span class="fl">6.5</span>,</span>
+<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span><span class="st">"white"</span> <span class="cf">if</span> <span class="bu">abs</span>(v) <span class="op">&gt;</span> <span class="fl">0.55</span> <span class="cf">else</span> <span class="st">"#333333"</span>)</span>
+<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a>fig.colorbar(im, ax<span class="op">=</span>ax, shrink<span class="op">=</span><span class="fl">0.8</span>, label<span class="op">=</span><span class="st">"correlation"</span>)</span>
+<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Correlation of monthly percent changes"</span>)</span>
+<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a>Correlating the *changes* rather than the levels matters here. Most of these</span>
+<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a>series trend, and correlating trending levels will report near-perfect</span>
+<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a>relationships between quantities that have nothing to do with one another.</span>
+<span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a>But "change" is not one thing. For an index or a level that stays positive, a</span>
+<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a>percent change is the natural measure. For a **spread**, it is meaningless:</span>
+<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a><span class="in">`T10Y3M`</span> is the gap between two yields and it goes negative whenever the curve</span>
+<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a>inverts. Ask for a percent change there and you get figures like "-200%" for a</span>
+<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a>move from -0.10 to +0.10, plus an infinity every time the denominator touches</span>
+<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a>zero. One bad column is enough to make the entire correlation matrix</span>
+<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a>uncomputable.</span>
+<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb14-360"><a href="#cb14-360" aria-hidden="true" tabindex="-1"></a>Before transforming a variable, ask what it measures. A ratio, a level, a</span>
+<span id="cb14-361"><a href="#cb14-361" aria-hidden="true" tabindex="-1"></a>spread, and a count do not all admit the same operations, and the code will</span>
+<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a>not stop you from applying the wrong one.</span>
+<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a><span class="fu">## What to take from this</span></span>
+<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The series IDs are the easy part. Reconciling **frequency** and</span>
+<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a>   **coverage** is where the actual work is, and it is invisible until you</span>
+<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a>   download.</span>
+<span id="cb14-370"><a href="#cb14-370" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span><span class="in">`start=`</span> is a request, not a promise. Always verify the window you got.</span>
+<span id="cb14-371"><a href="#cb14-371" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Aggregate flows by summing and levels by averaging — the choice is</span>
+<span id="cb14-372"><a href="#cb14-372" aria-hidden="true" tabindex="-1"></a>   determined by what the series measures, not by convenience.</span>
+<span id="cb14-373"><a href="#cb14-373" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Correlate changes, not levels, unless you have a reason to do otherwise.</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -13,6 +13,12 @@ jupyter: python3
 #| label: setup
 #| include: false
 
+import sys
+
+# fred_tools.py lives in tools/. Quarto runs chunks from the repository root
+# (execute-dir: project in _quarto.yml), so add that folder to the import path.
+sys.path.insert(0, "tools")
+
 import warnings
 
 import matplotlib as mpl
@@ -277,7 +283,30 @@ for the early part of the window.
 #| label: correlations
 #| fig-cap: "Pairwise correlation of month-over-month changes, complete cases only."
 
-changes = monthly.pct_change(fill_method=None).replace([float("inf"), float("-inf")], pd.NA)
+# How you measure "change" depends on what the series is.
+#
+# A percent change is only meaningful for a quantity that cannot be zero or
+# negative. T10Y3M is a SPREAD: it crosses zero every time the yield curve
+# inverts. A spread moving from -0.10 to +0.10 is not a "200% decline" -- that
+# figure is arithmetic nonsense, and dividing by a value at or near zero
+# produces infinities that poison everything downstream.
+#
+# For series that can cross zero, the meaningful change is a simple
+# difference, in the series' own units.
+crosses_zero = [c for c in monthly.columns if (monthly[c].dropna() <= 0).any()]
+
+changes = pd.DataFrame(index=monthly.index)
+for col in monthly.columns:
+    if col in crosses_zero:
+        changes[col] = monthly[col].diff()
+    else:
+        changes[col] = monthly[col].pct_change(fill_method=None)
+
+changes = changes.replace([float("inf"), float("-inf")], float("nan"))
+
+print(f"Percent changes : {[c for c in monthly.columns if c not in crosses_zero]}")
+print(f"Differences     : {crosses_zero}  (these cross zero)")
+
 corr = changes.corr(min_periods=24)
 
 fig, ax = plt.subplots(figsize=(7.5, 6.5))
@@ -300,6 +329,20 @@ plt.show()
 Correlating the *changes* rather than the levels matters here. Most of these
 series trend, and correlating trending levels will report near-perfect
 relationships between quantities that have nothing to do with one another.
+
+But "change" is not one thing. For an index or a level that stays positive, a
+percent change is the natural measure. For a **spread**, it is meaningless:
+`T10Y3M` is the gap between two yields and it goes negative whenever the curve
+inverts. Ask for a percent change there and you get figures like "-200%" for a
+move from -0.10 to +0.10, plus an infinity every time the denominator touches
+zero. One bad column is enough to make the entire correlation matrix
+uncomputable.
+
+::: {.scarlet}
+Before transforming a variable, ask what it measures. A ratio, a level, a
+spread, and a count do not all admit the same operations, and the code will
+not stop you from applying the wrong one.
+:::
 
 ## What to take from this
 
