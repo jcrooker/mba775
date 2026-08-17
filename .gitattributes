@@ -1,0 +1,27 @@
+# Normalize line endings so the repository is byte-identical regardless of who
+# commits from which platform. Without this, Windows checkouts rewrite every
+# text file to CRLF and diffs fill with phantom changes.
+* text=auto eol=lf
+
+# Be explicit about the formats this course ships, so a student downloading a
+# raw file always gets the same bytes.
+*.csv   text eol=lf
+*.py    text eol=lf
+*.R     text eol=lf
+*.qmd   text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.scss  text eol=lf
+*.html  text eol=lf
+*.js    text eol=lf
+
+# Binary assets must never be touched.
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.zip   binary
+*.xlsx  binary
