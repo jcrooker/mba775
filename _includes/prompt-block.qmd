@@ -1,0 +1,12 @@
+::: {.scarlet}
+**Run this with Claude**
+
+Download `{{< meta script >}}` and `{{< meta datafile >}}` from the
+[course repository](https://github.com/jcrooker/mba775), upload both to Claude
+along with `COURSE_CONTEXT.md`, and paste this:
+
+> Here is a Python script from MBA 775 and the data file it reads. Run the
+> script and show me its actual output. Then walk me through what each section
+> does and what the results mean. Do not report any number you did not
+> compute. If anything fails, show me the error rather than working around it.
+:::

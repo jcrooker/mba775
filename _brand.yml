@@ -1,0 +1,33 @@
+meta:
+  name: UNLV MBA 775
+  link:
+    home: https://www.unlv.edu
+
+color:
+  palette:
+    unlv-scarlet: "#a03123"
+    unlv-gray: "#666666"
+    unlv-light: "#f7f2f1"
+  primary: unlv-scarlet
+  secondary: unlv-gray
+  foreground: "#1a1a1a"
+  background: "#ffffff"
+
+typography:
+  fonts:
+    - family: Source Sans Pro
+      source: google
+    - family: Source Code Pro
+      source: google
+  base:
+    family: Source Sans Pro
+    size: 17px
+  headings:
+    family: Source Sans Pro
+    weight: 600
+    color: unlv-scarlet
+  monospace:
+    family: Source Code Pro
+    size: 0.85em
+  link:
+    color: unlv-scarlet

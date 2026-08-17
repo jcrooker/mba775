@@ -216,3 +216,39 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---------------------------------------------------------------------------
+# Quarto
+# ---------------------------------------------------------------------------
+/.quarto/
+_freeze/
+*_files/
+*.quarto_ipynb
+
+# Rendered notes are published from docs/ -- keep that, ignore stray builds
+notes/*.html
+notes/*_files/
+
+# ---------------------------------------------------------------------------
+# R
+# ---------------------------------------------------------------------------
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# ---------------------------------------------------------------------------
+# Course specifics
+# ---------------------------------------------------------------------------
+# Raw FRED downloads are rebuilt by tools/seed_fred_cache.R. The tidy files in
+# data/ ARE committed -- students download those.
+data/raw/
+
+# Never commit credentials of any kind. There is no reason for a token to be
+# in this repository: it is public.
+config/
+*.pem
+*.key
+.env.*

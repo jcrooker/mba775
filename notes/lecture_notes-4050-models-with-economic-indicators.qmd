@@ -1,0 +1,312 @@
+---
+title: "Models with Economic Indicators"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import warnings
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
+
+import fred_tools
+from fred_tools import fred_frame
+
+# Keep an unmodified copy of every download in data/raw/ and reuse it on later
+# renders, so this note re-renders quickly and identically.
+fred_tools.set_cache_dir("data/raw")
+
+warnings.filterwarnings("ignore")
+
+pd.set_option("display.max_rows", 25)
+pd.set_option("display.width", 120)
+
+UNLV_SCARLET = "#a03123"
+UNLV_GRAY = "#666666"
+
+mpl.rcParams.update({
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+    "axes.edgecolor": UNLV_GRAY,
+    "axes.titlecolor": UNLV_SCARLET,
+    "axes.titlesize": 11,
+    "axes.titleweight": "600",
+    "axes.labelcolor": UNLV_GRAY,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "xtick.color": UNLV_GRAY,
+    "ytick.color": UNLV_GRAY,
+    "grid.color": "#e6e6e6",
+    "axes.grid": True,
+    "font.size": 9,
+    "lines.linewidth": 1.4,
+})
+```
+
+::: {.scarlet}
+**AI Prompt**
+
+Can you provide a list of commonly used economic indicators by economic
+forecasters? Please display the list in a table and group the indicators by
+their indicator grouping (e.g., Financial, Real Economy, Labor Market,
+Sentiment and Composite).
+:::
+
+| **Category**                    | **Leading Indicators**                                                                                                                                                                   |
+|---------------------|---------------------------------------------------|
+| **Financial Market Indicators** | - Stock Market Indexes (e.g., S&P 500) <br> - Interest Rate Spreads (Yield Curve Slope) <br> - Money Supply (M2, inflation-adjusted)                                                      |
+| **Real Economy Indicators**     | - Housing Permits and Starts <br> - New Orders for Durable Goods <br> - Manufacturers' New Orders for Consumer Goods & Materials <br> - Average Weekly Hours in Manufacturing             |
+| **Labor Market Indicators**     | - Initial Claims for Unemployment Insurance <br> - Temporary Help Employment                                                                                                             |
+| **Sentiment Indicators**        | - Consumer Confidence & Expectations <br> - Purchasing Managers' Index (PMI) / ISM New Orders                                                                                             |
+| **Composite Measures**          | - Conference Board Leading Economic Index (LEI)                                                                                                                                          |
+
+## Naming the series on FRED
+
+::: {.scarlet}
+**AI Prompt**
+
+Can you help me identify these leading market indicator time series variable
+names as used on the St. Louis Federal Reserve Economic Database website?
+Please prepare them as a **Python** dictionary I can use in my script. I will
+download these variables from FRED's public CSV endpoint, and I also want each
+entry to record the series' publication frequency, because I will have to
+reconcile daily, weekly, and monthly data before I can model with them.
+:::
+
+The R version of this note stored the series IDs in a named character vector
+and downloaded them with `quantmod::getSymbols()`. In Python we use a
+dictionary of dictionaries so that each series carries its own metadata. The
+frequency field is not decoration — it is the thing that will bite us in a few
+cells.
+
+```{python}
+#| label: symbols
+
+fred_series = {
+    # --- Financial Market ------------------------------------------------
+    "SP500":     {"group": "Financial",  "freq": "D", "label": "S&P 500 index"},
+    "T10Y3M":    {"group": "Financial",  "freq": "D", "label": "10Y - 3M Treasury spread"},
+    "M2REAL":    {"group": "Financial",  "freq": "M", "label": "Real M2 money stock"},
+
+    # --- Housing / Real Economy ------------------------------------------
+    "PERMIT":    {"group": "Real",       "freq": "M", "label": "Building permits (SAAR)"},
+    "HOUST":     {"group": "Real",       "freq": "M", "label": "Housing starts (SAAR)"},
+    "DGORDER":   {"group": "Real",       "freq": "M", "label": "New orders: durable goods"},
+    "UCOGNO":    {"group": "Real",       "freq": "M", "label": "New orders: consumer goods"},
+    "AWHMAN":    {"group": "Real",       "freq": "M", "label": "Avg weekly hours, mfg"},
+
+    # --- Labor Market -----------------------------------------------------
+    "ICSA":      {"group": "Labor",      "freq": "W", "label": "Initial jobless claims (SA)"},
+    "TEMPHELPS": {"group": "Labor",      "freq": "M", "label": "Temporary help services (SA)"},
+
+    # --- Sentiment --------------------------------------------------------
+    "UMCSENT":   {"group": "Sentiment",  "freq": "M", "label": "U. Michigan consumer sentiment"},
+
+    # --- Composite --------------------------------------------------------
+    "USSLIND":   {"group": "Composite",  "freq": "M", "label": "Leading Index for the U.S."},
+}
+
+catalog = pd.DataFrame(fred_series).T
+catalog.index.name = "series_id"
+catalog
+```
+
+## Downloading from FRED
+
+FRED publishes every series at a public CSV endpoint that needs no API key, and
+the course module `fred_tools.py` wraps it. We use `fred_frame`, which fetches
+each series **independently** and reports what happened. That matters: a single
+bulk request for a dozen identifiers fails entirely if any one of them is
+misspelled or retired, which is a poor way to learn that one identifier was
+wrong.
+
+```{python}
+#| label: download
+
+START = "1990-01-01"
+
+raw, status = fred_frame(fred_series.keys(), start=START)
+status.drop(columns=["detail"])
+```
+
+Two things in that table are worth stopping on.
+
+First, check the `first` column against the `START` date we asked for. We
+requested 1990, but FRED does not serve 1990 for every series — `SP500`, for
+instance, is only distributed with a rolling ten-year window. **The start date
+you request is a ceiling, not a guarantee**, and a model that silently uses
+whatever it got back will be fit on a much shorter sample than you intended.
+
+Second, any row marked `FAILED` is a series that FRED no longer publishes
+under that ID. Retired IDs are a normal fact of life with FRED, and the reason
+`fred_frame` fetches one at a time instead of making one bulk call. The
+`detail` column, which we hid above, carries the specific error for each.
+
+```{python}
+#| label: raw-frame
+
+print(f"{raw.shape[0]:,} rows x {raw.shape[1]} series")
+print(f"Index spans {raw.index.min().date()} to {raw.index.max().date()}")
+raw.tail(8)
+```
+
+That tail looks alarming — almost every cell is `NaN`. It is not an error. It
+is what an outer join across mixed publication frequencies looks like: the
+daily series create a row for every business day, and the monthly series have
+a value on only one of those rows per month.
+
+## Reconciling the frequencies
+
+This is the step the R note never had to confront, because it stopped before
+downloading. Any model using these indicators together needs them on one
+clock. The defensible choice is to step *down* to the slowest frequency —
+monthly — rather than forward-filling monthly data onto daily rows, which
+would fabricate precision the source data does not have.
+
+How you aggregate depends on what the series measures:
+
+- **Levels and indexes** (`SP500`, `T10Y3M`, `UMCSENT`, `AWHMAN`) — take the
+  monthly *mean*, which is the standard convention for converting a
+  high-frequency level to a monthly observation.
+- **Flows** (`ICSA`, initial claims) — these are counts accumulated over a
+  week, so a monthly *sum* is the meaningful aggregate.
+- **Already monthly** — leave alone.
+
+```{python}
+#| label: monthly
+
+SUM_SERIES = {"ICSA"}
+
+available = [c for c in raw.columns]
+monthly = pd.DataFrame(index=raw.resample("MS").mean().index)
+
+for sid in available:
+    s = raw[sid].dropna()
+    if fred_series[sid]["freq"] == "M":
+        m = s.resample("MS").last()
+    elif sid in SUM_SERIES:
+        m = s.resample("MS").sum()
+    else:
+        m = s.resample("MS").mean()
+    monthly[sid] = m
+
+monthly = monthly.dropna(how="all")
+print(f"{monthly.shape[0]:,} monthly rows x {monthly.shape[1]} series")
+monthly.tail(6)
+```
+
+```{python}
+#| label: coverage
+#| fig-cap: "Non-missing observations by series, monthly frequency."
+
+coverage = monthly.notna().sum().sort_values()
+
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.barh(coverage.index, coverage.values, color=UNLV_SCARLET, alpha=0.85)
+ax.set_xlabel("months of data")
+ax.set_title("How much history do we actually have?")
+for y, v in enumerate(coverage.values):
+    ax.text(v, y, f" {v:,}", va="center", fontsize=8, color=UNLV_GRAY)
+ax.grid(axis="y", visible=False)
+fig.tight_layout()
+plt.show()
+```
+
+The complete-case sample — the rows where *every* series is present — is the
+binding constraint on any model that uses all of them at once:
+
+```{python}
+#| label: complete-cases
+
+complete = monthly.dropna()
+if len(complete):
+    print(f"Complete cases: {len(complete):,} months "
+          f"({complete.index.min().date()} to {complete.index.max().date()})")
+else:
+    print("No month has all series present.")
+
+print("\nLongest common window if we drop the shortest series:")
+trimmed = monthly.drop(columns=[coverage.index[0]]).dropna()
+if len(trimmed):
+    print(f"  {len(trimmed):,} months "
+          f"({trimmed.index.min().date()} to {trimmed.index.max().date()})")
+```
+
+## Looking at the indicators
+
+```{python}
+#| label: small-multiples
+#| fig-cap: "Leading indicators, monthly. Note the differing vertical scales and start dates."
+#| fig-height: 9
+
+cols = [c for c in monthly.columns if monthly[c].notna().any()]
+ncol = 3
+nrow = -(-len(cols) // ncol)
+
+fig, axes = plt.subplots(nrow, ncol, figsize=(11, 2.3 * nrow), sharex=True)
+axes = axes.ravel()
+
+for ax, sid in zip(axes, cols):
+    s = monthly[sid].dropna()
+    ax.plot(s.index, s.values, color=UNLV_SCARLET)
+    ax.set_title(f"{sid} — {fred_series[sid]['label']}", fontsize=8.5)
+    ax.tick_params(labelsize=7)
+
+for ax in axes[len(cols):]:
+    ax.set_visible(False)
+
+fig.tight_layout()
+plt.show()
+```
+
+Plotted on a common time axis, the differing start dates are obvious in a way
+the status table only hinted at. Several of these series simply do not exist
+for the early part of the window.
+
+```{python}
+#| label: correlations
+#| fig-cap: "Pairwise correlation of month-over-month changes, complete cases only."
+
+changes = monthly.pct_change(fill_method=None).replace([float("inf"), float("-inf")], pd.NA)
+corr = changes.corr(min_periods=24)
+
+fig, ax = plt.subplots(figsize=(7.5, 6.5))
+im = ax.imshow(corr.values, cmap="RdBu_r", vmin=-1, vmax=1)
+ax.set_xticks(range(len(corr)), corr.columns, rotation=90, fontsize=8)
+ax.set_yticks(range(len(corr)), corr.index, fontsize=8)
+ax.grid(visible=False)
+for i in range(len(corr)):
+    for j in range(len(corr)):
+        v = corr.values[i, j]
+        if pd.notna(v):
+            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=6.5,
+                    color="white" if abs(v) > 0.55 else "#333333")
+fig.colorbar(im, ax=ax, shrink=0.8, label="correlation")
+ax.set_title("Correlation of monthly percent changes")
+fig.tight_layout()
+plt.show()
+```
+
+Correlating the *changes* rather than the levels matters here. Most of these
+series trend, and correlating trending levels will report near-perfect
+relationships between quantities that have nothing to do with one another.
+
+## What to take from this
+
+1. The series IDs are the easy part. Reconciling **frequency** and
+   **coverage** is where the actual work is, and it is invisible until you
+   download.
+2. `start=` is a request, not a promise. Always verify the window you got.
+3. Aggregate flows by summing and levels by averaging — the choice is
+   determined by what the series measures, not by convenience.
+4. Correlate changes, not levels, unless you have a reason to do otherwise.

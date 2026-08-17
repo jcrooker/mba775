@@ -1,0 +1,93 @@
+/*-- scss:defaults --*/
+// Base colors come from _brand.yml. These are the callout-block styles that
+// used to live in LIB_CSS_for_Rmd.R plus the per-file inline <style> blocks.
+
+$scarlet:        #a03123 !default;
+$scarlet-hover:  #b94b3a !default;
+$charcoal:       #333333 !default;
+$charcoal-hover: #4a4a4a !default;
+$gray-block:     #4a4a4a !default;
+$blue-block:     #e6f0ff !default;
+$brown-block:    #fdb25b !default;
+$accent:         #b15047 !default;
+
+/*-- scss:rules --*/
+
+/* ---- Callout blocks ----------------------------------------------------
+   Faithful to the inline <style> block in the chapter-01 lecture note,
+   which is the authoritative definition of the house style.
+
+   Used as Pandoc fenced divs:  ::: {.scarlet} ... :::
+------------------------------------------------------------------------ */
+
+div.blue,
+div.brown,
+div.scarlet,
+div.charcoal,
+div.gray {
+  border-radius: 5px;
+  padding: 20px;
+  margin: 1.4em 0;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+div.blue     { background-color: $blue-block; }
+div.brown    { background-color: $brown-block; }
+
+div.scarlet  { background-color: $scarlet; color: #ffffff; }
+div.scarlet:hover {
+  background-color: $scarlet-hover;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+div.charcoal { background-color: $charcoal; color: #ffffff; }
+div.charcoal:hover { background-color: $charcoal-hover; }
+div.charcoal .accent { color: $accent; font-weight: bold; }
+
+div.gray     { background-color: $gray-block; color: #ffffff; }
+
+/* Links and code inside dark blocks need to stay legible. */
+div.scarlet a, div.charcoal a, div.gray a { color: #ffd9d3; }
+div.scarlet code, div.charcoal code, div.gray code {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* First/last child spacing so the block hugs its content. */
+div.blue > :first-child, div.brown > :first-child,
+div.scarlet > :first-child, div.charcoal > :first-child,
+div.gray > :first-child { margin-top: 0; }
+
+div.blue > :last-child, div.brown > :last-child,
+div.scarlet > :last-child, div.charcoal > :last-child,
+div.gray > :last-child { margin-bottom: 0; }
+
+/* ---- Table of contents -------------------------------------------------
+   The old unlv.css targeted .tocify, an R Markdown / Bootstrap 3 construct.
+   Quarto builds its own TOC with different class names.
+------------------------------------------------------------------------ */
+#TOC, nav[role="doc-toc"] {
+  border-left: 1px solid $scarlet;
+}
+
+nav[role="doc-toc"] > h2,
+nav[role="doc-toc"] .toc-actions {
+  color: $scarlet;
+}
+
+nav[role="doc-toc"] ul > li > a.active,
+nav[role="doc-toc"] ul > li > a:hover {
+  color: $scarlet !important;
+  border-left: 2px solid $scarlet;
+}
+
+/* ---- Tables ----------------------------------------------------------- */
+table thead th {
+  border-bottom: 2px solid $scarlet;
+}
+
+/* ---- Code ------------------------------------------------------------- */
+div.sourceCode {
+  border-left: 3px solid rgba($scarlet, 0.35);
+  border-radius: 3px;
+}

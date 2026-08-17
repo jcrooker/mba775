@@ -1,0 +1,36 @@
+project:
+  type: default
+  output-dir: docs
+  render:
+    - "notes/*.qmd"
+  # Run every chunk from the repository root, not from notes/. Without this,
+  # a note that reads "data/raw/..." would look for "notes/data/raw/...".
+  execute-dir: project
+
+format:
+  html:
+    theme:
+      - unlv-notes.scss
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    toc-title: "Contents"
+    code-copy: true
+    code-tools: true
+    fig-width: 9
+    fig-height: 5
+    fig-dpi: 150
+    embed-resources: false
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  freeze: auto
+
+# ---------------------------------------------------------------------------
+# Profiles
+#   quarto render --profile classroom   -> plotly.js embedded, works offline
+#   quarto render --profile web         -> plotly.js from CDN, small files
+# The web profile is the one to publish: forty embedded notes would be ~260MB.
+# ---------------------------------------------------------------------------

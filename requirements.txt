@@ -1,0 +1,15 @@
+# MBA 775 — instructor environment for rendering lecture notes.
+# Students do not need this; their code runs in Claude's sandbox.
+
+pandas
+matplotlib
+plotly
+nbformat
+jupyter
+ipykernel
+numpy
+scipy
+statsmodels
+scikit-learn
+seaborn
+openpyxl
