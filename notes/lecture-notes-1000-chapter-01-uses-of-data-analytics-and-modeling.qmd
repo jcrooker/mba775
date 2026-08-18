@@ -370,11 +370,17 @@ FRED exposes its data two ways, and the distinction matters for this course:
   Forecast Project. See the
   [FRED API documentation](https://fred.stlouisfed.org/docs/api/fred/series_observations.html).
 
-We will call the CSV endpoint through a small course module, `fred_tools.py`,
-which is posted on WebCampus. It is about a hundred lines of `pandas` and is
-worth reading: it converts FRED's `.` missing-value marker to `NaN`, enforces
-the date and numeric types, and raises a clear error when a series ID is wrong
-rather than returning a confusing half-parsed table.
+The retrieval itself is done once, by your instructor, using a small course
+module called `fred_tools.py` — it lives in
+[`tools/`](https://github.com/jcrooker/mba775/tree/main/tools) in the course
+repository if you want to read it. It converts FRED's `.` missing-value marker
+to `NaN`, enforces the date and numeric types, and raises a clear error when a
+series ID is wrong rather than returning a confusing half-parsed table.
+
+You will not run it. Your exercises read the CSV it produced, which is
+committed to the repository along with a record of exactly where each series
+came from. That is deliberate: an analysis that depends on a live network
+connection fails in ways that have nothing to do with the analysis.
 
 ::: {.charcoal}
 When you do move to the keyed API, an API key is a **credential**. Never paste
@@ -384,29 +390,48 @@ a key is ever exposed, revoke it and request a new one.
 
 ### Our first task for Claude
 
-Upload the starting script from WebCampus and use the following prompt:
+Everything this course needs lives in a public repository. You do not download
+it and you do not upload it — you tell Claude where it is. Open a Claude
+conversation and paste this:
 
-> We are working in an MBA 775 Python analytics exercise. Using the
-> `fred_series` function in the attached `fred_tools.py`, retrieve the `DFF`
-> series (Federal Funds Effective Rate) from FRED beginning January 1, 2020.
-> Convert the result to a pandas data
-> frame with a proper datetime index and a numeric rate column. Report the row
-> count, the first and last observation dates, and the number of missing
-> values, without deleting missing values silently. Save the observations to
-> `dff_downloaded.csv`. Run the code and show me its actual output. Do not report any
-> number you have not computed.
+::: {.scarlet}
+**Prompt**
+
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
+> `scripts/_course.py`, and `data/dff.csv`. Read `COURSE_CONTEXT.md` from the
+> same repository first — it explains how this course expects analytical work
+> to be done.
+>
+> Run the script and show me its actual output. Then walk me through what each
+> section does and what the results mean. Do not report any number you did not
+> compute.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
+:::
 
 Notice what this prompt specifies:
 
-+ the business-course context;
-+ the data source, series, and starting date;
-+ required validation and data types;
-+ how missing values should be treated;
-+ where the reproducible output belongs;
-+ that the code must actually be executed; and
-+ that reported numbers must come from that execution.
++ **where the materials are**, so nothing depends on you managing files;
++ **exactly which files** are needed, rather than "the course stuff";
++ **the standing rules**, by pointing at `COURSE_CONTEXT.md` instead of
+  re-explaining them every session;
++ that the code must **actually be executed**, not described;
++ that reported numbers must come from that execution; and
++ **what to do when something fails** — which is the line that keeps a stuck
+  session from turning into a wrong answer delivered confidently.
 
-### A reference Python implementation
+That last point is worth dwelling on. An assistant asked to produce output will
+usually produce something. Telling it what to do when it *cannot* is how you
+find out that it couldn't.
+
+### Where the data came from
+
+You are analyzing a CSV, but somebody had to retrieve it. This is the code that
+produced `data/dff.csv`, run once by your instructor rather than by each of you
+thirty times:
+
 
 ```{python}
 #| label: download-dff
@@ -434,16 +459,22 @@ dff.head()
 
 Do not stop when the program runs without an error. Verify that:
 
-+ the request uses the intended FRED series identifier, `DFF`;
-+ the downloaded observations begin on or after January 1, 2020;
++ the file really is `DFF` — the Federal Funds Effective Rate — and not some
+  neighbouring series with a similar name;
 + the index is stored as dates and the rate column is numeric;
++ the dates are **unique** and in order, before you trust any count or average
+  computed from them;
 + FRED's `.` missing-value marker became a missing numeric value rather than
   the text `"."`;
-+ the program reports rather than silently deletes missing observations;
-+ the saved CSV exists and can be read back into Python;
-+ the number of rows and latest date are plausible when compared with the FRED
-  webpage; and
++ the script reports rather than silently deletes missing observations;
++ the row count and latest date are plausible against the
+  [FRED webpage for DFF](https://fred.stlouisfed.org/series/DFF); and
 + every number in your write-up appears somewhere in the executed output above.
+
+The third item is the one students skip. A duplicated date inflates every
+count and can offset a genuine gap, so a coverage check that looks reassuring
+may be measuring a broken series. Verify the thing you are measuring *with*,
+not just the thing you are measuring.
 
 ::: {.scarlet}
 A data request that succeeds establishes only that the server returned
@@ -597,14 +628,12 @@ document any timing differences.
 
 Ask Claude:
 
-> Extend the FRED download workflow to retrieve the unemployment-rate series
-> for all 50 states, where each series identifier is the two-letter state
-> abbreviation followed by `UR`, using `fred_series` from the attached
-> `fred_tools.py`. Build a table with state, series ID,
-> observation date, and unemployment rate. Before comparing states, verify
-> whether all reported observations have the same date. If dates differ, report
+> Get `scripts/01c_state_cross_section.py`, `scripts/_course.py`, and
+> `data/state_unemployment.csv` from <https://github.com/jcrooker/mba775> and
+> run the script. Before you compare any states, tell me whether every state's
+> most recent observation falls on the same date. If the dates differ, report
 > the differences and ask me to choose a common-date rule rather than silently
-> combining unlike periods. Run the code and show me the actual output.
+> combining unlike periods. Show me the actual output.
 
 This task introduces an important habit: **Claude should surface a consequential
 analytical choice rather than quietly make it for us.**
