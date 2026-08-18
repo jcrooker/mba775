@@ -9,8 +9,10 @@ rules every time.
 
 ## What this course is
 
-MBA 775 is a graduate business statistics and data analytics course at the
-University of Nevada, Las Vegas, taught by Dr. Skip Crooker. Students are MBA
+MBA 775, Data Modeling and Analysis, is a graduate course at the University
+of Nevada, Las Vegas, taught by Dr. Skip Crooker. It is an intensive
+seminar applying statistical analysis to problems business managers
+actually encounter. Students are MBA
 students, not software engineers. Most are new to Python.
 
 ## The rule that governs everything

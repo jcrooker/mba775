@@ -222,8 +222,12 @@ __marimo__/
 # ---------------------------------------------------------------------------
 /.quarto/
 _freeze/
-*_files/
 *.quarto_ipynb
+
+# NOTE: do NOT add a blanket "*_files/" rule here. Quarto puts each page's
+# CSS and JavaScript in a sibling <page>_files/ folder, including under docs/.
+# A blanket rule silently strips the stylesheets out of the published site --
+# the HTML renders, unstyled, and nothing reports an error.
 
 # Rendered notes are published from docs/ -- keep that, ignore stray builds
 notes/*.html

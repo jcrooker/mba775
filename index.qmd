@@ -1,5 +1,5 @@
 ---
-title: "MBA 775 — Business Statistics and Data Analytics"
+title: "MBA 775 — Data Modeling and Analysis"
 subtitle: "University of Nevada, Las Vegas"
 author: "Dr. Skip Crooker"
 date: today

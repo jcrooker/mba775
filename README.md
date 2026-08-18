@@ -1,4 +1,4 @@
-# MBA 775 — Data Models and Analytics
+# MBA 775 — Data Modeling and Analysis
 
 Course materials for MBA 775 at the University of Nevada, Las Vegas.
 Instructor: Dr. Skip Crooker.
