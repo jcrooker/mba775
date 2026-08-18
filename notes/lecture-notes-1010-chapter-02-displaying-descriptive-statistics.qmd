@@ -34,6 +34,7 @@ states = pd.read_csv("data/state_hpi_ur_pop.csv")
 poll = pd.read_csv("data/monmouth_poll.csv")
 recessions = pd.read_csv("data/us_recession_daily.csv", parse_dates=["date"])
 cci = pd.read_csv("data/consumer_confidence.csv", parse_dates=["date"])
+cci_old = pd.read_csv("data/consumer_confidence_discontinued.csv", parse_dates=["date"])
 ```
 
 ## Objectives
@@ -405,34 +406,61 @@ and leaf display** in the 1970s, when it could be built by hand. Its virtue is
 that every individual observation stays visible, unlike a histogram.
 
 ```{python}
-#| label: cci-check
-print(f"Consumer confidence index: {len(cci):,} monthly observations")
-print(f"First observation: {cci.date.min().date()}")
-print(f"Last observation:  {cci.date.max().date()}")
+#| label: cci-two-files
+for name, frame in [("consumer_confidence.csv", cci),
+                    ("consumer_confidence_discontinued.csv", cci_old)]:
+    print(f"{name}")
+    print(f"   rows              {len(frame):,}")
+    print(f"   first observation {frame.date.min().date()}")
+    print(f"   last observation  {frame.date.max().date()}")
+    print(f"   any missing       {int(frame.cci.isna().sum())}")
+    print()
+```
 
-months_stale = (pd.Timestamp.today() - cci.date.max()).days // 30
-print(f"\nMonths since the last observation: {months_stale}")
-if months_stale > 6:
-    print("\nThis series is NO LONGER BEING UPDATED.")
+Two files. Same concept — US consumer confidence, monthly, from 1960. Both
+downloaded without error. Both parsed cleanly. Neither has a missing value.
+Every number in both is correct.
+
+One of them stopped being published.
+
+```{python}
+#| label: cci-staleness
+today = pd.Timestamp.today()
+for name, frame in [("consumer_confidence.csv", cci),
+                    ("consumer_confidence_discontinued.csv", cci_old)]:
+    months = (today - frame.date.max()).days / 30.4
+    verdict = "CURRENT" if months < 7 else f"STALE by {months:.0f} months"
+    print(f"{name:<42} {verdict}")
 ```
 
 ::: {.scarlet}
-The file downloaded without error. It parsed cleanly. Every value in it is
-correct. And it stopped being published over two years ago.
+Nothing in the file contents distinguishes a live series from a dead one. Row
+counts look similar, values look plausible, no errors are raised.
+**The last observation date is the only tell**, and checking it is the
+verification almost nobody performs.
 
-**Checking the last observation date is the verification nobody performs.** A
-stale series produces a perfectly reasonable-looking analysis of a world that
-no longer exists.
+A retired series produces a perfectly reasonable-looking analysis of a world
+that no longer exists.
 :::
 
-We will use it anyway — the distribution is real, it is simply historical, and
-saying so is the whole lesson. Here are the most recent two years it covers.
+The discontinued series is `CSCICP03USM665S`; the current one is
+`USACSCICP02STSAM`. If you had built a forecast on the first one in early 2024
+it would have looked fine, right up until someone asked what happened last
+quarter.
+
+We use the current series from here on.
 
 ```{python}
 #| label: stem-leaf
 recent = cci[cci.date >= cci.date.max() - pd.DateOffset(years=2)]
+print(f"Consumer confidence, {recent.date.min().strftime('%B %Y')} "
+      f"to {recent.date.max().strftime('%B %Y')}\n")
 _ = stem_and_leaf(recent["cci"])
 ```
+
+Read down the stems to see where readings cluster. Unlike a histogram, every
+individual observation is still there — you can recover the actual values,
+which is why Tukey liked it and why it survives in exploratory work.
 
 ```{python}
 #| label: cci-extremes
@@ -440,6 +468,8 @@ print(f"Lowest reading:  {cci.cci.min():.2f} in "
       f"{cci.loc[cci.cci.idxmin(), 'date'].strftime('%B %Y')}")
 print(f"Highest reading: {cci.cci.max():.2f} in "
       f"{cci.loc[cci.cci.idxmax(), 'date'].strftime('%B %Y')}")
+print(f"Most recent:     {cci.cci.iloc[-1]:.2f} in "
+      f"{cci.date.iloc[-1].strftime('%B %Y')}")
 ```
 
 ## Scatter plots
@@ -471,7 +501,7 @@ time series.
 ```{python}
 #| label: cci-timeseries
 _ = time_series(cci["date"], cci["cci"],
-                title="US consumer confidence index (series ends 2024)",
+                title="US consumer confidence index",
                 ylab="Index")
 ```
 

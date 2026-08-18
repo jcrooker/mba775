@@ -150,27 +150,36 @@ if (!is.na(p)) {
 }
 
 # --- 3. Consumer confidence ----------------------------------------------
+#
+# TWO series, deliberately.
+#
+#   USACSCICP02STSAM  - currently published
+#   CSCICP03USM665S   - the same concept, discontinued in early 2024
+#
+# The discontinued one is kept because it teaches something no live series
+# can: a retired series downloads without error, parses cleanly, and contains
+# only correct values. The ONLY way to notice is to look at the last
+# observation date. That check belongs in the course.
 
-cat("3. Consumer confidence index\n")
-cci_ids <- c("CSCICP03USM665S", "UMCSENT")   # second is a fallback if the first is retired
-done <- FALSE
-for (id in cci_ids) {
+cat("3. Consumer confidence\n")
+
+fetch_cci <- function(id, outfile, label) {
   p <- fred_csv(id)
-  if (!is.na(p)) {
-    cci <- read_series(p)
-    names(cci) <- c("date", "cci")
-    write.csv(cci, file.path(out_dir, "consumer_confidence.csv"), row.names = FALSE)
-    cat(sprintf("   %s: %s rows, %s to %s\n", id,
-                format(nrow(cci), big.mark = ","), min(cci$date), max(cci$date)))
-    if (id != cci_ids[1]) {
-      cat(sprintf("   NOTE: %s was unavailable; used %s instead.\n", cci_ids[1], id))
-      cat("   Update the note's series name and units to match.\n")
-    }
-    done <- TRUE
-    break
-  }
+  if (is.na(p)) { cat(sprintf("   %-16s FAILED\n", id)); return(invisible(NULL)) }
+  d <- read_series(p)
+  names(d) <- c("date", "cci")
+  write.csv(d, file.path(out_dir, outfile), row.names = FALSE)
+  stale_days <- as.numeric(Sys.Date() - max(d$date))
+  cat(sprintf("   %-16s %4s rows, %s to %s  [%s]\n",
+              id, format(nrow(d), big.mark = ","),
+              min(d$date), max(d$date),
+              if (stale_days > 200) sprintf("STALE: %.0f months", stale_days / 30.4)
+              else "current"))
+  invisible(d)
 }
-if (!done) cat("   FAILED for all candidates\n")
+
+fetch_cci("USACSCICP02STSAM", "consumer_confidence.csv", "current")
+fetch_cci("CSCICP03USM665S", "consumer_confidence_discontinued.csv", "discontinued")
 
 # --- 4. Monmouth poll -----------------------------------------------------
 
