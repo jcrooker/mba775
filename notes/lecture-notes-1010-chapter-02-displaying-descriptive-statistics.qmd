@@ -1,0 +1,633 @@
+---
+title: "Displaying Descriptive Statistics"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+
+from _charts import (frequency_table, contingency_table, histogram, binned_bar,
+                     bar_chart, pareto_chart, pie_chart, ogive, heatmap,
+                     stem_and_leaf, scatter, time_series,
+                     UNLV_SCARLET, UNLV_GRAY)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 60)
+
+states = pd.read_csv("data/state_hpi_ur_pop.csv")
+poll = pd.read_csv("data/monmouth_poll.csv")
+recessions = pd.read_csv("data/us_recession_daily.csv", parse_dates=["date"])
+cci = pd.read_csv("data/consumer_confidence.csv", parse_dates=["date"])
+```
+
+## Objectives
+
++ Read a chart and say what it does — and does not — support.
++ Construct and interpret a *frequency distribution* and *histogram*.
++ Construct and interpret *ogives* and *cumulative* frequencies.
++ Display qualitative data using *bar charts* and *pie charts*.
++ Display quality issues with a *Pareto chart*.
++ Organize two variables in a *contingency table* and read a *heatmap*.
++ Present a distribution with a *stem and leaf* display.
++ Show the relationship between two variables using a *scatter plot*.
++ Recognize the ways a technically correct chart can still mislead.
+
+The code that draws each chart is folded away. Click **Show the code** if you
+are curious, but nothing in this chapter is assessed on your ability to write
+it. What is assessed is whether you can look at the output and say what it
+means.
+
+## The role technology plays in statistics
+
+Hardcore statisticians are perfectly happy to receive large quantities of data
+in tabular formats. Likely this is because they know how to import the data
+into their preferred statistical interface and can perform their own analysis
+on it. Artificial intelligence tools are cutting the gap between what requires
+a hardcore statistician and what an interested person can do.
+
+Senior leaders often have the analytical ability to draw insight from raw
+data. What they do not have is the time. Even traditional descriptive
+statistics — **mean**, **median**, **quartiles**, **minimum** and **maximum** —
+take more effort to interpret than many will spend. That is a particular
+challenge when your goal is to *persuade*. We do not want our audience's eyes
+to glaze over. We want to make the case from the data as elegantly as
+possible.
+
+This brings us to **data visualization**: presenting data so that its
+important features are clear. This takes skill. There are many chart types to
+choose from, and some are far better than others at showing a particular
+pattern. AI is a genuine boon to producing them — and no help at all in
+deciding which one is honest.
+
+## The data
+
+We will work with a panel of the 50 US states: the housing price index, the
+unemployment rate, current population, and population growth over the past
+decade.
+
+```{python}
+#| label: state-head
+states.head(8)
+```
+
+```{python}
+#| label: state-summary
+states[["HPI", "UR", "POPN", "gPOP"]].describe().round(2)
+```
+
+Before reading anything into those numbers, one check carried over from
+Chapter 1:
+
+```{python}
+#| label: as-of-dates
+for col, label in [("HPI_date", "Housing price index"),
+                   ("UR_date", "Unemployment rate"),
+                   ("POP_date", "Population")]:
+    dates = pd.to_datetime(states[col])
+    print(f"{label:<22} as of {dates.max().date()}  "
+          f"({'all states agree' if dates.nunique() == 1 else 'DATES DIFFER'})")
+```
+
+::: {.scarlet}
+These three variables are measured **as of three different dates**, spanning
+more than a year. Every chart in this chapter puts them side by side anyway.
+That is normal practice, and it is a limitation you should state rather than
+hide — housing prices from one quarter and unemployment from six months later
+are not a snapshot of a single moment.
+:::
+
+## Seeing a pattern that a table hides
+
+Here is average housing price index by unemployment rate, in equal-width bins.
+
+```{python}
+#| label: hpi-by-ur
+_ = binned_bar(states["UR"], states["HPI"], bins=6,
+               title="Average housing price index by unemployment rate",
+               xlab="Unemployment rate bin (%)", ylab="Housing price index")
+```
+
+There is no pattern here worth reporting. The bars wander. Note the `n=`
+labels: some bins hold a handful of states, and a bar computed from four
+observations should not be read as though it were computed from twenty.
+
+Now the same chart against population growth.
+
+```{python}
+#| label: hpi-by-gpop
+_ = binned_bar(states["gPOP"], states["HPI"], bins=6,
+               title="Average housing price index by population growth",
+               xlab="Population growth over the decade (%)",
+               ylab="Housing price index")
+```
+
+This one does look like something: states with faster population growth tend
+to have higher housing prices. Before believing it, ask how strong "tend to"
+is.
+
+```{python}
+#| label: correlations
+for col, label in [("UR", "unemployment rate"),
+                   ("POPN", "population"),
+                   ("gPOP", "population growth")]:
+    print(f"Correlation of housing price index with {label:<20} "
+          f"r = {states['HPI'].corr(states[col]):+.3f}")
+```
+
+::: {.charcoal}
+A correlation of **+0.30** is a real relationship and a weak one. It is
+consistent with population growth pushing up housing prices. It is equally
+consistent with high-priced states attracting migration, or with a third
+factor — climate, taxes, industry — driving both. **The chart cannot tell you
+which**, and neither can the correlation.
+:::
+
+That distinction is the whole job. A bar chart showing a pattern licenses the
+sentence "states with faster growth have higher prices." It does not license
+"population growth raises housing prices."
+
+## Displaying quantitative data
+
+A **frequency distribution** counts how many values fall in each range, or
+*bin*. Here is population growth across the 50 states.
+
+```{python}
+#| label: freq-table
+frequency_table(states["gPOP"], bins=np.arange(-5, 30, 5), cumulative=True)
+```
+
+The **PCT** column is the *relative frequency*: the count in each class divided
+by the total. There are 50 states, so a class holding 17 of them is
+$17/50 = 34\%$.
+
+The **CUM_PCT** column is the *cumulative relative frequency*, totalling as
+you move down. Its interpretation is direct: **44% of states grew by 5% or
+less over the decade, and 72% grew by 10% or less.** Only one state exceeded
+20%.
+
+A **histogram** draws the same information.
+
+```{python}
+#| label: histogram
+_ = histogram(states["gPOP"], bins=np.arange(-5, 30, 5),
+              title="Distribution of state population growth",
+              xlab="Population growth over the decade (%)")
+```
+
+```{python}
+#| label: skew-check
+g = states["gPOP"]
+print(f"mean   {g.mean():6.2f}")
+print(f"median {g.median():6.2f}")
+print(f"The mean sits {'above' if g.mean() > g.median() else 'below'} the median, "
+      f"by {abs(g.mean() - g.median()):.2f} points.")
+print(f"\nFastest growing: {states.loc[g.idxmax(), 'Member']} at {g.max():.1f}%")
+print(f"Slowest growing: {states.loc[g.idxmin(), 'Member']} at {g.min():.1f}%")
+```
+
+This is an **asymmetrical** distribution. A *symmetrical* one would be a mirror
+image on either side of the middle. Here most of the mass sits at the left and
+a thin tail stretches right — a few fast-growing states pull the mean above the
+median. That gap between mean and median *is* the skew, expressed as a number.
+
+::: {.charcoal}
+When a distribution is skewed, the mean and the median answer different
+questions. The median describes the typical state. The mean is pulled by the
+extremes. Reporting only one, without saying which, is how a summary becomes
+misleading without containing a false number.
+:::
+
+### The ogive
+
+The **ogive** plots the cumulative relative frequency. A point on the line
+reads: this percent of observations fall at or below that value.
+
+```{python}
+#| label: ogive
+_ = ogive(states["gPOP"], bins=np.arange(-5, 30, 5),
+          title="Cumulative distribution of state population growth",
+          xlab="Population growth over the decade (%)")
+```
+
+The dotted line marks 50%. Where the curve crosses it is the median. A steep
+section means many observations packed into a narrow range; a flat section
+means few.
+
+## How many classes?
+
+For grouped data we have to choose the number of classes. A common
+rule-of-thumb is to find $k$ such that
+
+$$2^k \geq n,$$
+
+where $n$ is the number of observations and $k$ the number of classes. With 50
+states, $2^5 = 32$ and $2^6 = 64$, so $k = 6$.
+
+The class width then follows from the range divided by the number of classes.
+This is a *rule of thumb*, not a law — and the choice has consequences, as the
+next section shows.
+
+### Rules when constructing grouped classes
+
+1. **Equal-size classes.** Unequal widths make patterns misleading.
+2. **Mutually exclusive classes.** Boundaries must not overlap.
+3. **Include all data values.** Fifty observations, fifty observations placed.
+4. **Avoid empty classes.** Too-narrow widths produce classes with no data.
+5. **Avoid open-ended classes** where possible — though sometimes an age class
+   of "19+" beats fifty empty classes between 19 and 70.
+
+## Displaying qualitative data
+
+From December 1854 the NBER recession indicator marks every day as recession or
+not. That is *qualitative* data: each day carries a label.
+
+```{python}
+#| label: recession-overall
+print(f"{len(recessions):,} days, {recessions.date.min().date()} "
+      f"to {recessions.date.max().date()}")
+print(f"Days in recession: {recessions.recession.sum():,} "
+      f"({100 * recessions.recession.mean():.1f}%)")
+```
+
+```{python}
+#| label: recession-bar
+counts = recessions.recession.value_counts().sort_index()
+_ = bar_chart(["Not recession", "Recession"], counts.to_numpy(),
+              title="US economic state, 1854 to today",
+              xlab="Economic state", ylab="Days")
+```
+
+A single bar chart of the whole period hides the more interesting fact.
+
+```{python}
+#| label: recession-eras
+d = recessions.set_index("date")
+early = d.loc[:"1939-12-31", "recession"].mean()
+modern = d.loc["1980-01-01":, "recession"].mean()
+print(f"1854 - 1939    {100 * early:5.1f}% of days in recession")
+print(f"1980 - present {100 * modern:5.1f}% of days in recession")
+print(f"\nRatio: {early / modern:.1f} times more likely before 1940.")
+```
+
+```{python}
+#| label: recession-decade
+by_decade = (recessions.assign(decade=(recessions.date.dt.year // 10 * 10))
+             .query("1860 <= decade < 2020")
+             .groupby("decade")["recession"].mean() * 100)
+_ = bar_chart([f"{int(d)}s" for d in by_decade.index], by_decade.to_numpy(),
+              title="Percent of days in recession, by decade",
+              xlab="Decade", ylab="Percent of days")
+```
+
+The 1870s stand out at 64% — the Long Depression. The 2010s recorded zero
+recession days. Reading a chart well means noticing both the shape and the
+outliers, then asking what produced them.
+
+## Pareto charts
+
+A **Pareto chart** is a bar chart sorted from most to least frequent, with a
+cumulative percentage line. Named for
+[Vilfredo Pareto](https://en.wikipedia.org/wiki/Vilfredo_Pareto), it answers
+"how few categories account for how much?"
+
+We use the *Monmouth University National Poll #240*, January 2021. Question 16
+asked which statement came closest to the respondent's view:
+
+> 1. Our system of government is basically sound and essentially needs no changes
+> 2. Our system is basically sound, but needs some improvement
+> 3. Our system is not too sound and needs many improvements
+> 4. Our system is not sound at all and needs significant changes
+
+```{python}
+#| label: pareto
+_ = pareto_chart(poll["q16_system_of_government"],
+                 title="Views on the American system of government",
+                 xlab="Response", ylab="Respondents")
+```
+
+Read the black line, not just the bars. The two most common answers account for
+over three-quarters of respondents. A summary that reported only the modal
+response would miss that the second category is nearly as large.
+
+## Pie charts, and a trap
+
+Pie charts have been the subject of a
+[smear campaign](https://www.businessinsider.com/pie-charts-are-the-worst-2013-6).
+The criticism has merit: beyond three or four slices, people cannot compare
+angles reliably.
+
+Question 38 asked: *Looking ahead to Valentine's Day next month, will you and
+your partner do anything special to mark the day?*
+
+```{python}
+#| label: q38-freq
+q38 = frequency_table(poll["q38_valentines_plans"], cumulative=True)
+q38
+```
+
+```{python}
+#| label: q38-pie
+answered = poll["q38_valentines_plans"].dropna()
+counts = answered.value_counts().sort_index()
+_ = pie_chart(counts.index, counts.to_numpy(),
+              title="Valentine's Day plans")
+```
+
+::: {.scarlet}
+**Look at what that chart is not telling you.** Question 16 was answered by
+all 809 respondents. Question 38 was answered by 551. The other 258 were never
+asked — the question presupposes a partner.
+:::
+
+```{python}
+#| label: q38-missing
+for q, label in [("q16_system_of_government", "Q16 (system of government)"),
+                 ("q38_valentines_plans", "Q38 (Valentine's plans)")]:
+    s = poll[q]
+    print(f"{label:<32} answered {s.notna().sum():>4}   "
+          f"not answered {s.isna().sum():>4}")
+```
+
+Every number in that pie chart is correct. Every percentage is correctly
+computed. And a reader who sees it captioned "Valentine's Day Plans" will
+conclude something about *Americans*, when it describes only the 68% who were
+asked. **The chart does not lie. The caption does.**
+
+The honest version says what the base is: *"Among the 551 respondents with a
+partner…"*
+
+## Contingency tables
+
+A **contingency table** shows frequencies for two variables at once.
+
+```{python}
+#| label: contingency
+table = contingency_table(states["gPOP"], states["HPI"],
+                          x_bins=5, y_bins=5,
+                          x_name="Population growth (%)",
+                          y_name="Housing price index")
+table
+```
+
+```{python}
+#| label: heatmap
+_ = heatmap(table, title="Housing prices and population growth, 50 states",
+            xlab="Population growth over the decade (%)",
+            ylab="Housing price index")
+```
+
+Colour intensity shows where states concentrate. With 50 observations spread
+over 25 cells, most cells hold zero, one, or two states — which is itself the
+finding. **A heatmap of a small sample looks authoritative and carries very
+little information.** Check the counts before reading a pattern into the
+colours.
+
+## Stem and leaf display
+
+[John Tukey](https://en.wikipedia.org/wiki/John_Tukey) originated the **stem
+and leaf display** in the 1970s, when it could be built by hand. Its virtue is
+that every individual observation stays visible, unlike a histogram.
+
+```{python}
+#| label: cci-check
+print(f"Consumer confidence index: {len(cci):,} monthly observations")
+print(f"First observation: {cci.date.min().date()}")
+print(f"Last observation:  {cci.date.max().date()}")
+
+months_stale = (pd.Timestamp.today() - cci.date.max()).days // 30
+print(f"\nMonths since the last observation: {months_stale}")
+if months_stale > 6:
+    print("\nThis series is NO LONGER BEING UPDATED.")
+```
+
+::: {.scarlet}
+The file downloaded without error. It parsed cleanly. Every value in it is
+correct. And it stopped being published over two years ago.
+
+**Checking the last observation date is the verification nobody performs.** A
+stale series produces a perfectly reasonable-looking analysis of a world that
+no longer exists.
+:::
+
+We will use it anyway — the distribution is real, it is simply historical, and
+saying so is the whole lesson. Here are the most recent two years it covers.
+
+```{python}
+#| label: stem-leaf
+recent = cci[cci.date >= cci.date.max() - pd.DateOffset(years=2)]
+_ = stem_and_leaf(recent["cci"])
+```
+
+```{python}
+#| label: cci-extremes
+print(f"Lowest reading:  {cci.cci.min():.2f} in "
+      f"{cci.loc[cci.cci.idxmin(), 'date'].strftime('%B %Y')}")
+print(f"Highest reading: {cci.cci.max():.2f} in "
+      f"{cci.loc[cci.cci.idxmax(), 'date'].strftime('%B %Y')}")
+```
+
+## Scatter plots
+
+A **scatter plot** displays two variables with no summarising at all. Every
+observation is shown. Most analysts draw one first when meeting a new data set.
+
+```{python}
+#| label: scatter
+_ = scatter(states["gPOP"], states["HPI"],
+            labels=states["Member"],
+            title="Housing price index and population growth, US states",
+            xlab="Population growth over the decade (%)",
+            ylab="Housing price index")
+```
+
+Compare this with the binned bar chart from earlier. The bar chart showed a
+tidy upward pattern. The scatter shows the same data as a loose cloud with
+obvious exceptions. **Binning averages away the disagreement.** Both charts are
+honest; the scatter is more informative about how much confidence the pattern
+deserves.
+
+### Time series
+
+A scatter plot where one variable is time shows a *time path*. Connecting the
+points produces a **line chart**, which is normally the right way to show a
+time series.
+
+```{python}
+#| label: cci-timeseries
+_ = time_series(cci["date"], cci["cci"],
+                title="US consumer confidence index (series ends 2024)",
+                ylab="Index")
+```
+
+```{python}
+#| label: recession-timeseries
+annual = (recessions.set_index("date")["recession"]
+          .resample("YS").mean().reset_index())
+_ = time_series(annual["date"], 100 * annual["recession"],
+                title="Percent of days in recession, by year",
+                ylab="Percent of days")
+```
+
+## Charts that mislead
+
+Everything below is technically correct and still misleading. These are the
+failures to watch for — in other people's charts, and in your own.
+
+### Truncating the axis
+
+```{python}
+#| label: truncated-axis
+import matplotlib.pyplot as plt
+
+subset = states.nlargest(6, "HPI")
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+for ax, (lo, hi), label in zip(
+        axes, [(0, None), (subset.HPI.min() - 20, None)],
+        ["Axis starts at zero", "Axis starts near the minimum"]):
+    ax.bar(subset["Member"], subset["HPI"], color=UNLV_SCARLET, alpha=0.85)
+    ax.set_ylim(lo, hi)
+    ax.set_title(label)
+    ax.set_ylabel("Housing price index")
+    ax.grid(axis="y", color="#e6e6e6")
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+
+fig.tight_layout()
+plt.show()
+
+print(f"Highest: {subset.HPI.max():.0f}   Lowest of these six: {subset.HPI.min():.0f}")
+print(f"Actual difference: {100 * (subset.HPI.max() / subset.HPI.min() - 1):.0f}%")
+```
+
+Same six states, same six numbers. The right-hand chart makes the gap look
+enormous. For bar charts, where length encodes the value, the axis should start
+at zero.
+
+### Letting bin width choose the story
+
+```{python}
+#| label: bin-width
+for k in [3, 6, 15]:
+    print(f"\n--- {k} bins ---")
+    t = frequency_table(states["gPOP"], bins=k)
+    print(t.to_string(index=False))
+```
+
+```{python}
+#| label: bin-width-charts
+fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
+for ax, k in zip(axes, [3, 6, 15]):
+    ax.hist(states["gPOP"], bins=k, color=UNLV_SCARLET, alpha=0.85,
+            edgecolor="white")
+    ax.set_title(f"{k} bins")
+    ax.set_xlabel("Population growth (%)")
+    ax.grid(axis="y", color="#e6e6e6")
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+Three bins say the distribution is smooth. Fifteen bins say it is lumpy and
+possibly bimodal. Same fifty states. **Nobody looking at one histogram can tell
+you which bin width you tried first.**
+
+### The wrong chart for the data
+
+```{python}
+#| label: wrong-chart
+top = states.nlargest(8, "POPN")
+_ = pie_chart(top["Member"], top["POPN"],
+              title="Population of the eight largest states")
+```
+
+Eight slices. Try ranking the third, fourth, and fifth largest by eye, then
+check against the bar chart.
+
+```{python}
+#| label: right-chart
+_ = bar_chart(top["Member"], top["POPN"],
+              title="Population of the eight largest states",
+              xlab="State", ylab="Population (thousands)")
+```
+
+### What to check in any chart
+
+::: {.charcoal}
+1. **Does the axis start at zero?** Required for bars; often wrong for lines.
+2. **What is the base?** Percent *of what*, and who was excluded.
+3. **How many observations per bar or cell?** A tall bar over four
+   observations is noise.
+4. **Would a different bin width tell a different story?**
+5. **How old is the data?** Check the last observation date.
+6. **Does the caption claim more than the chart shows?** Correlation drawn as
+   a chart is still correlation.
+:::
+
+## Laboratory 2
+
+::: {.prompt}
+Prompt
+
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/02_displaying_data.py`,
+> `scripts/_charts.py`, and `data/state_hpi_ur_pop.csv`. Read
+> `COURSE_CONTEXT.md` from the same repository first.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> what each chart shows and what it does not support. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+**Submit written answers to the following.** Each should be a short paragraph.
+
+1. Using the population growth histogram and the mean/median comparison,
+   describe the distribution to someone who cannot see the chart.
+2. The correlation between housing prices and population growth is +0.30.
+   Write the strongest claim this supports, and then a claim it does *not*
+   support that someone might mistakenly make from the bar chart.
+3. The Valentine's Day pie chart excludes 258 respondents. Write a caption for
+   it that is honest about its base.
+4. Pick any chart in this chapter and change one thing — axis, bin width, chart
+   type — to make it tell a different story. Say what you changed and why it
+   worked.
+
+### Working in Excel
+
+Many of you will present this material in Excel. You do not need to rebuild
+anything by hand — ask Claude to produce the spreadsheet:
+
+::: {.prompt}
+Prompt
+
+> Using `data/state_hpi_ur_pop.csv` from
+> <https://github.com/jcrooker/mba775>, build an Excel workbook with two
+> sheets. The first sheet holds the raw state data. The second holds a
+> frequency distribution of the population growth column using 5-point bins
+> from -5 to 25, with columns for the bin, the count, the relative frequency,
+> and the cumulative relative frequency. Use real Excel formulas — FREQUENCY
+> or COUNTIFS — rather than pasting static values, so I can change the bins and
+> watch the table update. Give me the file to download.
+:::
+
+Once it is open in Excel, the frequency table drives a PivotChart the same way
+it always has. The difference is that you no longer transcribe anything by
+hand, so there is nothing to mistype.

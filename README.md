@@ -62,7 +62,14 @@ the three scripts for Chapter 1.
 | `01b_monthly_transformations.py` | `dff.csv` | Selecting an observation vs. calculating a statistic; three monthly measures and how far apart they get |
 | `01c_state_cross_section.py` | `state_unemployment.csv` | What makes a cross section a cross section; checking that observations are contemporaneous |
 
-`scripts/_course.py` holds small shared helpers for loading data. Upload it
+### Chapter 2 — Displaying Descriptive Statistics
+
+| Script | Data file | What it covers |
+|---|---|---|
+| `02_displaying_data.py` | `state_hpi_ur_pop.csv` | Frequency distributions, histograms, ogives, binned bars vs scatter, contingency heatmaps, and how bin width decides the story |
+
+`scripts/_course.py` holds small shared helpers for loading data.
+`scripts/_charts.py` holds the chart functions. Upload it
 alongside any script that imports it.
 
 ---
