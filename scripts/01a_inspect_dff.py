@@ -17,15 +17,30 @@ import pandas as pd
 
 from _course import banner, load_dff
 
-rate = load_dff("dff.csv")
+full = load_dff("dff.csv")
+
+# The lecture note requests this series starting in January 2020. The data file
+# carries the whole published history, so we can look at both and see how much
+# the answer depends on the window we chose.
+LECTURE_START = "2020-01-01"
+recent = full.loc[LECTURE_START:]
+
+rate = full  # the checks below run on the full history
 
 # ---------------------------------------------------------------------------
 banner("1. What did we get?")
 
-print(f"Observations : {len(rate):,}")
-print(f"First date   : {rate.index.min().date()}")
-print(f"Last date    : {rate.index.max().date()}")
-print(f"Missing      : {int(rate.isna().sum()):,}")
+print(f"{'':<14}{'full history':>16}{'since ' + LECTURE_START:>18}")
+print(f"{'Observations':<14}{len(full):>16,}{len(recent):>18,}")
+print(f"{'First date':<14}{str(full.index.min().date()):>16}"
+      f"{str(recent.index.min().date()):>18}")
+print(f"{'Last date':<14}{str(full.index.max().date()):>16}"
+      f"{str(recent.index.max().date()):>18}")
+print(f"{'Missing':<14}{int(full.isna().sum()):>16,}{int(recent.isna().sum()):>18,}")
+
+print("\nThe lecture note works with the shorter window. Note how different")
+print("the two columns are -- every summary statistic you report depends on")
+print("a choice of window that is easy to make without noticing.")
 
 # ---------------------------------------------------------------------------
 banner("2. Are the data types right?")
@@ -61,7 +76,15 @@ else:
 # ---------------------------------------------------------------------------
 banner("4. Descriptive statistics")
 
-print(rate.describe().round(3).to_string())
+comparison = pd.DataFrame({
+    "full history": full.describe(),
+    f"since {LECTURE_START}": recent.describe(),
+})
+print(comparison.round(3).to_string())
+
+print("\nSame series, same units, two defensible samples, and almost nothing")
+print("in common. A summary statistic is only as meaningful as the sample")
+print("behind it -- so the sample belongs in the write-up, every time.")
 
 # ---------------------------------------------------------------------------
 banner("5. The most recent observations")
@@ -76,6 +99,6 @@ print("Source      : Federal Reserve Economic Data (FRED),")
 print("              Federal Reserve Bank of St. Louis")
 print("URL         : https://fred.stlouisfed.org/series/DFF")
 print("Units       : Percent, not seasonally adjusted")
-print(f"Date range  : {rate.index.min().date()} to {rate.index.max().date()}")
-print(f"Rows        : {len(rate):,}")
+print(f"Date range  : {full.index.min().date()} to {full.index.max().date()}")
+print(f"Rows        : {len(full):,}")
 print(f"Retrieved   : see data/README.md in the course repository")

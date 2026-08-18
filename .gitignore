@@ -257,5 +257,7 @@ config/
 
 # Rendering byproduct: the chapter-1 note calls dff.to_csv("dff.csv"), which
 # lands at the project root because execute-dir is the project. It duplicates
-# data/dff.csv (different window) and would confuse anyone browsing the repo.
+# data/dff.csv
+/dff_downloaded.csv (different window) and would confuse anyone browsing the repo.
 /dff.csv
+/dff_downloaded.csv

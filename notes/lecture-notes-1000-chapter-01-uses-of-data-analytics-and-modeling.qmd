@@ -393,7 +393,7 @@ Upload the starting script from WebCampus and use the following prompt:
 > frame with a proper datetime index and a numeric rate column. Report the row
 > count, the first and last observation dates, and the number of missing
 > values, without deleting missing values silently. Save the observations to
-> `dff.csv`. Run the code and show me its actual output. Do not report any
+> `dff_downloaded.csv`. Run the code and show me its actual output. Do not report any
 > number you have not computed.
 
 Notice what this prompt specifies:
@@ -421,8 +421,8 @@ print(f"Downloaded {len(dff):,} DFF observations.")
 print(f"Date range: {dff.index.min().date()} to {dff.index.max().date()}")
 print(f"Missing rate values: {missing_count:,}")
 
-dff.to_csv("dff.csv")
-print("Saved data to dff.csv")
+dff.to_csv("dff_downloaded.csv")
+print("Saved data to dff_downloaded.csv")
 ```
 
 ```{python}
@@ -691,7 +691,7 @@ States.
 Submit the following:
 
 + your Python script;
-+ `dff.csv` as retrieved;
++ `dff_downloaded.csv` as retrieved;
 + a provenance record giving the FRED series ID, source URL, retrieval date,
   frequency, units, and date range;
 + the prompt you used with Claude and a short description of material revisions

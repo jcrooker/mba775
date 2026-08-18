@@ -15,12 +15,16 @@ import pandas as pd
 
 # Places a data file might reasonably live, relative to this file and to
 # wherever Python happens to be running.
+# Order matters. A dedicated data/ folder is checked BEFORE the working
+# directory, so a stray file left at the project root by some other process
+# cannot silently shadow the canonical data file. Loading the wrong file with
+# the right name is the kind of error that produces confident wrong answers.
 _SEARCH_DIRS = [
-    Path.cwd(),
     Path.cwd() / "data",
-    Path(__file__).resolve().parent,
     Path(__file__).resolve().parent / "data",
     Path(__file__).resolve().parent.parent / "data",
+    Path.cwd(),
+    Path(__file__).resolve().parent,
     Path("/mnt/user-data/uploads"),
     Path("/mnt/data"),
 ]
