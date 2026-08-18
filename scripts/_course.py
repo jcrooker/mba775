@@ -43,6 +43,29 @@ def find_data(filename: str) -> Path:
         if candidate.is_file():
             return candidate
 
+    # Browsers rename repeat downloads: dff.csv becomes "dff (1).csv", and on
+    # some systems "dff-1.csv" or "dff copy.csv". A student who downloads twice
+    # would otherwise hit a file-not-found error for a file they are looking at.
+    # Accept those variants -- but SAY SO, loudly. Silently loading a file the
+    # script did not ask for is exactly the failure this course warns about.
+    stem, suffix = Path(filename).stem, Path(filename).suffix
+    for folder in _SEARCH_DIRS:
+        if not folder.is_dir():
+            continue
+        variants = sorted(
+            f for f in folder.glob(f"{stem}*{suffix}")
+            if f.is_file() and f.name != filename
+        )
+        if variants:
+            chosen = variants[0]
+            print(f"NOTE: '{filename}' was not found. Using '{chosen.name}' "
+                  f"instead, which appears to be a renamed copy.")
+            if len(variants) > 1:
+                others = ", ".join(f.name for f in variants[1:])
+                print(f"      Other candidates were also present: {others}")
+                print(f"      Check that the file used is the one you intended.")
+            return chosen
+
     raise FileNotFoundError(
         f"Could not find '{filename}'.\n"
         f"Upload it alongside this script, or download it from the course "

@@ -30,9 +30,10 @@ file the lecture note asks for:
 > `COURSE_CONTEXT.md` from the same repository first — it explains how this
 > course expects analytical work to be done.
 >
-> Run the script and show me its actual output. Then walk me through what each
-> section does and what the results mean. Do not report any number you did not
-> compute.
+> Run the script and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
 >
 > If you cannot reach GitHub, tell me plainly and I will upload the files
 > instead.

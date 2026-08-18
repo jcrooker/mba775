@@ -142,6 +142,16 @@ wrong.
 START = "1990-01-01"
 
 raw, status = fred_frame(fred_series.keys(), start=START)
+
+if raw.empty:
+    raise RuntimeError(
+        "No series could be retrieved, and the cache in data/raw/ is empty.\n"
+        "This note reads from a local cache so it never depends on a live\n"
+        "network at render time. Populate it once with:\n"
+        "    Rscript tools/seed_fred_cache.R\n"
+        "then render again."
+    )
+
 status.drop(columns=["detail"])
 ```
 

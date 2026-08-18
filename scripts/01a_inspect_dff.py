@@ -124,9 +124,12 @@ print()
 # have elapsed. Report how many days went into each average so a short month
 # cannot masquerade as a full one.
 coverage = month_coverage(rate)
-monthly_tail = rate.resample("MS").mean().round(3).to_frame("monthly mean")
+monthly_mean = rate.resample("MS").mean()
+monthly_tail = monthly_mean.round(3).to_frame("monthly mean")
 monthly_tail["days"] = coverage["observed"]
-monthly_tail["change"] = monthly_tail["monthly mean"].diff().round(3)
+# Difference the UNROUNDED means, then round for display. Differencing rounded
+# values compounds rounding error into the quantity you are reporting.
+monthly_tail["change"] = monthly_mean.diff().round(3)
 monthly_tail["complete"] = coverage["complete"]
 print(monthly_tail.tail(12).to_string())
 
