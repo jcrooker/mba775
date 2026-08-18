@@ -443,6 +443,48 @@ A retired series produces a perfectly reasonable-looking analysis of a world
 that no longer exists.
 :::
 
+### The same thing, measured on two different scales
+
+The two series do not merely resemble each other. Over the months they both
+cover, they move together almost perfectly.
+
+```{python}
+#| label: cci-overlap
+overlap = cci.merge(cci_old, on="date", suffixes=("_new", "_old")).dropna()
+
+print(f"Overlapping months: {len(overlap):,}")
+print(f"Correlation over the overlap: {overlap.cci_new.corr(overlap.cci_old):.3f}")
+print()
+print(f"{'':<12}{'current':>12}{'retired':>12}")
+for label, a, b in [("minimum", cci.cci.min(), cci_old.cci.min()),
+                    ("mean", cci.cci.mean(), cci_old.cci.mean()),
+                    ("maximum", cci.cci.max(), cci_old.cci.max())]:
+    print(f"{label:<12}{a:>12.2f}{b:>12.2f}")
+print()
+print("The same four months, read from each series:")
+print(overlap.tail(4).to_string(index=False))
+```
+
+A correlation of 0.992 says these two series carry the same information. The
+summary table says they are on **completely different scales**: the retired
+series is normalised to a mean of exactly 100 and never strays more than about
+three points from it, while the current series ranges from the high forties to
+above 120.
+
+::: {.scarlet}
+In October 2023 one of these series reads about 69 and the other about 98.
+Same month, same concept, same underlying survey.
+
+A student who saw 98 in an old report and 69 in a new one would conclude that
+consumer confidence had collapsed. Nothing collapsed. **The normalisation
+changed.**
+:::
+
+This is why *units* belong in the provenance record alongside the series name
+and the date range. "Consumer confidence was 69" is not a fact until you say
+which index, normalised how. Two correct numbers describing the same reality
+can differ by fifty percent, and neither is wrong.
+
 The discontinued series is `CSCICP03USM665S`; the current one is
 `USACSCICP02STSAM`. If you had built a forecast on the first one in early 2024
 it would have looked fine, right up until someone asked what happened last
