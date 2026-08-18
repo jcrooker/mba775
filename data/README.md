@@ -164,3 +164,37 @@ Second, this is a **fixed-seed random sample** of 100,000 drawn from roughly
 1.3 million simulated households. The full file is about 28 MB, too large to
 distribute here. The seed is fixed, so every student computes identical
 numbers from it.
+
+# Chapter 4 files
+
+## nevada_economy.csv
+
+| | |
+|---|---|
+| Series | `NVRQGSP` — real GDP, all industry total, Nevada; `NVUR` — unemployment rate, Nevada |
+| Source | <https://fred.stlouisfed.org/series/NVRQGSP> and <https://fred.stlouisfed.org/series/NVUR> |
+| Units | GDP in millions of chained dollars, seasonally adjusted at annual rates; unemployment in percent, seasonally adjusted |
+| Frequency | Quarterly |
+| Date range | 2005 onward — BEA's quarterly state GDP series does not go back further |
+
+Columns: `date`, `real_gdp`, `unemployment_rate`, `gdp_growth`.
+
+`gdp_growth` is **computed here**, not downloaded: the four-quarter log change
+in `real_gdp`. The first four rows are blank by construction.
+
+The unemployment series is published monthly; this file keeps the month that
+opens each quarter rather than averaging the three, so that every rate in the
+file is a number you can look up on FRED.
+
+**Read before using.** The lecture note classifies each quarter as Low,
+Middle, or High on each variable, cutting at the 25th and 75th percentiles of
+the sample. Those cut points are a choice, not a fact about Nevada, and every
+probability computed from them inherits it. A different cut point gives
+different probabilities from identical data — so state the definition
+alongside any probability you report from this file.
+
+Two events dominate this sample and will dominate anything you compute from
+it: the 2008–2010 housing collapse, which hit Nevada harder than any other
+state, and the April 2020 shutdown, when Nevada's unemployment rate reached
+roughly 30%. Fifteen years of data containing two once-in-a-generation shocks
+is not fifteen years of typical experience.

@@ -1,0 +1,1633 @@
+---
+title: "Introducing Probabilities"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+
+from _charts import (bar_chart, heatmap, probability_tree, convergence_plot,
+                     time_series, UNLV_SCARLET, UNLV_GRAY)
+from _prob import (classical_probability, empirical_probability,
+                   two_dice_sample_space, roll_two_dice,
+                   joint_probability_table, marginal, joint, conditional,
+                   addition_rule, multiplication_rule, independence_report,
+                   bayes_table, expected_value, fundamental_counting,
+                   permutations, combinations, counting_comparison)
+from _stats import percentile
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 80)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def mnum(x, decimals=0):
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`, so that
+    computed values reach LaTeX without being escaped on the way."""
+    print(f"$${latex}$$\n")
+
+
+def quarter(d):
+    """Format a timestamp as a calendar quarter. strftime has no quarter
+    code, so it has to be worked out from the month."""
+    d = pd.Timestamp(d)
+    return f"{d.year} Q{(d.month - 1) // 3 + 1}"
+
+
+nv = pd.read_csv("data/nevada_economy.csv", parse_dates=["date"])
+```
+
+## Objectives
+
++ Distinguish between classical, empirical, and subjective probability.
++ Identify the basic properties of probability.
++ Calculate and interpret the intersection and union of events.
++ Use the addition rule and the multiplication rule.
++ Interpret the meaning of conditional probability.
++ Use Bayes' Theorem to revise prior probabilities in light of new evidence.
++ Count possible outcomes with the fundamental counting principle.
++ Distinguish between permutations and combinations.
++ Apply all of the above to business problems where the probabilities are
+  someone's judgment rather than a published statistic.
+
+::: {.charcoal}
+Chapters 2 and 3 described data you already had. This chapter is about data
+you do not have yet — outcomes that have not happened.
+
+That shift is why probability is the hinge of this course. Everything after it
+— distributions, sampling, confidence intervals, hypothesis tests — is
+machinery for making statements about things you have not observed. The
+notation in this chapter is the notation you will be reading in Chapter 9.
+
+The second half of the note is worked problems with the solutions hidden.
+Try each one before you open it. Reading a solution you have not attempted
+feels like learning and is not.
+:::
+
+# What a Probability Is
+
+::: {.blue}
+A **probability** is a numerical value between 0 and 1 giving the likelihood
+that a specific event occurs. A probability of 0 means the event cannot
+happen; a probability of 1 means it must.
+
+An **experiment** is the process of observing an activity with uncertain
+outcomes for the purpose of collecting data — rolling a six-sided die, say.
+
+The **sample space** is the list of all possible outcomes of an experiment.
+For one die it is $\{1,2,3,4,5,6\}$.
+
+An **event** is one or more outcomes of an experiment — a subset of the
+sample space. Rolling a pair with two dice is an event.
+
+A **simple event** is an event with a single outcome that cannot be broken
+down further. Rolling a five with one die is a simple event.
+:::
+
+There are three ways to put a number on a probability, and which one you are
+using changes how much weight the number can bear.
+
+# Classical Probability
+
+::: {.blue}
+**Classical probability** applies when you know every possible outcome and
+they are equally likely:
+
+$$P(A)=\frac{\text{number of outcomes that make event }A\text{ happen}}{\text{total number of outcomes in the sample space}}.$$
+:::
+
+::: {.brown}
+**Where this came from.** By legend, the systematic study of probability began
+with an argument about how to split the pot of an
+[unfinished game](https://stevehely.com/2021/02/21/how-the-chevalier-de-mere-met-blaise-pascal/).
+A nobleman wrote to [Blaise Pascal](https://en.wikipedia.org/wiki/Blaise_Pascal),
+who consulted [Pierre de Fermat](https://en.wikipedia.org/wiki/Pierre_de_Fermat),
+and their correspondence is often treated as the founding document of
+probability theory.
+
+It is not an accident that the field started at a card table. Dice and cards
+are among the few situations where you can genuinely be certain the outcomes
+are equally likely. Almost nothing in business is.
+:::
+
+::: {.blue}
+If the sample space includes every simple event that can occur, the set of
+events is **collectively exhaustive**.
+:::
+
+## Worked example: rolling a seven
+
+A player rolls two dice and scores their sum. What is the probability of
+rolling a 7?
+
+The tempting mistake is to say the sample space is
+$\{2,3,4,5,6,7,8,9,10,11,12\}$ — eleven outcomes — and therefore
+$P(7)=\frac{1}{11}$. That is wrong, because those eleven outcomes are *not*
+equally likely, and classical probability requires that they be.
+
+The equally likely outcomes are the 36 ordered pairs of the two dice.
+
+```{python}
+#| label: dice-space
+space = two_dice_sample_space()
+space[["ways", "fraction", "probability"]].round(4)
+```
+
+```{python}
+#| label: dice-seven
+#| include: false
+
+p7 = float(space.loc[7, "probability"])
+ways7 = int(space.loc[7, "ways"])
+```
+
+```{python}
+#| label: dice-seven-math
+#| echo: false
+#| output: asis
+show_math(rf"P(R=7)=\frac{{{ways7}}}{{36}}={p7:.4f}")
+```
+
+There is one way to roll a 2 and `{python} str(ways7)` ways to roll a 7, which
+is exactly why 7 is the number the game is built around.
+
+```{python}
+#| label: dice-bar
+_ = bar_chart(space.index, space["probability"],
+              title="Classical probability of each two-dice total",
+              xlab="Total", ylab="Probability")
+```
+
+::: {.charcoal}
+The whole difficulty of classical probability is identifying the right sample
+space. Once you have it the arithmetic is division. When a probability
+question feels hard, it is almost always because the sample space is not what
+it first appeared to be.
+:::
+
+# Empirical Probability
+
+::: {.blue}
+**Empirical probability** comes from observing how often something actually
+happened:
+
+$$P(A)=\frac{\text{number of times event }A\text{ occurred}}{\text{total number of observations}}.$$
+:::
+
+## Application: the state of the Nevada economy
+
+A business deciding whether to open a location, or how much inventory to
+carry, is making a bet on economic conditions. Every location eventually sees
+a downturn; a downturn arriving right after a large cash outlay is the case
+that hurts.
+
+We have no classical model of the Nevada economy — there is no die being
+rolled. What we have is history.
+
+```{python}
+#| label: nv-load
+nv_ok = nv.dropna(subset=["gdp_growth"]).copy()
+print(f"Nevada quarterly data: {quarter(nv['date'].min())} to "
+      f"{quarter(nv['date'].max())}")
+print(f"{len(nv):,} quarters loaded, {len(nv_ok):,} with four-quarter "
+      f"growth defined (the first four cannot have it)")
+nv_ok[["date", "real_gdp", "unemployment_rate", "gdp_growth"]].tail(8).round(4)
+```
+
+```{python}
+#| label: nv-series
+_ = time_series(nv_ok["date"], 100 * nv_ok["gdp_growth"],
+                title="Nevada real GDP, four-quarter growth",
+                ylab="Growth (%)")
+```
+
+```{python}
+#| label: nv-unemp
+_ = time_series(nv_ok["date"], nv_ok["unemployment_rate"],
+                title="Nevada unemployment rate",
+                ylab="Unemployment rate (%)")
+```
+
+To turn two continuous series into events we have to define states. We cut
+each series at its own quartiles: the bottom 25% of quarters are **Low**, the
+top 25% are **High**, and the middle half are **Middle**.
+
+```{python}
+#| label: nv-states
+def classify(series):
+    lo, hi = percentile(series, 0.25), percentile(series, 0.75)
+    return pd.Series(np.where(series < lo, "Low",
+                     np.where(series > hi, "High", "Middle")),
+                     index=series.index), lo, hi
+
+growth_state, g_lo, g_hi = classify(nv_ok["gdp_growth"])
+unemp_state, u_lo, u_hi = classify(nv_ok["unemployment_rate"])
+
+print(f"Growth       Low below {100*g_lo:6.2f}% | High above {100*g_hi:6.2f}%")
+print(f"Unemployment Low below {u_lo:6.2f}%  | High above {u_hi:6.2f}%")
+
+states = pd.DataFrame({
+    "date": nv_ok["date"].to_numpy(),
+    "growth": growth_state.to_numpy(),
+    "unemployment": unemp_state.to_numpy(),
+})
+states["today"] = states["growth"] + "," + states["unemployment"]
+states.tail(10)
+```
+
+::: {.scarlet}
+Note what just happened. "Low growth" is not a fact about Nevada — it is a
+definition we chose, and a different cut point produces different
+probabilities from identical data. Every probability in this section inherits
+that choice.
+
+Say so when you report one. "The probability of a low-growth quarter is 25%"
+is nearly circular; we defined low growth as the bottom quarter. The
+interesting probabilities here are the *conditional* ones, which the
+definition does not fix in advance.
+:::
+
+```{python}
+#| label: nv-freq
+unemp_freq = states["unemployment"].value_counts()
+growth_freq = states["growth"].value_counts()
+pd.DataFrame({
+    "unemployment: quarters": unemp_freq,
+    "unemployment: empirical probability": (unemp_freq / len(states)).round(4),
+    "growth: quarters": growth_freq,
+    "growth: empirical probability": (growth_freq / len(states)).round(4),
+})
+```
+
+Each percentage in that table is an empirical probability: the share of
+quarters in which Nevada was in that state.
+
+## The law of large numbers
+
+::: {.blue}
+The **law of large numbers** says that as an experiment is repeated more and
+more times, the empirical probabilities converge on the classical ones.
+:::
+
+This is the bridge between the two definitions, and it is worth watching
+rather than taking on faith. We simulate the dice roll a million times.
+
+```{python}
+#| label: lln-sim
+rolls = roll_two_dice(1_000_000)
+observed = rolls.value_counts().sort_index()
+
+comparison = space[["ways", "probability"]].copy()
+comparison.columns = ["ways", "classical"]
+comparison["rolled"] = observed
+comparison["empirical"] = (observed / len(rolls))
+comparison["difference"] = comparison["empirical"] - comparison["classical"]
+comparison.round(5)
+```
+
+```{python}
+#| label: lln-plot
+_ = convergence_plot(rolls == 7, target=p7,
+                     title="Running empirical probability of rolling a 7")
+```
+
+```{python}
+#| label: lln-stats
+#| include: false
+
+emp7 = float((rolls == 7).mean())
+gap7 = emp7 - p7
+worst_gap = comparison["difference"].abs().max()
+```
+
+After a million rolls the empirical probability of a 7 is
+`{python} f"{emp7:.5f}"` against a classical `{python} f"{p7:.5f}"` — off by
+`{python} f"{gap7:+.5f}"`. No outcome in the table is off by more than
+`{python} f"{worst_gap:.5f}"`.
+
+::: {.charcoal}
+Look at the left end of that curve. At ten rolls the running probability is
+nowhere near 1/6, and at a hundred it is still visibly wrong. Convergence is
+real but it is slow, and "we ran a pilot with 40 customers" is the business
+equivalent of the left end of this chart.
+:::
+
+# Subjective Probability
+
+::: {.blue}
+**Subjective probability** is used when neither classical nor empirical
+probabilities are available, and we rely on experience and judgment instead.
+:::
+
+Most consequential business probabilities are subjective. There is no sample
+space for "will this drug pass its trial" and no long run of identical
+launches to count. That does not make the number arbitrary — it makes it a
+claim someone is responsible for.
+
+The discipline is to anchor judgment in whatever evidence does exist. If you
+want to say how likely Nevada is to be in a bad state six months from now,
+history will not answer the question, but it will frame it. The rest of this
+chapter is largely about how to do that framing properly.
+
+# The Basic Rules
+
+::: {.blue}
+**Rule 1.** If $P(A)=1$, event $A$ is certain to occur.
+
+**Rule 2.** If $P(A)=0$, event $A$ cannot occur.
+
+**Rule 3.** Every probability lies in the interval $[0,1]$.
+
+**Rule 4.** The probabilities of all simple events in the sample space sum
+to 1.
+
+**Rule 5 — the complement rule.** The **complement** of event $A$, written
+$A'$, is every outcome in the sample space that is not in $A$. Therefore
+
+$$P(A)+P(A')=1 \qquad\text{or}\qquad P(A)=1-P(A').$$
+:::
+
+::: {.brown}
+Rule 5 does more work than its length suggests. "At least one" problems are
+almost always easier as one minus the probability of none — and Rule 4 is the
+check to run on any table of probabilities you build or are handed. If the
+column does not sum to 1, stop and find out why before interpreting anything
+in it.
+:::
+
+# Two Events at Once
+
+::: {.blue}
+A **contingency table** records how often combinations of two categorical
+variables occur together.
+
+**Marginal probability** is a simple probability found in the row and column
+totals — the margins — of a contingency table.
+
+The **intersection** of events $A$ and $B$ is the outcomes where both occur.
+Its probability is called a **joint probability**.
+
+The **union** of events $A$ and $B$ is the outcomes where $A$ occurs, or $B$
+occurs, or both.
+:::
+
+We now pair each Nevada quarter with the state of the economy two quarters —
+six months — later.
+
+```{python}
+#| label: nv-forward
+LEAD = 2   # quarters; the note asks about six months ahead
+states["forward"] = states["today"].shift(-LEAD)
+paired = states.dropna(subset=["forward"]).copy()
+print(f"{len(paired)} quarters have a six-month-forward state "
+      f"(the last {LEAD} do not, since that future has not happened yet)")
+paired[["date", "today", "forward"]].tail(6)
+```
+
+```{python}
+#| label: nv-counts
+counts = pd.crosstab(paired["today"], paired["forward"],
+                     margins=True, margins_name="Total")
+counts
+```
+
+```{python}
+#| label: nv-probs
+probs = joint_probability_table(paired["today"], paired["forward"],
+                                x_name="today", y_name="in six months")
+probs.round(4)
+```
+
+Every cell in the body of that table is a **joint probability**. Every figure
+in the margins is a **marginal probability**. The bottom-right corner is 1.00,
+which is the fastest check that the table is built correctly.
+
+```{python}
+#| label: nv-heat
+_ = heatmap(pd.crosstab(paired["today"], paired["forward"]),
+            title="Nevada economy: state today against state in six months",
+            xlab="State in six months", ylab="State today")
+```
+
+## The addition rule
+
+::: {.blue}
+Two events are **mutually exclusive** if they cannot both occur.
+
+The **addition rule** gives the probability of a union. If $A$ and $B$ are
+mutually exclusive,
+
+$$P(A\text{ or }B)=P(A)+P(B).$$
+
+If they are not,
+
+$$P(A\text{ or }B)=P(A)+P(B)-P(A\text{ and }B).$$
+:::
+
+The subtraction is there because outcomes in both events would otherwise be
+counted twice.
+
+```{python}
+#| label: nv-focus
+#| include: false
+
+TODAY = "Low,Middle"          # low growth, middle unemployment, right now
+FUTURE = "Low,High"           # low growth, high unemployment, in six months
+
+n_pairs = len(paired)
+p_today = marginal(probs, row=TODAY)
+p_future = marginal(probs, col=FUTURE)
+p_both = joint(probs, TODAY, FUTURE)
+n_today = int(counts.loc[TODAY, "Total"])
+n_future = int(counts.loc["Total", FUTURE])
+n_both = int(counts.loc[TODAY, FUTURE])
+p_or = addition_rule(p_today, p_future, p_both)
+```
+
+Take two events from the Nevada table:
+
+- $A$: the economy **today** is `{python} TODAY` — low growth, middle
+  unemployment. This happened in `{python} str(n_today)` of
+  `{python} str(n_pairs)` quarters, so $P(A)=$ `{python} pct(p_today)`.
+- $B$: the economy **in six months** is `{python} FUTURE` — low growth, high
+  unemployment. This happened in `{python} str(n_future)` of
+  `{python} str(n_pairs)` quarters, so $P(B)=$ `{python} pct(p_future)`.
+
+These are not mutually exclusive — a quarter can be in both — so:
+
+```{python}
+#| label: addition-math
+#| echo: false
+#| output: asis
+show_math(rf"P(A\text{{ or }}B)=P(A)+P(B)-P(A\text{{ and }}B)"
+          rf"={p_today:.4f}+{p_future:.4f}-{p_both:.4f}={p_or:.4f}")
+```
+
+Had we forgotten to subtract the `{python} str(n_both)` quarters that are in
+both, we would have reported `{python} pct(p_today + p_future)` instead of
+`{python} pct(p_or)`.
+
+# Conditional Probability
+
+::: {.blue}
+**Conditional probability** is the probability that event $A$ occurs given
+that event $B$ has occurred:
+
+$$P(A|B)=\frac{P(A\text{ and }B)}{P(B)}, \qquad
+  P(B|A)=\frac{P(A\text{ and }B)}{P(A)}.$$
+
+A conditional probability is also called a **posterior probability** — a
+revision of the prior in light of additional information.
+
+**Prior probability** is the probability of an event determined without that
+additional information.
+:::
+
+::: {.scarlet}
+The conditioning event goes in the **denominator**. $P(A|B)$ and $P(B|A)$ are
+different numbers answering different questions, and confusing them is the
+most consequential error in this chapter — it is the error behind most
+misread medical tests and most overstated marketing results.
+:::
+
+## Nevada: does a mediocre quarter forecast a bad one?
+
+```{python}
+#| label: nv-conditional
+p_future_given_today = conditional(probs, TODAY, FUTURE, given="row")
+p_today_given_future = conditional(probs, TODAY, FUTURE, given="col")
+
+pd.DataFrame({
+    "quantity": [
+        f"P(today = {TODAY})",
+        f"P(in six months = {FUTURE})",
+        f"P(both)",
+        f"P(in six months = {FUTURE} | today = {TODAY})",
+        f"P(today = {TODAY} | in six months = {FUTURE})",
+    ],
+    "probability": [p_today, p_future, p_both,
+                    p_future_given_today, p_today_given_future],
+}).round(4)
+```
+
+```{python}
+#| label: nv-cond-math
+#| echo: false
+#| output: asis
+show_math(rf"P(B|A)=\frac{{P(A\text{{ and }}B)}}{{P(A)}}"
+          rf"=\frac{{{n_both}/{n_pairs}}}{{{n_today}/{n_pairs}}}"
+          rf"=\frac{{{n_both}}}{{{n_today}}}={p_future_given_today:.4f}")
+show_math(rf"P(A|B)=\frac{{P(A\text{{ and }}B)}}{{P(B)}}"
+          rf"=\frac{{{n_both}/{n_pairs}}}{{{n_future}/{n_pairs}}}"
+          rf"=\frac{{{n_both}}}{{{n_future}}}={p_today_given_future:.4f}")
+```
+
+Those two numbers come from the same `{python} str(n_both)` quarters. They
+differ only in what they are divided by, and they answer genuinely different
+questions:
+
+- **`{python} pct(p_future_given_today)`** — *Nevada is in a low-growth,
+  middle-unemployment quarter right now. How worried should I be about six
+  months from now?* This is the forecasting question.
+- **`{python} pct(p_today_given_future)`** — *Nevada is in a bad state. How
+  often did it look like this six months earlier?* This is the diagnostic
+  question, and it is the one that tells you whether the warning sign is
+  worth watching.
+
+Neither number is "the" answer. Which one you want depends on which direction
+in time you are reasoning.
+
+# Independence and Dependence
+
+::: {.blue}
+Two events are **independent** if the occurrence of one has no effect on the
+probability of the other. If the occurrence of one does affect the other, the
+events are **dependent**.
+
+When $A$ and $B$ are independent, $P(A|B)=P(A)$.
+:::
+
+The test is a comparison: compute the prior, compute the posterior, and look
+at whether they moved.
+
+## Do dice have memory?
+
+A gambler's instinct says a run of sevens must "even out." We have a million
+rolls, so we can check.
+
+```{python}
+#| label: dice-memory
+sevens = (rolls == 7).to_numpy()
+after_seven = sevens[1:][sevens[:-1]]        # the roll following each 7
+
+prior_7 = sevens.mean()
+posterior_7 = after_seven.mean()
+
+print(f"Rolls that were a 7:                     {sevens.sum():>9,}")
+print(f"Of those, followed by another 7:         {after_seven.sum():>9,}")
+print()
+print(independence_report(prior_7, posterior_7, "roll a 7", "last roll was a 7"))
+```
+
+```{python}
+#| label: dice-memory-stats
+#| include: false
+
+dice_gap = abs(posterior_7 - prior_7)
+dice_places = max(1, int(-np.floor(np.log10(dice_gap))))
+```
+
+The two probabilities agree to `{python} str(dice_places)` decimal places.
+Dice have no memory, and the difference that remains is what sampling noise
+looks like after a million rolls — not a pattern, and not something a betting
+system can exploit.
+
+## Does Nevada's economy have memory?
+
+```{python}
+#| label: nv-memory
+print(independence_report(p_future, p_future_given_today,
+                          f"'{FUTURE}' in six months",
+                          f"'{TODAY}' today"))
+```
+
+```{python}
+#| label: nv-memory-stats
+#| include: false
+
+lift = p_future_given_today / p_future if p_future else float("nan")
+dependent = abs(p_future_given_today - p_future) > 0.01
+```
+
+Here the prior and posterior are `{python} "far apart" if dependent else "close together"`.
+Knowing where Nevada is today `{python} "changes" if dependent else "does not much change"`
+what you should expect six months out — which is what **dependence** means,
+and is the entire reason economic forecasting is a job.
+
+::: {.brown}
+Independence is an assumption people make silently and constantly. Multiplying
+probabilities together — "each component is 99% reliable, so the system is
+$0.99^{10}$" — assumes the failures are independent, and in a system with a
+shared power supply they are not. When a risk model surprises everyone, a
+false independence assumption is the usual culprit.
+:::
+
+# The Multiplication Rule
+
+::: {.blue}
+The **multiplication rule** gives the probability of an intersection.
+
+For **dependent** events, rearranging the conditional probability formula:
+
+$$P(A\text{ and }B)=P(B)\,P(A|B)=P(A)\,P(B|A).$$
+
+For **independent** events this simplifies to
+
+$$P(A\text{ and }B)=P(A)P(B),$$
+
+and for $n$ independent events,
+
+$$P(A_1\text{ and }A_2\text{ and }\cdots\text{ and }A_n)=P(A_1)P(A_2)\cdots P(A_n).$$
+:::
+
+```{python}
+#| label: mult-check
+rebuilt = multiplication_rule(p_today, p_future_given_today)
+if_independent = p_today * p_future
+
+pd.DataFrame({
+    "method": ["Multiplication rule, using P(B|A)",
+               "Read directly from the table",
+               "If the events were independent: P(A)P(B)"],
+    "P(A and B)": [rebuilt, p_both, if_independent],
+}).round(6)
+```
+
+The first two agree, because the multiplication rule is just the conditional
+probability formula rearranged. The third does not, and the size of that gap
+is a measure of how dependent these events are.
+
+# Probability Trees
+
+::: {.blue}
+**Decision trees** display marginal and joint probabilities as branches. They
+are a visual alternative to a probability table, and they make the
+multiplication rule literal: to get the probability at the end of a path,
+multiply along it.
+:::
+
+```{python}
+#| label: nv-tree
+top_states = counts["Total"].drop("Total").nlargest(3).index.tolist()
+
+first_stage = {s: marginal(probs, row=s) for s in top_states}
+other = 1 - sum(first_stage.values())
+second_stage = {
+    s: {FUTURE: conditional(probs, s, FUTURE, given="row"),
+        f"not {FUTURE}": 1 - conditional(probs, s, FUTURE, given="row")}
+    for s in top_states
+}
+
+tree = probability_tree(first_stage, second_stage,
+                        title="Nevada economy today, and six months later")
+tree.round(4)
+```
+
+```{python}
+#| label: tree-note
+#| include: false
+
+tree_total = tree["joint_probability"].sum()
+```
+
+The three states shown are the most common ones today; together they account
+for `{python} pct(sum(first_stage.values()))` of quarters, with the remaining
+`{python} pct(other)` spread across the other states. The joint probabilities
+at the tips of these branches sum to `{python} f"{tree_total:.4f}"` for that
+reason — a tree drawn over *every* state would sum to exactly 1.
+
+# Bayes' Theorem
+
+Everything so far has been bookkeeping on a table we already had. Bayes'
+Theorem is what to do when you do not have the table — when you know the
+conditional probability in one direction and need it in the other.
+
+::: {.blue}
+**Bayes' Theorem** revises a prior probability using new information:
+
+$$P(A_i|B)=\frac{P(A_i)\,P(B|A_i)}{P(A_1)P(B|A_1)+P(A_2)P(B|A_2)+\cdots+P(A_n)P(B|A_n)},$$
+
+where the $A_i$ are the $n$ possible states of the world and $B$ is the
+evidence that has occurred.
+:::
+
+That denominator looks worse than it is. It is just $P(B)$, written out the
+long way — the probability of the evidence, summed over every state of the
+world that could have produced it.
+
+## The Bayes table
+
+In practice nobody applies that formula directly. They build a four-column
+table, and the last column is the answer.
+
+Take the Nevada question and turn it around. Suppose we know only:
+
+- the prior $P(B)$ — how often Nevada lands in `{python} FUTURE`
+- $P(A|B)$ — how often such a quarter was preceded by `{python} TODAY`
+- $P(A|B')$ — how often quarters *not* in that state were
+
+and we want $P(B|A)$: given today looks like `{python} TODAY`, how likely is
+the bad outcome?
+
+```{python}
+#| label: nv-bayes
+p_not_future = 1 - p_future
+p_today_given_not_future = conditional(
+    probs.drop(columns=[FUTURE]).assign(
+        **{"Total": probs["Total"] - probs[FUTURE]}),
+    TODAY, "Total", given="col")
+
+bayes = bayes_table(
+    priors={FUTURE: p_future, f"not {FUTURE}": p_not_future},
+    likelihoods={FUTURE: p_today_given_future,
+                 f"not {FUTURE}": p_today_given_not_future},
+    evidence_name=f"today = {TODAY}")
+bayes.round(4)
+```
+
+```{python}
+#| label: nv-bayes-check
+#| include: false
+
+posterior_col = [c for c in bayes.columns if c.startswith("posterior")][0]
+joint_col = [c for c in bayes.columns if c.startswith("joint")][0]
+bayes_answer = float(bayes.loc[FUTURE, posterior_col])
+bayes_evidence = float(bayes.loc["TOTAL", joint_col])
+```
+
+```{python}
+#| label: nv-bayes-math
+#| echo: false
+#| output: asis
+show_math(rf"P(B|A)=\frac{{P(B)\,P(A|B)}}{{P(B)P(A|B)+P(B')P(A|B')}}"
+          rf"=\frac{{{p_future:.4f}\times{p_today_given_future:.4f}}}"
+          rf"{{{p_future:.4f}\times{p_today_given_future:.4f}"
+          rf"+{p_not_future:.4f}\times{p_today_given_not_future:.4f}}}"
+          rf"={bayes_answer:.4f}")
+```
+
+::: {.scarlet}
+Now check it against the table we started with. Reading $P(B|A)$ straight off
+the contingency table gave `{python} f"{p_future_given_today:.4f}"`. Bayes'
+Theorem, working only from probabilities pointing the *other* direction, gives
+`{python} f"{bayes_answer:.4f}"`.
+
+They agree, and that is the point of the exercise. Bayes is not a different
+answer — it is a route to the same answer when the table is not available to
+you. In the problems at the end of this note, it never is.
+:::
+
+The `TOTAL` row of the joint column is `{python} f"{bayes_evidence:.4f}"` —
+that is $P(A)$, the denominator of the formula, and it matches the marginal
+`{python} f"{p_today:.4f}"` from the original table.
+
+# Counting Principles
+
+When outcomes are equally likely, classical probability needs a count of them,
+and the counts get large quickly.
+
+::: {.blue}
+The **fundamental counting principle**: with $k_1$ choices at the first stage,
+$k_2$ at the second, and so on through $k_n$, the total number of possible
+outcomes is
+
+$$k_1\cdot k_2\cdot k_3\cdots k_n.$$
+:::
+
+## Example: representation
+
+A corporation has four regions with 12, 6, 8, and 7 managers. Each region
+sends one manager to headquarters. How many different groups could arrive?
+
+```{python}
+#| label: counting-1
+meetings = fundamental_counting(12, 6, 8, 7)
+print(f"12 x 6 x 8 x 7 = {meetings:,}")
+```
+
+::: {.blue}
+**Permutations** count arrangements where **order matters**:
+
+$$_nP_x=\frac{n!}{(n-x)!}.$$
+
+**Combinations** count selections where **order does not matter**:
+
+$$_nC_x=\frac{n!}{(n-x)!\,x!}.$$
+:::
+
+::: {.brown}
+By definition, $0!=1$.
+:::
+
+## Example: election
+
+Region 1's 12 managers elect a Senior Regional Manager and an Associate
+Regional Manager. How many outcomes?
+
+Order matters — being elected Senior is not the same as being elected
+Associate — so this is a permutation.
+
+```{python}
+#| label: counting-2
+print(f"12P2 = 12! / 10! = 12 x 11 = {permutations(12, 2)}")
+```
+
+## Example: the Hawaii trip
+
+Region 4's 7 managers send two of their number on a corporate outing. How many
+possible pairs?
+
+Order does not matter — both selected managers go on the same trip — so this
+is a combination.
+
+```{python}
+#| label: counting-3
+print(f"7C2 = 7! / (5! 2!) = (7 x 6) / 2 = {combinations(7, 2)}")
+```
+
+```{python}
+#| label: counting-compare
+counting_comparison(12, 2)
+```
+
+::: {.charcoal}
+The single question to ask is: **would swapping two of the chosen items give a
+different outcome?** If yes — one becomes Senior and the other Associate — it
+is a permutation. If no — they both go to Hawaii — it is a combination.
+
+The permutation is always the larger number, by exactly $x!$, because it
+counts every ordering of the same group separately.
+:::
+
+# Contingency Tables in Excel
+
+You may be asked for this work in a spreadsheet, and you may prefer to do it
+there. You will not be tested on building it in either Excel or Python — you
+will be tested on interpreting it.
+
+::: {.prompt}
+Prompt
+
+> Using `data/nevada_economy.csv` from
+> <https://github.com/jcrooker/mba775>, build an Excel workbook with three
+> sheets. Sheet 1 holds the raw quarterly data. Sheet 2 adds columns
+> classifying each quarter's GDP growth and unemployment as Low, Middle, or
+> High using the 25th and 75th percentiles of each series, computed with
+> `PERCENTILE.EXC` formulas, plus a column giving the combined state two
+> quarters later. Sheet 3 holds a PivotTable cross-tabulating the state today
+> against the state in six months, with counts and with percentages of the
+> grand total. Use real Excel formulas throughout, not pasted values. Give me
+> the file to download.
+:::
+
+Once it is open, the PivotTable is the contingency table, and dragging a field
+between Rows and Values switches you between joint and conditional views of
+the same data.
+
+# Applications
+
+The rest of this note is worked problems. **Attempt each one before opening
+the solution.**
+
+These problems differ from everything above in one important way: there is no
+data set. The probabilities are given to you, as they will be in practice —
+by a researcher, a finance VP, a survey, or your own judgment. The skill being
+built is recognising which rule the problem is asking for.
+
+## Henry's golf outing
+
+::: {.brown}
+Henry is enjoying his retirement in southern Nevada, and particularly likes
+the chance to play golf. He flips a fair coin each day to decide between golf
+and bowling. The risk is that he picks golf on a rainy day. Climate data puts
+the prior probability of rain in southern Nevada at 0.0712.
+
+**(a)** Calculate the probability that Henry golfs on a rainy day.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+The coin is fair, so $P(\text{Golf})=0.5$. A coin flip cannot influence the
+weather, so these events are **independent** and the multiplication rule takes
+its simple form.
+
+```{python}
+#| label: henry-a
+P_GOLF, P_RAIN = 0.5, 0.0712
+p_golf_rain = P_GOLF * P_RAIN
+print(f"P(Golf and Rain) = {P_GOLF} x {P_RAIN} = {p_golf_rain:.4f}")
+```
+
+```{python}
+#| label: henry-a-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Golf and Rain})&=\Pr(\text{Golf})\cdot"
+          rf"\Pr(\text{{Rain}})\\&={P_GOLF}\cdot{P_RAIN}\\&={p_golf_rain:.4f}"
+          r"\end{split}")
+```
+
+Henry has about a `{python} pct(p_golf_rain)` chance of a rainy golf outing.
+:::
+
+::: {.brown}
+**(b)** Calculate the posterior probability that it rains given that Henry's
+coin flip sends him golfing. Then calculate the posterior probability that the
+coin sends him golfing given that it rains.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: henry-b
+p_rain_given_golf = p_golf_rain / P_GOLF
+p_golf_given_rain = p_golf_rain / P_RAIN
+
+pd.DataFrame({
+    "quantity": ["P(Rain)", "P(Rain | Golf)", "P(Golf)", "P(Golf | Rain)"],
+    "probability": [P_RAIN, p_rain_given_golf, P_GOLF, p_golf_given_rain],
+}).round(4)
+```
+
+```{python}
+#| label: henry-b-math
+#| echo: false
+#| output: asis
+show_math(r"\Pr(\text{Rain}|\text{Golf})=\frac{\Pr(\text{Rain and Golf})}"
+          rf"{{\Pr(\text{{Golf}})}}=\frac{{{p_golf_rain:.4f}}}{{{P_GOLF}}}"
+          rf"={p_rain_given_golf:.4f}")
+```
+
+Both posteriors equal their priors exactly. Knowing Henry is golfing tells you
+nothing about the weather, and knowing it is raining tells you nothing about
+his coin.
+
+**That is the definition of independence** — and it is the check to run
+whenever you are tempted to assume it.
+:::
+
+::: {.brown}
+**(c)** List the four mutually exclusive outcomes of Henry's day, with the
+probability of each.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: henry-c
+henry = probability_tree(
+    {"Golf": P_GOLF, "Bowling": 1 - P_GOLF},
+    {"Golf": {"Rain": P_RAIN, "No rain": 1 - P_RAIN},
+     "Bowling": {"Rain": P_RAIN, "No rain": 1 - P_RAIN}},
+    title="Henry's day: coin flip, then weather")
+henry.round(4)
+```
+
+```{python}
+#| label: henry-c-check
+print(f"The four probabilities sum to "
+      f"{henry['joint_probability'].sum():.4f}")
+```
+
+The four outcomes are collectively exhaustive and mutually exclusive, so by
+Rule 4 they must sum to 1 — and they do. Note that the weather branches are
+identical under both activities, which is what independence looks like in a
+tree.
+:::
+
+## The lunar effect
+
+::: {.brown}
+It has long been suspected that a full moon makes people more aggressive or
+impulsive; the
+[suspicion is ancient](https://www.bbc.com/future/article/20190731-is-the-moon-impacting-your-mood-and-wellbeing)
+and has been
+[studied with arrest data](https://scitechdaily.com/researchers-analyze-lunar-effect-does-crime-increase-when-the-moon-is-full/).
+Using the contingency table below, calculate the prior probability of an
+arrest, then the posterior probability of an arrest given a full moon. Is
+there evidence of a lunar effect?
+:::
+
+```{python}
+#| label: lunar-data
+# Simulated to match a published arrest rate of 3,152.6 per 100,000 per year,
+# over January 2014 to May 2018, with 100,000 people at risk each day. There
+# is no public day-by-day arrest table; the rate is real, these counts are
+# drawn to match it. The seed is fixed so everyone sees the same table.
+rng = np.random.default_rng(20230216)
+FULL_MOONS = 52
+ALL_DAYS = round(365 * (4 + 5 / 12))
+OTHER_DAYS = ALL_DAYS - FULL_MOONS
+POP = 100_000
+daily_rate = (3152.6 / 365) / 100_000
+
+fm_arrests = int(rng.binomial(FULL_MOONS * POP, daily_rate))
+other_arrests = int(rng.binomial(OTHER_DAYS * POP, daily_rate))
+
+lunar = pd.DataFrame({
+    "Full moon": [fm_arrests, FULL_MOONS * POP - fm_arrests],
+    "Not full moon": [other_arrests, OTHER_DAYS * POP - other_arrests],
+}, index=["Arrested", "Not arrested"])
+lunar["Total"] = lunar.sum(axis=1)
+lunar.loc["Total"] = lunar.sum()
+lunar.style.format("{:,.0f}")
+```
+
+::: {.callout-note collapse="true"}
+## Solution
+
+The hallmark of independence is that the prior equals the posterior. If a
+lunar effect exists, the posterior probability of arrest given a full moon
+should be *higher* than the prior.
+
+```{python}
+#| label: lunar-solve
+total_arrests = lunar.loc["Arrested", "Total"]
+total_chances = lunar.loc["Total", "Total"]
+fm_chances = lunar.loc["Total", "Full moon"]
+
+prior_arrest = empirical_probability(total_arrests, total_chances)
+posterior_arrest = empirical_probability(fm_arrests, fm_chances)
+
+print(independence_report(prior_arrest, posterior_arrest,
+                          "arrest", "full moon"))
+```
+
+```{python}
+#| label: lunar-math
+#| echo: false
+#| output: asis
+show_math(r"\Pr(\text{Arrest})=\frac{\text{arrests}}{\text{opportunities}}"
+          rf"=\frac{{{mnum(total_arrests)}}}{{{mnum(total_chances)}}}"
+          rf"={prior_arrest:.8f}")
+show_math(r"\Pr(\text{Arrest}|\text{Full moon})="
+          r"\frac{\Pr(\text{Arrest and Full moon})}{\Pr(\text{Full moon})}"
+          rf"=\frac{{{mnum(fm_arrests)}}}{{{mnum(fm_chances)}}}"
+          rf"={posterior_arrest:.8f}")
+```
+
+```{python}
+#| label: lunar-verdict
+#| include: false
+
+lunar_gap = 100 * (posterior_arrest - prior_arrest) / prior_arrest
+lunar_dir = "higher" if lunar_gap > 0 else "lower"
+```
+
+The posterior is `{python} f"{abs(lunar_gap):.2f}"`%
+`{python} lunar_dir` than the prior. The two numbers are different — but they
+are different in the eighth decimal place, out of millions of observations.
+
+::: {.scarlet}
+"Different" and "meaningfully different" are not the same claim, and nothing
+in Chapter 4 can tell them apart. Any two empirical probabilities computed
+from real data will differ somewhat; the question is whether the difference is
+larger than the noise you would expect from chance alone.
+
+That question has an answer, and it is Chapter 9. Until then, the honest
+report is: the difference points in the direction the lunar hypothesis
+predicts, and it is far too small to conclude anything from.
+:::
+:::
+
+## The drug trial
+
+::: {.brown}
+A medical researcher believes a new cancer drug is 80% likely to be effective:
+$\Pr(\text{Effective})=0.8$. The VP of Finance believes that *given* the drug
+is effective, it passes FDA trials with probability 0.9:
+$\Pr(\text{Pass}|\text{Effective})=0.9$.
+
+**(a)** Calculate $\Pr(\text{Pass and Effective})$.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: drug-a
+P_EFF = 0.8
+P_PASS_GIVEN_EFF = 0.9
+p_pass_and_eff = multiplication_rule(P_EFF, P_PASS_GIVEN_EFF)
+print(f"P(Pass and Effective) = {P_EFF} x {P_PASS_GIVEN_EFF} "
+      f"= {p_pass_and_eff:.4f}")
+```
+
+```{python}
+#| label: drug-a-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Pass}|\text{Effective})&=\frac{"
+          r"\Pr(\text{Pass and Effective})}{\Pr(\text{Effective})}\\"
+          rf"{P_PASS_GIVEN_EFF}&=\frac{{\Pr(\text{{Pass and Effective}})}}"
+          rf"{{{P_EFF}}}\\"
+          rf"\Pr(\text{{Pass and Effective}})&={P_PASS_GIVEN_EFF}"
+          rf"({P_EFF})={p_pass_and_eff:.2f}\end{{split}}")
+```
+
+The probability the drug is both effective and passes is
+`{python} pct(p_pass_and_eff, 0)`.
+:::
+
+::: {.brown}
+**(b)** Suppose also that an ineffective drug passes with probability 0.02:
+$\Pr(\text{Pass}|\text{Not effective})=0.02$. Calculate the prior probability
+that the drug passes.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+The drug is either effective or it is not — two mutually exclusive,
+collectively exhaustive states — and it could pass under either.
+
+```{python}
+#| label: drug-b
+P_PASS_GIVEN_NOT = 0.02
+drug = bayes_table(priors={"Effective": P_EFF, "Not effective": 1 - P_EFF},
+                   likelihoods={"Effective": P_PASS_GIVEN_EFF,
+                                "Not effective": P_PASS_GIVEN_NOT},
+                   evidence_name="Pass")
+drug.round(4)
+```
+
+```{python}
+#| label: drug-b-stats
+#| include: false
+
+drug_joint_col = [c for c in drug.columns if c.startswith("joint")][0]
+drug_post_col = [c for c in drug.columns if c.startswith("posterior")][0]
+p_pass = float(drug.loc["TOTAL", drug_joint_col])
+p_eff_given_pass = float(drug.loc["Effective", drug_post_col])
+```
+
+```{python}
+#| label: drug-b-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Pass})&=\Pr(\text{Pass and Effective})"
+          r"+\Pr(\text{Pass and Not effective})\\"
+          rf"&={P_EFF}({P_PASS_GIVEN_EFF})+{1-P_EFF:.1f}({P_PASS_GIVEN_NOT})\\"
+          rf"&={p_pass_and_eff:.2f}+{(1-P_EFF)*P_PASS_GIVEN_NOT:.3f}\\"
+          rf"&={p_pass:.3f}\end{{split}}")
+```
+
+The prior probability of passing is `{python} pct(p_pass, 1)`. That is the
+`joint` column total in the table — which is exactly the denominator of
+Bayes' Theorem.
+:::
+
+::: {.brown}
+**(c)** Is there evidence that the trial result depends on the drug's
+effectiveness?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: drug-c
+print(independence_report(p_pass, P_PASS_GIVEN_EFF, "Pass", "Effective"))
+```
+
+The prior probability of passing is `{python} pct(p_pass, 1)`; given the drug
+is effective it rises to `{python} pct(P_PASS_GIVEN_EFF, 0)`. These diverge
+substantially, so the events are dependent.
+
+Which is exactly what you would hope. A trial whose result was *independent*
+of whether the drug works would be a trial worth abolishing.
+:::
+
+::: {.brown}
+**(d)** Calculate $\Pr(\text{Effective}|\text{Pass})$.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+This is the reversal that Bayes' Theorem exists for. We were given
+$\Pr(\text{Pass}|\text{Effective})$; we want the conditioning the other way
+round. The answer is already in the `posterior` column of the table above.
+
+```{python}
+#| label: drug-d-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Effective}|\text{Pass})&=\frac{"
+          r"\Pr(\text{Effective})\Pr(\text{Pass}|\text{Effective})}"
+          r"{\Pr(\text{Pass})}\\"
+          rf"&=\frac{{{P_EFF}({P_PASS_GIVEN_EFF})}}{{{p_pass:.3f}}}\\"
+          rf"&=\frac{{{p_pass_and_eff:.2f}}}{{{p_pass:.3f}}}\\"
+          rf"&={p_eff_given_pass:.4f}\end{{split}}")
+```
+
+Given the drug passes its trials, the probability it is genuinely effective is
+`{python} pct(p_eff_given_pass)`.
+
+::: {.charcoal}
+Notice how far the belief moved: from a prior of
+`{python} pct(P_EFF, 0)` to a posterior of
+`{python} pct(p_eff_given_pass)`. The trial is powerful evidence *because*
+an ineffective drug almost never passes it — the 0.02 is doing most of the
+work here, not the 0.9.
+
+That is the general lesson about evidence. A test is informative when it is
+unlikely to fire under the wrong hypothesis, not merely when it is likely to
+fire under the right one.
+:::
+:::
+
+## The sportsbook promotion
+
+::: {.brown}
+Executives at a casino operator are evaluating promotions around the national
+launch of their sports betting app. They want $\Pr(\text{Adoption}|\text{Promotion})$
+relative to $\Pr(\text{Adoption})$. Because state law varied, promotions ran
+in some regions and not others. They have calculated
+$\Pr(\text{Adoption}|\text{Promotion})=0.08$ and
+$\Pr(\text{Adoption}|\text{No promotion})=0.05$. Regions were selected for
+promotion with probability 0.1.
+
+**(a)** Calculate $\Pr(\text{Adoption})$.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: promo-a
+P_PROMO = 0.1
+P_ADOPT_GIVEN_PROMO = 0.08
+P_ADOPT_GIVEN_NO = 0.05
+
+promo = bayes_table(priors={"Promotion": P_PROMO,
+                            "No promotion": 1 - P_PROMO},
+                    likelihoods={"Promotion": P_ADOPT_GIVEN_PROMO,
+                                 "No promotion": P_ADOPT_GIVEN_NO},
+                    evidence_name="Adoption")
+promo.round(4)
+```
+
+```{python}
+#| label: promo-a-stats
+#| include: false
+
+promo_joint_col = [c for c in promo.columns if c.startswith("joint")][0]
+promo_post_col = [c for c in promo.columns if c.startswith("posterior")][0]
+p_adopt = float(promo.loc["TOTAL", promo_joint_col])
+p_promo_given_adopt = float(promo.loc["Promotion", promo_post_col])
+```
+
+```{python}
+#| label: promo-a-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Adoption})&=\Pr(\text{Promotion})"
+          r"\Pr(\text{Adoption}|\text{Promotion})+\Pr(\text{No promotion})"
+          r"\Pr(\text{Adoption}|\text{No promotion})\\"
+          rf"&={P_PROMO}({P_ADOPT_GIVEN_PROMO})+{1-P_PROMO:.1f}"
+          rf"({P_ADOPT_GIVEN_NO})\\"
+          rf"&={P_PROMO*P_ADOPT_GIVEN_PROMO:.3f}+"
+          rf"{(1-P_PROMO)*P_ADOPT_GIVEN_NO:.3f}\\&={p_adopt:.3f}"
+          r"\end{split}")
+```
+
+The prior probability of adoption is `{python} pct(p_adopt, 1)`, against
+`{python} pct(P_ADOPT_GIVEN_PROMO, 0)` in promoted regions. The promotion
+appears to be doing something.
+:::
+
+::: {.brown}
+**(b)** The operator earns \$505.44 per year from each adopting user and \$0
+otherwise. Calculate expected revenue per user in regions without promotions,
+and in regions with them.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: promo-b
+REVENUE = 505.44
+e_no_promo = expected_value({REVENUE: P_ADOPT_GIVEN_NO,
+                             0.0: 1 - P_ADOPT_GIVEN_NO})
+e_promo = expected_value({REVENUE: P_ADOPT_GIVEN_PROMO,
+                          0.0: 1 - P_ADOPT_GIVEN_PROMO})
+
+pd.DataFrame({
+    "region": ["No promotion", "Promotion", "Difference"],
+    "expected revenue per user": [e_no_promo, e_promo,
+                                  e_promo - e_no_promo],
+}).round(4)
+```
+
+```{python}
+#| label: promo-b-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}E[r\,|\,\text{No promotion}]&=\$505.44"
+          r"\Pr(\text{Adoption}|\text{No promotion})+\$0\\"
+          rf"&=\$505.44({P_ADOPT_GIVEN_NO})=\${e_no_promo:.3f}\end{{split}}")
+show_math(r"\begin{split}E[r\,|\,\text{Promotion}]&=\$505.44"
+          r"\Pr(\text{Adoption}|\text{Promotion})+\$0\\"
+          rf"&=\$505.44({P_ADOPT_GIVEN_PROMO})=\${e_promo:.4f}\end{{split}}")
+```
+
+::: {.brown}
+The promotion is worth `{python} f"${e_promo - e_no_promo:,.2f}"` per user in
+expected revenue — and that figure is the *ceiling* on what the promotion can
+be worth, not the answer to whether to run it. Nothing here says what the
+promotion cost, and nothing here establishes that the promotion *caused* the
+higher adoption rather than being placed in regions that were going to adopt
+anyway.
+:::
+:::
+
+::: {.brown}
+**(c)** Given a user has adopted the app, what is the probability they are in
+a promoted region?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+Another reversal, and the answer is again the `posterior` column of the table
+in part (a).
+
+```{python}
+#| label: promo-c-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Promotion}|\text{Adoption})&=\frac{"
+          r"\Pr(\text{Promotion})\Pr(\text{Adoption}|\text{Promotion})}"
+          r"{\Pr(\text{Adoption})}\\"
+          rf"&=\frac{{{P_PROMO}({P_ADOPT_GIVEN_PROMO})}}{{{p_adopt:.3f}}}\\"
+          rf"&=\frac{{{P_PROMO*P_ADOPT_GIVEN_PROMO:.3f}}}{{{p_adopt:.3f}}}\\"
+          rf"&={p_promo_given_adopt:.4f}\end{{split}}")
+```
+
+Given a user has adopted, there is a `{python} pct(p_promo_given_adopt)`
+chance they are in a promoted region.
+
+::: {.charcoal}
+Sit with that number. Promoted regions have the higher adoption *rate*, yet
+`{python} pct(1 - p_promo_given_adopt)` of adopters came from regions with no
+promotion at all — because only `{python} pct(P_PROMO, 0)` of regions were
+promoted in the first place.
+
+This is the single most useful habit in this chapter: a high conditional
+probability in a small group can still account for very little of the total.
+Any executive presented with "adopters are concentrated in our promoted
+markets" should ask what share of markets were promoted before believing it.
+:::
+:::
+
+## Madison's Confectionery Kitchen
+
+::: {.brown}
+Madison runs a pastry shop with retail and catering, and is considering adding
+a breakfast menu. She sees five possible states of success: Highly Successful
+(HS), Moderately Successful (MS), Breakeven (BE), Moderately Unsuccessful
+(MU), and Highly Unsuccessful (HU). Success depends on how
+[Eater Las Vegas](https://vegas.eater.com) rates the menu — a Favorable Review
+(FR) or an Unfavorable Review (UR).
+
+**(a)** Write out the ten possible outcomes.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: madison-a
+STATES = ["HS", "MS", "BE", "MU", "HU"]
+REVIEWS = ["FR", "UR"]
+outcomes = [f"({s},{r})" for r in REVIEWS for s in STATES]
+print(f"{len(outcomes)} mutually exclusive outcomes:\n")
+print("  " + ",  ".join(outcomes[:5]))
+print("  " + ",  ".join(outcomes[5:]))
+```
+
+Five success states times two review outcomes — the fundamental counting
+principle, at its smallest.
+:::
+
+::: {.brown}
+**(b)** Madison's priors are $\Pr(\text{HS})=0.10$, $\Pr(\text{MS})=0.2$,
+$\Pr(\text{BE})=0.4$, $\Pr(\text{MU})=0.2$, $\Pr(\text{HU})=0.1$. If
+$\Pr(\text{FR}|\text{HS})=0.95$, calculate $\Pr(\text{FR and HS})$.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: madison-b
+PRIORS = {"HS": 0.10, "MS": 0.20, "BE": 0.40, "MU": 0.20, "HU": 0.10}
+p_fr_and_hs = multiplication_rule(PRIORS["HS"], 0.95)
+print(f"P(FR and HS) = P(HS) x P(FR|HS) = {PRIORS['HS']} x 0.95 "
+      f"= {p_fr_and_hs:.4f}")
+```
+
+```{python}
+#| label: madison-b-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{FR}|\text{HS})&=\frac{\Pr(\text{FR and HS})}"
+          r"{\Pr(\text{HS})}\\"
+          rf"0.95&=\frac{{\Pr(\text{{FR and HS}})}}{{{PRIORS['HS']}}}\\"
+          rf"\Pr(\text{{FR and HS}})&=0.95({PRIORS['HS']})={p_fr_and_hs:.3f}"
+          r"\end{split}")
+```
+
+The probability of both a favorable review and highly successful performance
+is `{python} pct(p_fr_and_hs, 1)`.
+:::
+
+::: {.brown}
+**(c)** From a patron survey, Madison estimates $\Pr(\text{FR}|\text{HS})=0.95$,
+$\Pr(\text{FR}|\text{MS})=0.6$, $\Pr(\text{FR}|\text{BE})=0.3$,
+$\Pr(\text{FR}|\text{MU})=0.2$, $\Pr(\text{FR}|\text{HU})=0.1$. Calculate
+$\Pr(\text{FR})$.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+Five states rather than two, but the structure is identical — the same table
+with more rows.
+
+```{python}
+#| label: madison-c
+LIKELIHOODS = {"HS": 0.95, "MS": 0.60, "BE": 0.30, "MU": 0.20, "HU": 0.10}
+madison = bayes_table(PRIORS, LIKELIHOODS, evidence_name="FR")
+madison.round(4)
+```
+
+```{python}
+#| label: madison-c-stats
+#| include: false
+
+m_joint_col = [c for c in madison.columns if c.startswith("joint")][0]
+m_post_col = [c for c in madison.columns if c.startswith("posterior")][0]
+p_fr = float(madison.loc["TOTAL", m_joint_col])
+p_hs_given_fr = float(madison.loc["HS", m_post_col])
+```
+
+```{python}
+#| label: madison-c-math
+#| echo: false
+#| output: asis
+terms = "+".join(f"{PRIORS[s]}({LIKELIHOODS[s]})" for s in STATES)
+prods = "+".join(f"{PRIORS[s]*LIKELIHOODS[s]:.3f}" for s in STATES)
+show_math(r"\begin{split}\Pr(\text{FR})&=\sum_{i}\Pr(\text{state}_i)"
+          r"\Pr(\text{FR}|\text{state}_i)\\"
+          rf"&={terms}\\&={prods}\\&={p_fr:.3f}\end{{split}}")
+```
+
+Madison's probability of a favorable review is `{python} pct(p_fr, 1)`.
+:::
+
+::: {.brown}
+**(d)** Calculate the posterior probability that the breakfast menu is Highly
+Successful given a favorable review. Is success dependent on the review?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: madison-d
+madison[[m_post_col]].drop("TOTAL").round(4)
+```
+
+```{python}
+#| label: madison-d-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{HS}|\text{FR})&=\frac{\Pr(\text{HS})"
+          r"\Pr(\text{FR}|\text{HS})}{\Pr(\text{FR})}\\"
+          rf"&=\frac{{{PRIORS['HS']}({LIKELIHOODS['HS']})}}{{{p_fr:.3f}}}"
+          rf"=\frac{{{p_fr_and_hs:.3f}}}{{{p_fr:.3f}}}={p_hs_given_fr:.4f}"
+          r"\end{split}")
+```
+
+```{python}
+#| label: madison-d-report
+print(independence_report(PRIORS["HS"], p_hs_given_fr,
+                          "Highly Successful", "Favorable Review"))
+```
+
+A favorable review moves the probability of high success from
+`{python} pct(PRIORS['HS'], 0)` to `{python} pct(p_hs_given_fr)`. The events
+are clearly dependent.
+
+```{python}
+#| label: madison-rank
+#| include: false
+
+post = madison[m_post_col].drop("TOTAL")
+rank = int((post > p_hs_given_fr).sum()) + 1
+ordinal = {1: "most", 2: "second-most", 3: "third-most",
+           4: "fourth-most", 5: "fifth-most"}[rank]
+names = list(post[post > p_hs_given_fr].index)
+ahead = (" and ".join(names) if len(names) < 3
+         else ", ".join(names[:-1]) + " and " + names[-1])
+```
+
+::: {.charcoal}
+But read the whole posterior column, not just the top row. Even *with* a
+favorable review, Highly Successful is only the `{python} ordinal` likely
+outcome — `{python} ahead` remain more probable.
+
+Good news raises a probability. It rarely settles the question. If Madison
+opens the breakfast menu because a favorable review makes success
+"two and a half times more likely," she has taken a real fact and drawn a
+conclusion it does not support.
+:::
+:::
+
+# Laboratory 4
+
+::: {.prompt}
+Prompt
+
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/04_probability.py`,
+> `scripts/_prob.py`, `scripts/_charts.py`, `scripts/_stats.py`, and
+> `data/nevada_economy.csv`. Read `COURSE_CONTEXT.md` from the same repository
+> first.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> each section and what the numbers mean. Do not report any number you did not
+> compute, and if anything fails, show me the error rather than describing what
+> the output would have been.
+:::
+
+**Submit written answers to the following.** Each should be a short paragraph.
+
+1. Explain to a colleague why the probability of rolling a 7 with two dice is
+   not $\frac{1}{11}$, and state the general lesson about sample spaces.
+
+2. The Nevada economic states were defined by cutting each series at its 25th
+   and 75th percentiles. Explain which probabilities in this chapter that
+   choice fixes in advance and which it does not, and why the distinction
+   matters when you report one.
+
+3. Using the Nevada contingency table, state in plain English the difference
+   between $P(\text{bad in six months}\mid\text{mediocre today})$ and
+   $P(\text{mediocre today}\mid\text{bad in six months})$, and give a business
+   decision that turns on each.
+
+4. The drug's posterior probability of effectiveness given a passed trial is
+   far above its prior. Explain which of the two given conditional
+   probabilities does most of the work, and what that implies about designing
+   a test.
+
+5. Most adopters of the sports betting app came from regions with no
+   promotion, even though promoted regions had the higher adoption rate.
+   Explain how both are true, and describe a decision someone could get wrong
+   by attending to only one of them.
+
+6. The lunar-effect posterior differs from the prior in the expected
+   direction. Explain why this is not evidence of a lunar effect, and name
+   what would be.
+
+7. Pick any two of the Nevada economic states. Compute the probability of one
+   given the other, then compute it the other way round using Bayes' Theorem
+   and confirm the two agree. Show your work.
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook implementing a Bayes table. Sheet 1 takes, as
+> editable inputs, a list of states of the world with their prior
+> probabilities and the likelihood of the evidence under each state. Sheet 1
+> then computes, with real formulas, the joint probability for each state, the
+> total probability of the evidence, and the posterior probability for each
+> state. Add a check cell that flags in red if the priors do not sum to 1.
+> Pre-fill it with Madison's five states from my Chapter 4 lecture notes. Give
+> me the file to download.
+:::
+
+That workbook solves every Bayes problem in this chapter and most of the ones
+you will meet later. Change the priors and watch the posteriors move; that is
+the intuition the formula is trying to give you.

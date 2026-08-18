@@ -18,6 +18,7 @@ that produced a number, the number does not go in your submission.
 - [Chapter 1 — Introduction to Data Analytics and Modeling](notes/lecture-notes-1000-chapter-01-uses-of-data-analytics-and-modeling.html)
 - [Chapter 2 — Displaying Descriptive Statistics](notes/lecture-notes-1010-chapter-02-displaying-descriptive-statistics.html)
 - [Chapter 3 — Calculating Descriptive Statistics](notes/lecture-notes-1020-chapter-03-calculating-descriptive-statistics.html)
+- [Chapter 4 — Introducing Probabilities](notes/lecture-notes-1030-chapter-04-introducing-probabilities.html)
 - [Models with Economic Indicators](notes/lecture_notes-4050-models-with-economic-indicators.html)
 
 ## How to run the course code

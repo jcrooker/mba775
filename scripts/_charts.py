@@ -23,6 +23,7 @@ __all__ = [
     "histogram", "binned_bar", "bar_chart", "pareto_chart", "pie_chart",
     "ogive", "heatmap", "stem_and_leaf", "scatter", "time_series",
     "box_plot", "normal_curve", "returns_bar",
+    "probability_tree", "convergence_plot",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -519,3 +520,102 @@ def returns_bar(periods, values, title=None, xlab=None, ylab=None,
     fig.tight_layout()
     plt.show()
     return pd.DataFrame({"period": list(periods), "value": v.to_numpy()})
+
+
+# ---------------------------------------------------------------------------
+# Probability figures (Chapter 4)
+# ---------------------------------------------------------------------------
+
+def probability_tree(first, second, title=None, figsize=(11, 6.5),
+                     value_fmt="{:.4f}"):
+    """A probability tree, drawn from the numbers rather than from an image.
+
+    `first`  is a mapping {branch label: probability} for the first stage.
+    `second` is a mapping {first branch label: {branch label: probability}}
+             giving the conditional probability of each second-stage branch.
+
+    Every path's joint probability is printed at the tip, and the function
+    returns them as a table. The tree and the table cannot disagree, which is
+    the point: a tree redrawn by hand after the data changes usually can.
+    """
+    firsts = list(first)
+    paths = []
+    for a in firsts:
+        for b in second.get(a, {}):
+            paths.append((a, b, first[a] * second[a][b]))
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.set_axis_off()
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, max(len(paths), 2) + 1)
+
+    root = (0.4, (len(paths) + 1) / 2)
+    ax.scatter(*root, s=45, color=UNLV_SCARLET, zorder=5)
+
+    tip = len(paths)
+    node_x, mid_x = 4.2, 8.0
+    for a in firsts:
+        branches = list(second.get(a, {}))
+        if not branches:
+            continue
+        ys = [tip - i for i in range(len(branches))]
+        tip -= len(branches)
+        a_y = sum(ys) / len(ys)
+
+        ax.plot([root[0], node_x], [root[1], a_y], color=UNLV_SCARLET,
+                linewidth=1.5)
+        ax.text((root[0] + node_x) / 2, (root[1] + a_y) / 2 + 0.16,
+                f"{a}\n{value_fmt.format(first[a])}", ha="center", va="bottom",
+                fontsize=8.5, color="#333333")
+        ax.scatter([node_x], [a_y], s=40, color=UNLV_SCARLET, zorder=5)
+
+        for b, y in zip(branches, ys):
+            ax.plot([node_x, mid_x], [a_y, y], color=UNLV_GRAY, linewidth=1.2)
+            ax.text((node_x + mid_x) / 2, (a_y + y) / 2 + 0.14,
+                    f"{b}  {value_fmt.format(second[a][b])}", ha="center",
+                    va="bottom", fontsize=8, color=UNLV_GRAY)
+            ax.text(mid_x + 0.15, y, value_fmt.format(first[a] * second[a][b]),
+                    ha="left", va="center", fontsize=8.5, color="#333333")
+
+    if title:
+        ax.set_title(title, color=UNLV_SCARLET, fontsize=12, fontweight="600")
+    fig.tight_layout()
+    plt.show()
+
+    out = pd.DataFrame(paths, columns=["first", "second", "joint_probability"])
+    out["path"] = out["first"] + " → " + out["second"]
+    return out[["path", "first", "second", "joint_probability"]]
+
+
+def convergence_plot(outcomes, target=None, title=None, xlab="Number of rolls",
+                     ylab="Running empirical probability", figsize=(10, 4.5),
+                     points=400):
+    """The law of large numbers, drawn: a running empirical probability
+    against the classical probability it is converging on.
+
+    `outcomes` is a boolean-like sequence — True where the event happened.
+    """
+    hits = pd.Series(outcomes).astype(float).to_numpy()
+    n = len(hits)
+    running = np.cumsum(hits) / np.arange(1, n + 1)
+
+    # Plotting a million points draws a million points nobody can see. Sample
+    # on a log scale, which is where the interesting part of convergence is.
+    idx = np.unique(np.logspace(0, np.log10(n), points).astype(int)) - 1
+    idx = idx[idx >= 0]
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(idx + 1, running[idx], color=UNLV_SCARLET, linewidth=1.4)
+    if target is not None:
+        ax.axhline(target, color="black", linestyle="--", linewidth=1.3,
+                   label=f"classical probability = {target:.4f}")
+        ax.legend(frameon=False, fontsize=9)
+    ax.set_xscale("log")
+    _finish(ax, title, xlab, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({
+        "rolls": [10, 100, 1_000, 10_000, 100_000, n],
+        "empirical_probability": [running[min(k, n) - 1]
+                                  for k in [10, 100, 1_000, 10_000, 100_000, n]],
+    })
