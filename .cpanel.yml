@@ -6,15 +6,17 @@
 # hand, so the published site is always exactly some commit -- there is no
 # third copy to drift out of step.
 #
-# DEPLOYPATH must match your account. Home directory is /home/crookerf, so the
-# web root is almost certainly /home/crookerf/public_html. Confirm it in
-# cPanel -> File Manager before the first deploy: the folder that contains
-# your current faculty page is the right parent.
+# DEPLOYPATH is a DEDICATED folder. public_html/mba775 is the existing course
+# page, holding fifteen years of syllabi, homework, and the R-era lecture
+# notes; publishing into it directly would mix two eras of material in one
+# directory and risk overwriting files by name collision.
 #
 # Only docs/ is published. The .qmd sources, data, and tools stay in the
 # repository and never reach the web server.
+#
+# Live at: https://crooker.faculty.unlv.edu/mba775/fall2026/
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/crookerf/public_html/mba775
+    - export DEPLOYPATH=/home/crookerf/public_html/mba775/fall2026
     - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -R docs/. $DEPLOYPATH/
