@@ -88,6 +88,24 @@ quarto render                       # all notes
 quarto publish gh-pages             # publish to the course website
 ```
 
+Publishing to the UNLV faculty site is handled by the server, not by uploads.
+cPanel's Git Version Control clones this repository and `.cpanel.yml` copies
+`docs/` into the web root when you click **Deploy HEAD Commit**. Push to
+GitHub, then update and deploy in cPanel -- no files are transferred by hand,
+so the published site is always exactly one commit.
+
+The script below is a fallback for a mapped drive or network share, and is not
+needed when Git deployment is working:
+
+```
+python tools/publish_faculty.py --dry-run   # see what would change
+python tools/publish_faculty.py             # copy changed files
+python tools/publish_faculty.py --prune     # also remove files you deleted
+```
+
+Set the destination once with `setx MBA775_FACULTY_DIR "X:\path\to\web\mba775"`.
+The path is not stored in this repository, since the repository is public.
+
 Refreshing course data is deliberate, not automatic:
 
 ```
