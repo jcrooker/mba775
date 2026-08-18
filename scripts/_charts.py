@@ -22,6 +22,7 @@ __all__ = [
     "frequency_table", "contingency_table",
     "histogram", "binned_bar", "bar_chart", "pareto_chart", "pie_chart",
     "ogive", "heatmap", "stem_and_leaf", "scatter", "time_series",
+    "box_plot", "normal_curve", "returns_bar",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -385,3 +386,136 @@ def time_series(dates, values, title=None, ylab=None, figsize=(10, 4.5),
     fig.tight_layout()
     plt.show()
     return pd.DataFrame({"date": pd.to_datetime(dates), "value": values})
+
+
+# ---------------------------------------------------------------------------
+# Distribution and spread charts (Chapter 3)
+# ---------------------------------------------------------------------------
+
+def box_plot(x, title=None, xlab=None, labels=None, figsize=(9, 4.0),
+             annotate=True):
+    """Box-and-whisker plot, drawn from the course's own quartile rule.
+
+    matplotlib's boxplot has its own quartile convention. Using it here would
+    put a box on the screen whose edges disagree with the Q1 and Q3 printed
+    three lines above it in the note. So the box is drawn from numbers this
+    course computed, and the whiskers extend to the most extreme observation
+    still inside the 1.5 x IQR fences. Points beyond the fences are plotted
+    individually, which is the definition of an outlier used in this chapter.
+
+    Pass a list of arrays with `labels` to compare several groups.
+    """
+    from _stats import quartiles, outlier_fences
+
+    if labels is None:
+        groups, names = [pd.Series(x).dropna()], [""]
+    else:
+        groups = [pd.Series(g).dropna() for g in x]
+        names = list(labels)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    rows = []
+    for pos, (s, nm) in enumerate(zip(groups, names)):
+        q1, q2, q3 = quartiles(s)
+        lo_fence, hi_fence = outlier_fences(s)
+        inside = s[(s >= lo_fence) & (s <= hi_fence)]
+        lo_whisker, hi_whisker = inside.min(), inside.max()
+        outliers = s[(s < lo_fence) | (s > hi_fence)]
+
+        ax.broken_barh([(q1, q3 - q1)], (pos - 0.22, 0.44),
+                       facecolors=UNLV_SCARLET, alpha=0.35,
+                       edgecolors=UNLV_SCARLET, linewidth=1.4)
+        ax.plot([q2, q2], [pos - 0.22, pos + 0.22], color=UNLV_SCARLET,
+                linewidth=2.4)
+        ax.plot([lo_whisker, q1], [pos, pos], color=UNLV_GRAY, linewidth=1.2)
+        ax.plot([q3, hi_whisker], [pos, pos], color=UNLV_GRAY, linewidth=1.2)
+        for end in (lo_whisker, hi_whisker):
+            ax.plot([end, end], [pos - 0.11, pos + 0.11], color=UNLV_GRAY,
+                    linewidth=1.2)
+        if len(outliers):
+            ax.scatter(outliers, np.full(len(outliers), pos), s=22,
+                       facecolor="none", edgecolor=UNLV_SCARLET, linewidth=1.0)
+        ax.scatter([s.mean()], [pos], marker="D", s=30, color="black",
+                   zorder=5, label="mean" if pos == 0 else None)
+
+        rows.append({"group": nm or "all", "n": int(s.size), "min": s.min(),
+                     "Q1": q1, "median": q2, "Q3": q3, "max": s.max(),
+                     "IQR": q3 - q1, "outliers": int(len(outliers))})
+
+    ax.set_yticks(range(len(groups)))
+    ax.set_yticklabels(names)
+    if len(groups) == 1:
+        # A single unlabelled group needs no y axis at all, and a tall empty
+        # band above and below the box just wastes the figure.
+        ax.set_yticks([])
+        ax.set_ylim(-0.6, 0.6)
+        for side in ("left",):
+            ax.spines[side].set_visible(False)
+    if annotate:
+        ax.legend(frameon=False, fontsize=9, loc="best")
+    _finish(ax, title, xlab, None, grid_axis="x")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame(rows).round(4)
+
+
+def normal_curve(title="The empirical rule", figsize=(9, 4.5)):
+    """The bell-shaped reference curve with the 68-95-99.7 bands marked.
+
+    This is a picture of a mathematical function, not of any data set. It is
+    here so that when the empirical rule is applied to real data, the shape
+    being assumed is on the page next to it.
+    """
+    z = np.linspace(-4, 4, 1000)
+    density = np.exp(-z ** 2 / 2) / np.sqrt(2 * np.pi)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    bands = [(3, "#f6e6e4", "99.7%"), (2, "#eccdc9", "95%"), (1, "#d9a49c", "68%")]
+    for k, colour, label in bands:
+        mask = (z >= -k) & (z <= k)
+        ax.fill_between(z[mask], density[mask], color=colour, linewidth=0)
+        ax.annotate(label, xy=(0, 0), xytext=(0, 0.055 * k),
+                    ha="center", fontsize=9, color="#4a4a4a")
+    ax.plot(z, density, color=UNLV_SCARLET, linewidth=2)
+    for k in (1, 2, 3):
+        for side in (-k, k):
+            ax.plot([side, side], [0, np.exp(-side ** 2 / 2) / np.sqrt(2 * np.pi)],
+                    color=UNLV_GRAY, linestyle="--", linewidth=0.9)
+    ax.set_xticks(range(-4, 5))
+    ax.set_ylim(0, 0.45)
+    _finish(ax, title, "z, standard deviations from the mean", "density",
+            grid_axis="y")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"within": ["1 sd", "2 sd", "3 sd"],
+                         "bell_shaped_percent": [68.3, 95.4, 99.7]})
+
+
+def returns_bar(periods, values, title=None, xlab=None, ylab=None,
+                figsize=(10, 4.5), show_mean=True):
+    """Bar chart of a return series, gains and losses coloured differently.
+
+    Useful for the range: the tallest bar and the deepest one are the two
+    numbers the range is built from, and here you can see which years they
+    were.
+    """
+    v = pd.Series(values, dtype="float64")
+    colours = np.where(v >= 0, UNLV_SCARLET, UNLV_GRAY)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    positions = np.arange(len(v))
+    ax.bar(positions, v.to_numpy(), color=colours, alpha=0.9)
+    ax.axhline(0, color="#333333", linewidth=1.0)
+    if show_mean:
+        ax.axhline(v.mean(), color="black", linestyle="--", linewidth=1.3,
+                   label=f"mean = {v.mean():.4f}")
+        ax.legend(frameon=False, fontsize=9)
+
+    labels = [str(p) for p in periods]
+    step = max(1, len(labels) // 25)
+    ax.set_xticks(positions[::step])
+    ax.set_xticklabels(labels[::step], rotation=45, ha="right", fontsize=8)
+    _finish(ax, title, xlab, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"period": list(periods), "value": v.to_numpy()})

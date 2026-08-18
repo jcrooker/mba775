@@ -265,3 +265,16 @@ config/
 /dff_downloaded.csv (different window) and would confuse anyone browsing the repo.
 /dff.csv
 /dff_downloaded.csv
+
+
+# --- Course data too large to distribute ---------------------------------
+# The full Nevada AGI file is ~28 MB. Students fetch data one file at a time
+# through a chat window, and a file that size is a bad fetch. The committed
+# version is data/nevada_agi_2016_sample.csv, a fixed-seed 100,000-row sample
+# written by tools/seed_chapter03_data.R. Keep the full file locally; do not
+# commit it.
+data/nevada_agi_2016.csv
+data/agi-in-tenthousands-nv-2016.csv
+
+
+

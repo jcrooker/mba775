@@ -1,0 +1,1446 @@
+---
+title: "Calculating Descriptive Statistics"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+
+from _charts import (histogram, box_plot, bar_chart, normal_curve,
+                     returns_bar, time_series, scatter,
+                     UNLV_SCARLET, UNLV_GRAY)
+from _stats import (describe, five_number_summary, shape_report,
+                    percentile, percentile_methods, percentile_rank,
+                    quartiles, iqr, outlier_fences,
+                    z_score, z_scores, coefficient_of_variation,
+                    empirical_rule, chebyshev, chebyshev_table,
+                    grouped_mean, grouped_variance, grouped_summary,
+                    association)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 60)
+
+
+def money(x, decimals=0):
+    return f"${x:,.{decimals}f}"
+
+
+def num(x, decimals=0):
+    return f"{x:,.{decimals}f}"
+
+
+def mnum(x, decimals=0):
+    """A number formatted for the inside of a LaTeX expression.
+
+    Thousands separators have to be written {,} in math mode, and a bare
+    dollar sign would close the equation. Both are handled here so the
+    displayed formula reads the way it would be written on a whiteboard.
+    """
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+def mmoney(x, decimals=0):
+    return r"\$" + mnum(x, decimals)
+
+
+def show_math(latex):
+    """Print a display equation. Used from chunks marked `output: asis`, so
+    that computed values reach LaTeX without being escaped on the way."""
+    print(f"$${latex}$$\n")
+
+
+states  = pd.read_csv("data/state_hpi_ur_pop.csv")
+pops    = pd.read_csv("data/state_population.csv")
+unrate  = pd.read_csv("data/unemployment_rate.csv", parse_dates=["date"])
+cpi     = pd.read_csv("data/cpi_inflation.csv", parse_dates=["date"])
+patents = pd.read_csv("data/patents_by_origin.csv", parse_dates=["date"])
+gpa     = pd.read_csv("data/grad_student_gpa.csv")
+returns = pd.read_csv("data/annual_returns.csv")
+agi     = pd.read_csv("data/nevada_agi_2016_sample.csv")
+
+WEST = ["WA", "ID", "MT", "WY", "OR", "NV", "CA", "UT", "CO", "NM", "AZ"]
+NEW_ENGLAND = ["CT", "ME", "MA", "NH", "RI", "VT"]
+
+west = pops[pops["Member"].isin(WEST)].copy()
+newengland = pops[pops["Member"].isin(NEW_ENGLAND)].copy()
+
+# Populations arrive from FRED in thousands.
+west["People"] = west["Population"] * 1000
+newengland["People"] = newengland["Population"] * 1000
+```
+
+## Objectives
+
++ Calculate the mean, weighted mean, median, and mode.
++ Choose the measure of central tendency that describes the data honestly.
++ Calculate and interpret the range, variance, and standard deviation.
++ Use the coefficient of variation, the $z$-score, the empirical rule, and
+  Chebyshev's Theorem.
++ Calculate the mean and standard deviation of grouped data.
++ Calculate percentiles, percentile rank, and quartiles.
++ Construct and interpret box-and-whisker plots.
++ Calculate and interpret the covariance and the correlation coefficient.
+
+::: {.charcoal}
+Chapter 2 asked you to read a picture. This chapter asks you to read a
+*number*, which is harder, because a number carries no visible warning that it
+is the wrong number for the question.
+
+The formulas below stay in the body of the note rather than being folded away.
+You are not assessed on writing the code — the code that draws the histogram
+is folded, and you may ignore it. You are assessed on knowing what a standard
+deviation is, and on saying which of two numbers a decision should rest on.
+:::
+
+# Measures of Central Tendency
+
+::: {.blue}
+**Central tendency** is a single value used to describe a central focal point
+in a data set.
+:::
+
+## The Mean
+
+::: {.blue}
+Given a data series $X=\{x_1,x_2,\dots,x_n\}$, the sample **mean** is
+
+$$\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i,$$
+
+where $n$ is the number of members of the sample. For a population we write
+
+$$\mu=\frac{1}{N}\sum_{i=1}^{N}x_i,$$
+
+where $N$ is the number of members of the population.
+:::
+
+The mean is easy to compute, easy to explain, and always produces exactly one
+number. That is its entire case for the defence. Here is the case against.
+
+### Example: the population of the Western states
+
+```{python}
+#| label: west-table
+west_sorted = west.sort_values("People")[["Member", "People"]]
+west_sorted.assign(People=west_sorted["People"].map(lambda v: f"{v:,.0f}")) \
+           .reset_index(drop=True)
+```
+
+```{python}
+#| label: west-stats
+#| include: false
+
+w_mean = west["People"].mean()
+w_median = west["People"].median()
+w_above = int((west["People"] > w_mean).sum())
+w_below = int((west["People"] < w_mean).sum())
+w_asof = pd.to_datetime(pops["as_of"]).max().date()
+```
+
+The mean population of a Western state is `{python} num(w_mean)`, as of
+`{python} str(w_asof)`. But only `{python} str(w_above)` of the
+`{python} str(len(west))` Western states have a population larger than that
+mean, and `{python} str(w_below)` have a smaller one.
+
+::: {.scarlet}
+A "central" value that `{python} str(w_below)` of `{python} str(len(west))`
+observations fall below is not describing a centre. It is describing
+California.
+:::
+
+```{python}
+#| label: west-charts
+_ = box_plot(west["People"], title="Population of the Western states",
+             xlab="People")
+```
+
+```{python}
+#| label: west-hist
+_ = histogram(west["People"], bins=6,
+              title="Population of the Western states",
+              xlab="People", ylab="Number of states")
+```
+
+::: {.blue}
+**Outliers** are values much higher or lower than most of the data. The mean
+is pulled toward them. The median is not.
+:::
+
+## The Weighted Mean
+
+::: {.blue}
+For a data set $\{x_1,x_2,\dots,x_n\}$ with corresponding weights
+$\{w_1,w_2,\dots,w_n\}$, the **weighted mean** is
+
+$$\bar{x}_w=\frac{\sum_{i=1}^{n}w_ix_i}{\sum_{i=1}^{n}w_i}.$$
+:::
+
+This is the formula MBAs get wrong most often in practice, usually by not
+reaching for it at all. Consider the unemployment rate of the fifty states.
+
+```{python}
+#| label: weighted-unemployment
+plain = states["UR"].mean()
+weighted = (states["UR"] * states["POPN"]).sum() / states["POPN"].sum()
+
+pd.DataFrame({
+    "measure": ["Unweighted mean of the 50 state rates",
+                "Population-weighted mean"],
+    "unemployment rate (%)": [round(plain, 2), round(weighted, 2)],
+})
+```
+
+```{python}
+#| label: weighted-detail
+#| include: false
+
+biggest = states.nlargest(1, "POPN").iloc[0]
+smallest = states.nsmallest(1, "POPN").iloc[0]
+ur_asof = pd.to_datetime(states["UR_date"]).max().date()
+gap = weighted - plain
+```
+
+The two answers differ by `{python} f"{gap:+.2f}"` percentage points, and only
+one of them is the unemployment rate of the country. The unweighted mean gives
+`{python} smallest["Member"]` — population
+`{python} num(smallest["POPN"] * 1000)` — exactly the same say as
+`{python} biggest["Member"]`, population
+`{python} num(biggest["POPN"] * 1000)`.
+
+::: {.charcoal}
+Whenever the things you are averaging represent groups of different sizes —
+states, stores, regions, customer segments — the plain average answers the
+question *"what is the typical store's rate?"* and the weighted average
+answers *"what is the rate across all customers?"* Those are different
+questions. Decide which one you were asked before you pick a formula.
+:::
+
+## The Median
+
+::: {.blue}
+The **median** is the value for which half the observations are higher and
+half are lower.
+
+The **index point** is the position of the median once the data are arranged
+in ascending order:
+
+$$i=0.5\,n,$$
+
+where $n$ is the number of observations. If $i$ is not an integer, round up
+and take the value in that position. If $i$ is an integer, take the average of
+the values in positions $i$ and $i+1$.
+:::
+
+### The Western states again
+
+```{python}
+#| label: west-median
+#| include: false
+
+w_diff = w_mean - w_median
+```
+
+The median population of a Western state is `{python} num(w_median)`. The
+mean is `{python} num(w_mean)` — higher by `{python} num(w_diff)`.
+
+The list is already sorted above. With $n=`{python} str(len(west))`$, the index
+point is $0.5 \times `{python} str(len(west))` = `{python} f"{0.5*len(west):g}"`$,
+which is not an integer, so we round up to position
+`{python} str(int(np.ceil(0.5*len(west))))` and read off the value there.
+
+### An even number of observations
+
+New England has six states, so the index point lands exactly on an integer and
+the second half of the rule applies.
+
+```{python}
+#| label: ne-table
+ne_sorted = newengland.sort_values("People")[["Member", "People"]].reset_index(drop=True)
+ne_sorted.assign(position=range(1, len(ne_sorted) + 1),
+                 People=ne_sorted["People"].map(lambda v: f"{v:,.0f}"))
+```
+
+```{python}
+#| label: ne-stats
+#| include: false
+
+ne_vals = newengland["People"].sort_values().to_numpy()
+ne3, ne4 = ne_vals[2], ne_vals[3]
+ne_median = 0.5 * (ne3 + ne4)
+ne_mean = newengland["People"].mean()
+```
+
+With $n=6$, the index point is $0.5 \times 6 = 3$. Three is an integer, so the
+median is the average of the third and fourth values:
+
+```{python}
+#| label: ne-median-math
+#| echo: false
+#| output: asis
+show_math(rf"\frac{{1}}{{2}}\left({mnum(ne3)} + {mnum(ne4)}\right)"
+          rf" = {mnum(ne_median)}")
+```
+
+The mean is `{python} num(ne_mean)` and the median is
+`{python} num(ne_median)`, a difference of
+`{python} num(ne_mean - ne_median)`. Compare that to the
+`{python} num(w_diff)` gap out West. Same statistic, same country, a far
+smaller disagreement — because New England has no California in it.
+
+## The Mode
+
+::: {.blue}
+The **mode** is the value that appears most often in a data set. It is the
+only measure of central tendency that works on categories.
+:::
+
+### Example: US patents granted, by country of origin
+
+```{python}
+#| label: patents-table
+countries = [c for c in patents.columns if c != "date"]
+recent = patents.dropna(subset=countries).iloc[-1]
+patents.assign(year=patents["date"].dt.year) \
+       .set_index("year")[countries].tail(12) \
+       .style.format("{:,.0f}")
+```
+
+```{python}
+#| label: patents-bar
+latest = recent[countries].astype(float)
+_ = bar_chart(latest.index, latest.to_numpy(),
+              title=f"Patents granted in {recent['date'].year}, by country of origin",
+              xlab="Country of origin", ylab="Patents granted")
+```
+
+```{python}
+#| label: patents-stats
+#| include: false
+
+mode_country = latest.idxmax()
+mode_share = 100 * latest.max() / latest.sum()
+pat_last_year = recent["date"].year
+pat_first_year = patents["date"].dt.year.min()
+```
+
+The modal country of origin is `{python} mode_country`, with
+`{python} num(latest.max())` patents — `{python} f"{mode_share:.1f}"`% of the
+five countries shown.
+
+::: {.scarlet}
+This series runs from `{python} str(pat_first_year)` through
+`{python} str(pat_last_year)`. It is not current, and the FRED page it comes
+from does not put a banner on the chart telling you so. Chapter 2 asked you to
+check the last observation date of every series you use. This is the series
+that punishes you for skipping that step.
+:::
+
+Notice also that a mean of these five numbers would be a nonsense statistic —
+the average of the US, China, Japan, Germany and the UK is not a country. When
+your variable is a category, the mode is the only measure of central tendency
+available to you.
+
+# The Shapes of Distributions
+
+::: {.brown}
+A **symmetrical** distribution is a mirror image about its centre. Its mean
+and median are approximately equal.
+
+In a **left-skewed** distribution, the median is larger than the mean.
+
+In a **right-skewed** distribution, the median is smaller than the mean.
+:::
+
+The single most useful diagnostic in this chapter is free: compute the mean
+and the median and compare them. If they are far apart, one of them is lying
+to you about the middle.
+
+## Approximately symmetric: the US unemployment rate
+
+```{python}
+#| label: unrate-hist
+_ = histogram(unrate["unemployment_rate"], bins=20,
+              title="US unemployment rate, monthly",
+              xlab="Unemployment rate (%)", ylab="Months")
+```
+
+```{python}
+#| label: unrate-summary
+describe(unrate["unemployment_rate"], name="UNRATE").to_frame()
+```
+
+::: {.brown}
+Watch the `mode` row across this chapter. It carries a value here only because
+FRED publishes the unemployment rate rounded to one decimal place, so months
+tie by accident of rounding rather than because the economy has a favourite
+number. On an unrounded measurement — the return series later in this chapter
+— the same row reads `NaN`, because no value repeats and there is no mode to
+report. That blank is the honest answer. The mode earns its keep on
+categories, as it did with the patent data above, and rarely anywhere else.
+:::
+
+```{python}
+#| label: unrate-box
+_ = box_plot(unrate["unemployment_rate"],
+             title="US unemployment rate, monthly",
+             xlab="Unemployment rate (%)")
+```
+
+```{python}
+#| label: unrate-shape
+print(shape_report(unrate["unemployment_rate"], "US unemployment rate"))
+print(f"Coverage: {unrate['date'].min():%B %Y} to {unrate['date'].max():%B %Y}"
+      f"  ({len(unrate):,} months)")
+```
+
+```{python}
+#| label: unrate-stats
+#| include: false
+
+u_mean = unrate["unemployment_rate"].mean()
+u_median = unrate["unemployment_rate"].median()
+u_gap = u_mean - u_median
+u_sd = unrate["unemployment_rate"].std(ddof=1)
+u_gap_in_sd = abs(u_gap) / u_sd
+u_side = "above" if u_gap > 0 else "below"
+u_tail = "right" if u_gap > 0 else "left"
+```
+
+The mean is `{python} f"{u_mean:.2f}"` and the median is
+`{python} f"{u_median:.2f}"` — a gap of `{python} f"{u_gap:+.2f}"` percentage
+points, which is `{python} f"{u_gap_in_sd:.2f}"` of a standard deviation. That
+is what approximate symmetry looks like in numbers rather than in a picture:
+not identical, but close enough that either one would serve as "the typical
+month."
+
+In this series the mean sits slightly `{python} u_side` the median, which
+makes the `{python} u_tail` tail marginally the longer one — but a gap that
+small is not a finding, and it can change sign as more months are added.
+
+What is not in doubt is the mechanism. Unemployment rises hard and fast in a
+recession and comes back down slowly, so the months far from the centre tend
+to be the high ones, and the box plot shows those sitting past the upper
+fence. Compare that to the GPA and income distributions below, where the gap
+between mean and median is large enough to survive any amount of new data.
+
+## Left-skewed: graduate student GPA
+
+```{python}
+#| label: gpa-hist
+_ = histogram(gpa["GPA"], bins=20,
+              title="Graduate student GPA",
+              xlab="GPA", ylab="Number of students")
+```
+
+```{python}
+#| label: gpa-shape
+print(shape_report(gpa["GPA"], "Graduate GPA"))
+```
+
+```{python}
+#| label: gpa-summary
+describe(gpa["GPA"], name="GPA").to_frame()
+```
+
+The median exceeds the mean, which is the definition of left skew. The cause
+is visible in the histogram: GPA has a hard ceiling at 4.0 and no floor to
+speak of, so the only direction an unusual student can be unusual *in* is
+downward. A few very low GPAs drag the mean below the median while the bulk of
+the distribution piles up against the ceiling.
+
+::: {.charcoal}
+Any measure with a ceiling tends to skew left: exam scores, on-time delivery
+rates, satisfaction surveys capped at 5. Any measure with a floor at zero and
+no ceiling tends to skew right: income, insurance claims, time on hold,
+company size. Knowing which one you are holding tells you what to expect
+before you compute anything.
+:::
+
+## Right-skewed: Nevada adjusted gross income
+
+```{python}
+#| label: agi-hist
+_ = histogram(agi["AGI"], bins=40,
+              title="Nevada household adjusted gross income, 2016",
+              xlab="AGI ($10,000s)", ylab="Households")
+```
+
+```{python}
+#| label: agi-shape
+print(shape_report(agi["AGI"], "Nevada AGI ($10,000s)"))
+print(f"n = {len(agi):,} households in this sample")
+```
+
+```{python}
+#| label: agi-summary
+describe(agi["AGI"], name="AGI ($10,000s)").to_frame()
+```
+
+```{python}
+#| label: agi-stats
+#| include: false
+
+agi_mean, agi_median = agi["AGI"].mean(), agi["AGI"].median()
+agi_above = 100 * (agi["AGI"] > agi_mean).mean()
+```
+
+The mean household AGI is `{python} money(agi_mean*10000)` and the median is
+`{python} money(agi_median*10000)`. Only
+`{python} f"{agi_above:.1f}"`% of households earn more than the *average*
+household.
+
+::: {.scarlet}
+This is the shape of nearly every income distribution ever measured, and it is
+why "average income" is a number to distrust in a policy argument. If you are
+building a case about typical households, the median is the honest statistic
+and you should say which one you used.
+:::
+
+::: {.brown}
+Two notes on this data set, both of which you would want stated if you were
+the reader rather than the writer.
+
+First, these observations are **simulated** from the counts the IRS publishes
+by zip code — the IRS does not release household-level returns. The shape is
+real; no individual row is a real household.
+
+Second, this file is a random sample of `{python} num(len(agi))` households
+drawn from roughly 1.3 million. Sampling is Chapter 7's subject, and the
+reason a sample this size is safe here is exactly what that chapter is about.
+:::
+
+## Which measure should you use?
+
+|  | Advantage | Disadvantage |
+|---|---|---|
+| **Mean** | Easy to compute and to explain; uses every observation | Pulled by outliers |
+| **Median** | Unaffected by outliers | Ignores the size of the values on either side |
+| **Mode** | The only option for categorical data | May not exist, and may not be unique |
+
+::: {.charcoal}
+The practical rule: report both the mean and the median. When they agree,
+you have lost nothing. When they disagree, you have found the most important
+sentence in your write-up.
+:::
+
+## Doing this in Excel
+
+Many of you will present this work in Excel, and the formulas are direct:
+
+| Statistic | Excel |
+|---|---|
+| Mean | `=AVERAGE(range)` |
+| Median | `=MEDIAN(range)` |
+| Mode | `=MODE.SNGL(range)` |
+| Weighted mean | `=SUMPRODUCT(values, weights)/SUM(weights)` |
+| Standard deviation (sample) | `=STDEV.S(range)` |
+| Variance (sample) | `=VAR.S(range)` |
+| Percentile | `=PERCENTILE.EXC(range, k)` |
+| Percentile rank | `=PERCENTRANK.EXC(range, value)` |
+| Quartile | `=QUARTILE.EXC(range, quart)` |
+| Correlation | `=CORREL(range1, range2)` |
+
+Excel's **Data Analysis** add-in produces the whole descriptive block at once:
+**Data → Data Analysis → Descriptive Statistics**, tick *Summary statistics*.
+If the Data Analysis button is not on your ribbon, it is an add-in you enable
+under **File → Options → Add-ins → Analysis ToolPak**.
+
+You do not have to build the workbook by hand:
+
+::: {.prompt}
+Prompt
+
+> Using `data/grad_student_gpa.csv` from
+> <https://github.com/jcrooker/mba775>, build an Excel workbook with two
+> sheets. Sheet 1 holds the raw GPA data. Sheet 2 computes the mean, median,
+> mode, sample standard deviation, sample variance, minimum, maximum, range,
+> and the first and third quartiles — each with a real Excel formula
+> referencing Sheet 1, not a pasted value, so I can change the data and watch
+> the summary update. Label every row. Give me the file to download.
+:::
+
+::: {.charcoal}
+`PERCENTILE.EXC` and `PERCENTILE.INC` are different functions and give
+different answers. This course uses the `.EXC` form, which matches the index
+point rule defined below. If your number disagrees with a classmate's in the
+fourth decimal place, this is usually why — and being able to say *which* rule
+produced your number is the actual skill.
+:::
+
+# Measures of Variability
+
+Two data sets can share a mean and have nothing else in common. Variability is
+what separates them.
+
+## The Range
+
+::: {.blue}
+The **range** is the largest value minus the smallest value.
+:::
+
+### Example: annual returns to the S&P 500
+
+```{python}
+#| label: sp-bar
+_ = returns_bar(returns["year"], returns["sp500"],
+                title="Annual return, S&P 500",
+                xlab="Year", ylab="Return")
+```
+
+```{python}
+#| label: sp-summary
+describe(returns["sp500"], name="S&P 500 annual return").to_frame()
+```
+
+```{python}
+#| label: sp-range
+#| include: false
+
+sp = returns["sp500"].dropna()
+sp_range = sp.max() - sp.min()
+best = returns.loc[returns["sp500"].idxmax()]
+worst = returns.loc[returns["sp500"].idxmin()]
+n_years = len(sp)
+```
+
+Over these `{python} str(n_years)` years the range is
+`{python} f"{sp_range:.4f}"` — `{python} f"{100*sp_range:.1f}"` percentage
+points separating the best year (`{python} str(int(best['year']))`, at
+`{python} f"{100*best['sp500']:+.1f}"`%) from the worst
+(`{python} str(int(worst['year']))`, at
+`{python} f"{100*worst['sp500']:+.1f}"`%).
+
+::: {.brown}
+The range is built from exactly two observations and ignores the other
+`{python} str(n_years - 2)`. Add one catastrophic year and the range moves;
+add fifty ordinary years and it does not move at all. It is a useful headline
+and a poor summary.
+:::
+
+## The Variance and the Standard Deviation
+
+::: {.blue}
+For a *sample*, the **variance** is
+
+$$\hat{\sigma}^2=\frac{1}{n-1}\sum_{i=1}^{n}\left(x_i-\bar{x}\right)^2.$$
+
+The **standard deviation** is its square root:
+
+$$\hat{\sigma}=\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}\left(x_i-\bar{x}\right)^2}.$$
+:::
+
+The standard deviation is carried in the same units as the original data — the
+variance is in units *squared*, which is why nobody reports "the variance in
+returns was 0.0246 return-squared." Square it back and report the standard
+deviation.
+
+::: {.brown}
+The divisor is $n-1$, not $n$. The sample variance computed this way is an
+**unbiased estimator** of the population variance: repeat the sampling many
+times and the average of the sample variances converges on the true value.
+Divide by $n$ and you will, on average, understate the spread.
+
+In Excel this is the difference between `STDEV.S` and `STDEV.P`. In pandas it
+is the `ddof` argument, and pandas defaults to the sample version while numpy
+defaults to the population version. Two libraries in the same language, two
+different answers. Know which one you called.
+:::
+
+```{python}
+#| label: ddof-demo
+s = returns["sp500"].dropna()
+pd.DataFrame({
+    "divisor": ["n - 1  (sample, Excel STDEV.S)", "n      (population, STDEV.P)"],
+    "standard deviation": [round(s.std(ddof=1), 6), round(s.std(ddof=0), 6)],
+})
+```
+
+# Using the Mean and Standard Deviation Together
+
+## The Coefficient of Variation
+
+::: {.brown}
+The **coefficient of variation** measures the standard deviation as a
+percentage of the mean:
+
+$$CV=\frac{\hat{\sigma}}{\bar{x}}\cdot100.$$
+:::
+
+### Example: the S&P 500 against Walmart
+
+```{python}
+#| label: wmt-bar
+_ = returns_bar(returns["year"], returns["wmt"],
+                title="Annual return, Walmart",
+                xlab="Year", ylab="Return")
+```
+
+```{python}
+#| label: cv-table
+cv_table = pd.DataFrame({
+    "S&P 500": describe(returns["sp500"]),
+    "Walmart": describe(returns["wmt"]),
+})
+cv_table.loc[["n", "mean", "median", "std_dev", "range", "CV_percent"]].round(4)
+```
+
+```{python}
+#| label: cv-stats
+#| include: false
+
+sp_v = returns["sp500"].dropna()
+wm_v = returns["wmt"].dropna()
+sp_sd, wm_sd = sp_v.std(ddof=1), wm_v.std(ddof=1)
+sp_mu, wm_mu = sp_v.mean(), wm_v.mean()
+sp_cv = coefficient_of_variation(sp_v)
+wm_cv = coefficient_of_variation(wm_v)
+sd_ratio = wm_sd / sp_sd
+riskier_by_sd = "Walmart" if wm_sd > sp_sd else "the S&P 500"
+riskier_by_cv = "Walmart" if wm_cv > sp_cv else "the S&P 500"
+```
+
+Written out for each:
+
+```{python}
+#| label: cv-math
+#| echo: false
+#| output: asis
+show_math(rf"CV_{{S\&P}}=\frac{{{sp_sd:.4f}}}{{{sp_mu:.4f}}}\cdot100={sp_cv:.1f}")
+show_math(rf"CV_{{WMT}}=\frac{{{wm_sd:.4f}}}{{{wm_mu:.4f}}}\cdot100={wm_cv:.1f}")
+```
+
+::: {.scarlet}
+Read those two lines together.
+
+Walmart's standard deviation is `{python} f"{sd_ratio:.2f}"` times the S&P
+500's, so by standard deviation alone `{python} riskier_by_sd` is the more
+volatile holding — and that is true. But Walmart's *coefficient of variation*
+is `{python} f"{wm_cv:.1f}"` against the index's
+`{python} f"{sp_cv:.1f}"`, because the mean return it is deviating around is
+`{python} f"{wm_mu/sp_mu:.1f}"` times larger. Per unit of return earned,
+`{python} riskier_by_cv` carried the more variable ride.
+
+An MBA who takes only the standard deviation away from this chapter will rank
+those two backwards. The standard deviation answers *"how much does it move?"*
+The coefficient of variation answers *"how much does it move, given what it
+pays?"* — and the second question is the one an investment committee is
+actually asking.
+:::
+
+::: {.brown}
+The coefficient of variation is only interpretable when the mean is positive
+and comfortably away from zero. As $\bar{x}$ approaches zero the ratio
+explodes, and for a mean that can be negative — a spread, a net change, a
+margin swing — the CV is meaningless and occasionally sign-flipped. Check the
+mean before you quote the ratio.
+:::
+
+## The $z$-score
+
+::: {.brown}
+The **$z$-score** is the number of standard deviations a particular value sits
+from the mean of its distribution:
+
+$$z=\frac{x-\bar{x}}{\hat{\sigma}}.$$
+
+Values with $|z|>3$ are conventionally categorised as **outliers**.
+:::
+
+Expressing a value as a $z$-score is what makes two things measured in
+different units comparable at all. It is also the machinery underneath every
+inference test in the second half of this course, so it repays attention now.
+
+### Example: $z$-scores and inflation
+
+```{python}
+#| label: cpi-hist
+_ = histogram(cpi["inflation"].dropna(), bins=30,
+              title="US inflation rate, 12-month log change in CPI",
+              xlab="Inflation rate", ylab="Months")
+```
+
+```{python}
+#| label: cpi-summary
+describe(cpi["inflation"], name="12-month inflation").to_frame()
+```
+
+```{python}
+#| label: cpi-peak
+#| include: false
+
+infl = cpi.dropna(subset=["inflation"]).copy()
+mu_i, sd_i = infl["inflation"].mean(), infl["inflation"].std(ddof=1)
+peak = infl.loc[infl["inflation"].idxmax()]
+z_peak = z_score(peak["inflation"], mu_i, sd_i)
+n_higher = int((infl["inflation"] > peak["inflation"]).sum())
+recent = infl.iloc[-1]
+z_recent = z_score(recent["inflation"], mu_i, sd_i)
+peak_label = f"{peak['date']:%B %Y}"
+recent_label = f"{recent['date']:%B %Y}"
+outlier_word = "does" if abs(z_peak) > 3 else "does not"
+```
+
+The highest 12-month inflation rate in this series is
+`{python} f"{100*peak['inflation']:.2f}"`%, in `{python} peak_label`. Its
+$z$-score is
+
+```{python}
+#| label: cpi-z-math
+#| echo: false
+#| output: asis
+show_math(r"z=\frac{x-\bar{x}}{\hat{\sigma}}"
+          rf"=\frac{{{peak['inflation']:.4f}-{mu_i:.4f}}}{{{sd_i:.4f}}}"
+          rf"={z_peak:.4f}")
+```
+
+That month sits `{python} f"{z_peak:.2f}"` standard deviations above the
+average month, and `{python} outlier_word` clear the conventional $|z|>3$
+threshold for an outlier.
+
+The most recent observation, `{python} recent_label`, sits at
+`{python} f"{100*recent['inflation']:.2f}"`% — a $z$-score of
+`{python} f"{z_recent:.2f}"`. Two inflation rates, the same units, and the
+$z$-score is what lets you say how far apart they really are.
+
+### How unusual is unusual?
+
+A $z$-score is only useful if you can turn it back into a count. Here is every
+month whose inflation rate was more than two standard deviations above the
+mean:
+
+```{python}
+#| label: cpi-extremes
+threshold = mu_i + 2 * sd_i
+extreme = infl[infl["inflation"] > threshold]
+print(f"Threshold (z = 2): {100*threshold:.2f}% inflation")
+print(f"Months above it:   {len(extreme):,} of {len(infl):,} "
+      f"({100*len(extreme)/len(infl):.2f}%)")
+print()
+print(extreme.assign(month=extreme["date"].dt.strftime("%b %Y"),
+                     inflation_pct=(100*extreme["inflation"]).round(2))
+             .nlargest(8, "inflation")[["month", "inflation_pct"]]
+             .to_string(index=False))
+```
+
+```{python}
+#| label: cpi-series
+_ = time_series(cpi["date"], cpi["inflation"],
+                title="US inflation rate, 12-month log change in CPI",
+                ylab="Inflation rate")
+```
+
+## The Empirical Rule
+
+::: {.brown}
+If a distribution is bell-shaped and symmetric, approximately 68%, 95%, and
+99.7% of the values fall within one, two, and three standard deviations of the
+mean, respectively.
+
+Rearranged, a value can be recovered from its $z$-score:
+
+$$x=\mu+\sigma\cdot z.$$
+:::
+
+```{python}
+#| label: bell
+_ = normal_curve()
+```
+
+That picture is of a mathematical function, not of any data set. The rule only
+applies to the extent your data resembles it, and that is a claim to be
+checked rather than assumed:
+
+```{python}
+#| label: empirical-check
+empirical_rule(unrate["unemployment_rate"], name="UNRATE")
+```
+
+```{python}
+#| label: empirical-check-agi
+empirical_rule(agi["AGI"], name="Nevada AGI")
+```
+
+```{python}
+#| label: empirical-compare
+#| include: false
+
+er_u = empirical_rule(unrate["unemployment_rate"])
+er_a = empirical_rule(agi["AGI"])
+u1 = er_u.loc["1 sd", "actual_percent"]
+a1 = er_a.loc["1 sd", "actual_percent"]
+a_low3 = er_a.loc["3 sd", "interval_low"]
+```
+
+For the unemployment rate, `{python} f"{u1:.1f}"`% of months fall within one
+standard deviation of the mean, against the 68.3% the bell curve predicts.
+For Nevada AGI the figure is `{python} f"{a1:.1f}"`%.
+
+::: {.scarlet}
+Look at the `interval_low` column of the AGI table. Three standard deviations
+below the mean is `{python} f"{a_low3:.2f}"` — a *negative* income, in a data
+set where nothing can be below zero. The empirical rule did not fail here; it
+was never applicable. Applying a symmetric rule to a skewed distribution
+produces intervals that reach into territory the variable cannot occupy, and
+nothing in the arithmetic warns you.
+:::
+
+## Chebyshev's Theorem
+
+::: {.blue}
+**Chebyshev's Theorem** states that for any $z>1$, the percentage of values
+falling within $z$ standard deviations of the mean is at least
+
+$$\left(1-\frac{1}{z^2}\right)\cdot100.$$
+:::
+
+This is the tool for the situation you are actually in most of the time: a
+distribution whose shape you do not know. It applies to *every* distribution —
+skewed, bimodal, lumpy, anything — which is exactly why the guarantee it gives
+is weak. It is a floor, never an estimate.
+
+### Applied to inflation
+
+Take the two standard deviation threshold from the section above. What does
+Chebyshev guarantee about how often inflation can exceed it?
+
+```{python}
+#| label: cheb-cpi
+chebyshev_table(2).to_frame("Chebyshev at z = 2")
+```
+
+```{python}
+#| label: cheb-cpi-math
+#| echo: false
+#| output: asis
+show_math(r"\left(1-\frac{1}{z^2}\right)\cdot100"
+          rf"=\left(1-\frac{{1}}{{(2)^2}}\right)\cdot100={chebyshev(2):.2f}")
+```
+
+```{python}
+#| label: cheb-cpi-values
+#| include: false
+
+cheb_in = chebyshev(2)
+cheb_out = 100 - cheb_in
+cheb_tail = cheb_out / 2
+actual_in = float(((infl["inflation"] >= mu_i - 2*sd_i) &
+                   (infl["inflation"] <= mu_i + 2*sd_i)).mean() * 100)
+actual_tail = 100 * len(infl[infl["inflation"] > mu_i + 2*sd_i]) / len(infl)
+```
+
+At least `{python} f"{cheb_in:.2f}"`% of months must lie within two standard
+deviations of the mean, so at most `{python} f"{cheb_out:.2f}"`% lie outside
+that interval — and, if we are willing to treat the two tails as comparable,
+at most `{python} f"{cheb_tail:.2f}"`% above it.
+
+In this data, `{python} f"{actual_in:.2f}"`% of months actually fell inside
+that interval and `{python} f"{actual_tail:.2f}"`% were above it.
+
+::: {.charcoal}
+The bound held, and it held by a wide margin. That is the normal outcome and
+it is the thing to understand about Chebyshev: it is almost always loose. It
+tells you what *cannot* be true, not what is likely. A consultant who reports
+the Chebyshev bound as a forecast has reported a number that is correct and
+useless at the same time.
+
+Two cautions worth carrying out of here. The theorem bounds both tails
+together; splitting the remainder in half assumes a symmetry the theorem never
+promised, so state a one-tail figure as an upper bound and never as an
+estimate. And for $z \le 1$ the formula returns zero or worse — it tells you
+nothing at all, which is honest but unquotable.
+:::
+
+### Applied to graduate GPA
+
+```{python}
+#| label: gpa-cheb-stats
+#| include: false
+
+gpa_mu = gpa["GPA"].mean()
+gpa_sd = gpa["GPA"].std(ddof=1)
+z_gpa = z_score(3.0, gpa_mu, gpa_sd)
+gpa_in = chebyshev(z_gpa)
+gpa_tail = (100 - gpa_in) / 2
+gpa_actual = 100 * (gpa["GPA"] < 3.0).mean()
+```
+
+What fraction of graduate students should we expect to hold a GPA below 3.0?
+The $z$-score of a 3.0 is
+
+```{python}
+#| label: gpa-z-math
+#| echo: false
+#| output: asis
+show_math(rf"z=\frac{{3.0-{gpa_mu:.4f}}}{{{gpa_sd:.4f}}}={z_gpa:.4f}")
+```
+
+```{python}
+#| label: cheb-gpa
+chebyshev_table(z_gpa).to_frame("Chebyshev for a 3.0 GPA")
+```
+
+```{python}
+#| label: gpa-actual
+print(f"Students below a 3.0 GPA: {int((gpa['GPA'] < 3.0).sum())} "
+      f"of {len(gpa)}  ({gpa_actual:.2f}%)")
+```
+
+Chebyshev bounds the share below 3.0 at no more than
+`{python} f"{gpa_tail:.2f}"`%. The actual figure is
+`{python} f"{gpa_actual:.2f}"`%.
+
+::: {.brown}
+Note how far apart those two numbers are, and note the direction: the bound is
+not close, but it is not violated either. That is what a guarantee that holds
+for *any* distribution costs you. If you are willing to assume a shape, you
+can say far more — which is what Chapters 5 and 6 are for.
+:::
+
+# Working with Grouped Data
+
+Sometimes you never see the individual observations. What you are handed is a
+table of counts by class, which is how most published statistics arrive.
+
+::: {.blue}
+The **midpoint** of a class is the average of its endpoints.
+
+The **sample mean for grouped data** is
+
+$$\bar{x}\approx\frac{1}{n}\sum_{i=1}^{k}f_i\cdot m_i,$$
+
+where $f_i$ is the frequency of class $i$, $m_i$ its midpoint,
+$n=\sum_{i=1}^{k}f_i$, and $k$ the number of classes.
+
+The **sample variance for grouped data** is
+
+$$\hat{\sigma}^2=\frac{1}{n-1}\sum_{i=1}^{k}f_i\cdot\left(m_i-\bar{x}\right)^2.$$
+:::
+
+## Application: adjusted gross income in zip code 89015
+
+The IRS publishes tax return counts by zip code and income bracket at its
+[SOI zip code data portal](https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi).
+Below are the 2016 counts for zip code 89015 — Henderson, Nevada.
+
+```{python}
+#| label: grouped-input
+# IRS SOI, tax year 2016, zip code 89015. Counts of returns by AGI bracket.
+brackets = pd.DataFrame({
+    "class":     ["$1 - $25,000", "$25,000 - $50,000", "$50,000 - $75,000",
+                  "$75,000 - $100,000", "$100,000 - $200,000",
+                  "$200,000 - $300,000"],
+    "low":       [1, 25_000, 50_000, 75_000, 100_000, 200_000],
+    "high":      [25_000, 50_000, 75_000, 100_000, 200_000, 300_000],
+    "frequency": [6_600, 4_820, 2_550, 1_600, 1_790, 310],
+})
+brackets["midpoint"] = (brackets["low"] + brackets["high"]) / 2
+brackets
+```
+
+```{python}
+#| label: grouped-work
+work = grouped_summary(brackets["frequency"], brackets["midpoint"],
+                       labels=brackets["class"])
+work.style.format({"frequency_f": "{:,.0f}", "midpoint_m": "{:,.2f}",
+                   "f_times_m": "{:,.2f}", "deviation": "{:,.2f}",
+                   "f_times_dev_sq": "{:,.2f}"}, na_rep="")
+```
+
+```{python}
+#| label: grouped-stats
+#| include: false
+
+g_n = int(brackets["frequency"].sum())
+g_mean = grouped_mean(brackets["frequency"], brackets["midpoint"])
+g_var = grouped_variance(brackets["frequency"], brackets["midpoint"])
+g_sd = np.sqrt(g_var)
+g_fm = float((brackets["frequency"] * brackets["midpoint"]).sum())
+g_fd = float((brackets["frequency"] *
+              (brackets["midpoint"] - g_mean) ** 2).sum())
+```
+
+Reading the totals off that table:
+
+```{python}
+#| label: grouped-math
+#| echo: false
+#| output: asis
+show_math(rf"\bar{{x}}=\frac{{1}}{{{mnum(g_n)}}}"
+          rf"\left[{mnum(g_fm)}\right]={mmoney(g_mean, 2)}")
+show_math(rf"\hat{{\sigma}}^2=\frac{{1}}{{{mnum(g_n-1)}}}"
+          rf"\left[{mnum(g_fd)}\right]={mnum(g_var, 2)}")
+show_math(rf"\hat{{\sigma}}=\sqrt{{{mnum(g_var, 2)}}}={mmoney(g_sd, 2)}")
+```
+
+::: {.brown}
+Every observation inside a class has been replaced by that class's midpoint,
+so this is an approximation and the note should say so. The top class is the
+worst offender: "\$200,000 – \$300,000" gets a midpoint of \$250,000, and if
+the published table's top class had been open-ended — "\$200,000 or more" — you
+would have to invent a midpoint, and your standard deviation would inherit
+whatever you invented.
+:::
+
+### What share earns above \$250,000?
+
+We do not know the shape of this distribution, so Chebyshev is the only tool
+available.
+
+```{python}
+#| label: grouped-z-math
+#| echo: false
+#| output: asis
+z_agi = z_score(250_000, g_mean, g_sd)
+show_math(rf"z=\frac{{{mnum(250000)}-{mnum(g_mean, 2)}}}{{{mnum(g_sd, 2)}}}"
+          rf"={z_agi:.4f}")
+```
+
+```{python}
+#| label: grouped-cheb
+chebyshev_table(z_agi).to_frame("Chebyshev at $250,000")
+```
+
+```{python}
+#| label: grouped-cheb-stats
+#| include: false
+
+zagi_in = chebyshev(z_agi)
+zagi_tail = (100 - zagi_in) / 2
+```
+
+At least `{python} f"{zagi_in:.2f}"`% of this zip code's returns fall within
+`{python} f"{z_agi:.2f}"` standard deviations of the mean, so no more than
+`{python} f"{zagi_tail:.2f}"`% report AGI above \$250,000.
+
+::: {.charcoal}
+Check that against the table you started from: the published counts say
+`{python} num(brackets['frequency'].iloc[-1])` of `{python} num(g_n)` returns
+— `{python} f"{100*brackets['frequency'].iloc[-1]/g_n:.2f}"`% — fall in the
+top bracket at all. The bound is true and the bound is loose. When you have
+the counts, count. Chebyshev is for when you do not.
+:::
+
+# Measures of Relative Position
+
+Where does one value sit relative to the rest?
+
+::: {.blue}
+A **percentile** measures the approximate percentage of values in the data set
+that fall below the value of interest.
+
+The **$\rho$th percentile** is the value that at least $\rho$ percent of the
+observations fall below.
+
+The **index point** for the $p$th percentile is
+
+$$i=\frac{p}{100}\cdot n.$$
+
+If $i$ is not a whole number, round up; that position holds the value. If $i$
+is a whole number, take the midpoint of positions $i$ and $i+1$.
+:::
+
+```{python}
+#| label: pct-80
+percentile(gpa["GPA"], 0.80)
+```
+
+```{python}
+#| label: pct-80-stats
+#| include: false
+
+p80 = percentile(gpa["GPA"], 0.80)
+p80_i = 0.80 * len(gpa)
+```
+
+With $n=`{python} num(len(gpa))`$ students, the index point for the 80th
+percentile is $0.80 \times `{python} num(len(gpa))` = `{python} num(p80_i, 1)`$.
+The 80th percentile GPA is `{python} f"{p80:.4f}"`.
+
+::: {.charcoal}
+There is more than one rule for this, and different software uses different
+ones. Here is the same percentile computed three ways:
+:::
+
+```{python}
+#| label: pct-methods
+percentile_methods(gpa["GPA"], 0.80).to_frame()
+```
+
+They are close, and on a data set this size the disagreement is in the third
+decimal. On a data set of twelve observations it would not be. This course
+uses the index-point rule above, matching Excel's `PERCENTILE.EXC`. The point
+is not that one is right — it is that you should be able to say which rule
+produced your number when someone else's differs.
+
+## Percentile rank
+
+::: {.blue}
+The **percentile rank** of a value $x$ is
+
+$$\text{Percentile Rank}=\frac{1}{n}\left[\frac{1}{2}+\sum_{i=1}^{n}I\{x_i<x\}\right]\cdot100,$$
+
+where $I\{\cdot\}$ is an **indicator function** taking the value 1 when the
+statement inside is true and 0 when it is false.
+:::
+
+```{python}
+#| label: pct-rank
+round(percentile_rank(gpa["GPA"], 3.75), 2)
+```
+
+```{python}
+#| label: pct-rank-stats
+#| include: false
+
+pr = percentile_rank(gpa["GPA"], 3.75)
+n_below = int((gpa["GPA"] < 3.75).sum())
+```
+
+A student with a 3.75 GPA sits at the `{python} f"{pr:.2f}"`th percentile:
+`{python} num(n_below)` of `{python} num(len(gpa))` students are below them.
+
+Percentile and percentile rank are inverses of one another. The first takes a
+percentage and returns a value; the second takes a value and returns a
+percentage. Getting them the wrong way round is the most common error in this
+section.
+
+## Quartiles and the interquartile range
+
+::: {.blue}
+The first, second, and third **quartiles** are the 25th, 50th, and 75th
+percentiles. The second quartile is the median.
+
+The **interquartile range** is
+
+$$IQR=Q_3-Q_1,$$
+
+the spread of the middle 50% of the data.
+:::
+
+```{python}
+#| label: quartiles
+q1, q2, q3 = quartiles(gpa["GPA"])
+lo, hi = outlier_fences(gpa["GPA"])
+pd.Series({
+    "Q1 (25th percentile)": q1,
+    "Q2 (median)": q2,
+    "Q3 (75th percentile)": q3,
+    "IQR": q3 - q1,
+    "lower fence  Q1 - 1.5*IQR": lo,
+    "upper fence  Q3 + 1.5*IQR": hi,
+}).round(4).to_frame("Graduate GPA")
+```
+
+The IQR is a measure of spread with the same virtue the median has: the two
+most extreme observations in the data set cannot move it. Where the range is
+built entirely from outliers, the IQR is immune to them.
+
+## Box-and-whisker plots
+
+The box runs from $Q_1$ to $Q_3$ with the median marked inside it, so the box
+*is* the interquartile range drawn to scale. The whiskers extend to the most
+extreme observations still within $Q_1-1.5\cdot IQR$ and $Q_3+1.5\cdot IQR$.
+Anything beyond those fences is plotted individually and is what this chapter
+means by an outlier.
+
+```{python}
+#| label: gpa-box
+_ = box_plot(gpa["GPA"], title="Graduate student GPA", xlab="GPA")
+```
+
+The long lower whisker and the short upper one are the left skew, seen from a
+different angle. The diamond marks the mean; that it sits below the median
+line is the same fact the histogram showed.
+
+Box plots earn their keep when comparing groups:
+
+```{python}
+#| label: returns-box
+_ = box_plot([returns["sp500"].dropna(), returns["wmt"].dropna()],
+             labels=["S&P 500", "Walmart"],
+             title="Annual returns over the last 50 years",
+             xlab="Annual return")
+```
+
+## The five-number summary
+
+::: {.blue}
+By convention, five statistics describe a data set and the shape of its
+distribution: the **minimum**, the **first quartile**, the **median**, the
+**third quartile**, and the **maximum**.
+:::
+
+```{python}
+#| label: five-number
+pd.DataFrame({
+    "Graduate GPA": five_number_summary(gpa["GPA"]),
+    "S&P 500 return": five_number_summary(returns["sp500"]),
+    "Walmart return": five_number_summary(returns["wmt"]),
+    "Unemployment rate": five_number_summary(unrate["unemployment_rate"]),
+})
+```
+
+That is the box plot as a table, and it is the block Excel produces from
+**Data → Data Analysis → Descriptive Statistics**.
+
+# Measures of Association Between Two Variables
+
+::: {.blue}
+The **sample covariance** measures the *direction* of the linear relationship
+between two variables:
+
+$$\hat{\sigma}_{xy}=\frac{1}{n-1}\sum_{i=1}^{n}\left(x_i-\bar{x}\right)\left(y_i-\bar{y}\right).$$
+:::
+
+::: {.blue}
+The **sample correlation coefficient** measures both the strength and the
+direction:
+
+$$\hat{\rho}_{xy}=\frac{\hat{\sigma}_{xy}}{\hat{\sigma}_x\hat{\sigma}_y},$$
+
+where $\hat{\sigma}_x$ and $\hat{\sigma}_y$ are the sample standard deviations
+of $x$ and $y$. It always lies between $-1$ and $+1$.
+:::
+
+```{python}
+#| label: assoc-scatter
+paired = returns.dropna(subset=["sp500", "wmt"])
+_ = scatter(paired["sp500"], paired["wmt"],
+            title="Annual returns: Walmart against the S&P 500",
+            xlab="S&P 500 annual return", ylab="Walmart annual return")
+```
+
+```{python}
+#| label: assoc-returns
+association(paired["sp500"], paired["wmt"], "sp500", "wmt") \
+    .round(6).to_frame("S&P 500 vs Walmart")
+```
+
+```{python}
+#| label: assoc-stats
+#| include: false
+
+a_ret = association(paired["sp500"], paired["wmt"], "sp500", "wmt")
+cov_ret = a_ret["covariance"]
+cor_ret = a_ret["correlation"]
+direction = "move together" if cov_ret > 0 else "move in opposite directions"
+strength = ("weak" if abs(cor_ret) < 0.3 else
+            "moderate" if abs(cor_ret) < 0.6 else "strong")
+```
+
+The covariance is `{python} f"{cov_ret:.6f}"`. Its sign says the two
+`{python} direction`. Its magnitude says nothing you can act on, because it
+carries the units of both variables multiplied together — rescale returns from
+decimals to percentages and the covariance changes by a factor of 10,000 while
+the relationship does not change at all.
+
+Dividing by both standard deviations removes the units and leaves
+`{python} f"{cor_ret:.4f}"` — a `{python} strength` positive relationship, on a
+scale that runs from $-1$ to $+1$ and means the same thing whatever the
+variables were measured in.
+
+```{python}
+#| label: assoc-states
+state_pairs = states[["HPI", "UR", "POPN", "gPOP"]].dropna()
+state_pairs.corr().round(3)
+```
+
+::: {.scarlet}
+A correlation matrix is the fastest way to mislead yourself in this entire
+course. Four things it does not tell you:
+
+1. **Causation.** Neither direction, nor the possibility that a third variable
+   drives both.
+2. **Non-linear relationships.** A perfect U-shape can produce a correlation
+   of zero. Draw the scatter plot before you trust the coefficient.
+3. **What outliers did to it.** A single extreme pair can create a correlation
+   or destroy one, and the number gives no hint.
+4. **Whether the sample is large enough to mean anything.** With
+   `{python} num(len(state_pairs))` observations, a coefficient of 0.25 is
+   not distinguishable from zero — which is a Chapter 9 question, and one we
+   will come back to.
+:::
+
+# Laboratory 3
+
+::: {.prompt}
+Prompt
+
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need
+> `scripts/03_descriptive_statistics.py`, `scripts/_stats.py`,
+> `scripts/_charts.py`, and the files `data/grad_student_gpa.csv`,
+> `data/state_population.csv`, `data/annual_returns.csv`, and
+> `data/nevada_agi_2016_sample.csv`. Read `COURSE_CONTEXT.md` from the same
+> repository first.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> each section and what the numbers mean. Do not report any number you did not
+> compute, and if anything fails, show me the error rather than describing what
+> the output would have been.
+:::
+
+**Submit written answers to the following.** Each should be a short paragraph.
+
+1. For the Western states, the mean population is far above the median.
+   Explain to a city council which of the two you would put in a briefing
+   about a "typical Western state," and what a reader would wrongly conclude
+   from the other one.
+
+2. The population-weighted unemployment rate differs from the plain average of
+   the fifty state rates. Explain the difference to someone who thinks you
+   made an arithmetic error, and give one business situation — not about
+   states — where using the unweighted average would produce a materially
+   wrong decision.
+
+3. Walmart's standard deviation of annual returns is more than double the S&P
+   500's, yet its coefficient of variation is lower. Explain how both can be
+   true, and state which measure you would put in front of an investment
+   committee and why.
+
+4. Using the empirical rule table for Nevada AGI, explain why the three
+   standard deviation interval extends below zero and what that tells you
+   about applying the empirical rule to income data.
+
+5. Chebyshev's Theorem bounded the share of graduate students below a 3.0 GPA
+   far above the actual figure. Explain to a colleague who thinks the theorem
+   "didn't work" why a loose bound is not a failed bound, and describe one
+   circumstance where you would genuinely need it.
+
+6. Pick any two variables from the state data. Compute their correlation, draw
+   the scatter plot, and write the strongest claim the pair supports — then
+   write a claim someone might mistakenly make from the same number.
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Using `data/annual_returns.csv` from
+> <https://github.com/jcrooker/mba775>, build an Excel workbook with two
+> sheets. Sheet 1 holds the raw annual returns for the S&P 500 and Walmart.
+> Sheet 2 computes, for each series, the mean, median, sample standard
+> deviation, minimum, maximum, range, and coefficient of variation, plus the
+> correlation between the two series — every cell a real Excel formula
+> referencing Sheet 1, not a pasted value. Add a column chart of both return
+> series by year. Give me the file to download.
+:::
+
+When it opens, change one year's return to something extreme and watch which
+statistics move and which do not. The ones that barely move are the resistant
+ones, and now you know why.
