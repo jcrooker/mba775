@@ -91,3 +91,79 @@ div.sourceCode {
   border-left: 3px solid rgba($scarlet, 0.35);
   border-radius: 3px;
 }
+
+/* ---- Readability inside dark blocks ------------------------------------
+   Bootstrap styles blockquotes with a muted gray. Inside a solid scarlet or
+   charcoal block that lands at about 1.5:1 contrast -- unreadable. Force the
+   inherited white back on, which measures 7.1:1 against UNLV scarlet (AAA).
+------------------------------------------------------------------------ */
+div.scarlet blockquote,
+div.charcoal blockquote,
+div.gray blockquote,
+div.scarlet blockquote p,
+div.charcoal blockquote p,
+div.gray blockquote p,
+div.scarlet li,
+div.charcoal li,
+div.gray li {
+  color: #ffffff !important;
+}
+
+div.scarlet blockquote,
+div.charcoal blockquote,
+div.gray blockquote {
+  border-left: 3px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.6em 1em;
+  margin: 0.8em 0;
+  font-size: 1rem;
+}
+
+/* ---- Prompt box --------------------------------------------------------
+   For text a student is meant to read carefully and copy. A solid dark slab
+   is the wrong vehicle for that: white-on-scarlet is legible but tiring over
+   a full paragraph, and it reads as a warning rather than as an instruction.
+   Dark text on a light tint measures 16.3:1 and stays comfortable at length.
+
+   Used as:  ::: {.prompt} ... :::
+------------------------------------------------------------------------ */
+div.prompt {
+  background-color: #fdf6f5;
+  border: 1px solid rgba($scarlet, 0.35);
+  border-left: 5px solid $scarlet;
+  border-radius: 5px;
+  padding: 1.1em 1.3em 1.2em;
+  margin: 1.5em 0;
+  color: #1a1a1a;
+}
+
+div.prompt > p:first-child {
+  margin-top: 0;
+  margin-bottom: 0.7em;
+  color: $scarlet;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+div.prompt blockquote {
+  margin: 0;
+  padding: 0 0 0 0.9em;
+  border-left: 3px solid rgba($scarlet, 0.3);
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+
+div.prompt blockquote p { color: #1a1a1a; }
+div.prompt blockquote p:last-child { margin-bottom: 0; }
+
+div.prompt code {
+  background-color: rgba($scarlet, 0.09);
+  color: #7d2619;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+div.prompt a { color: $scarlet; }

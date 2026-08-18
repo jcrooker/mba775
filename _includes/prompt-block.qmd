@@ -1,5 +1,5 @@
-::: {.scarlet}
-**Run this with Claude**
+::: {.prompt}
+Run this with Claude
 
 Paste this into a Claude conversation. You do not need to download anything.
 

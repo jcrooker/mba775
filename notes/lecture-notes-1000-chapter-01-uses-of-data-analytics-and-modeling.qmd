@@ -394,8 +394,8 @@ Everything this course needs lives in a public repository. You do not download
 it and you do not upload it — you tell Claude where it is. Open a Claude
 conversation and paste this:
 
-::: {.scarlet}
-**Prompt**
+::: {.prompt}
+Prompt
 
 > Get the MBA 775 course materials from
 > <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
