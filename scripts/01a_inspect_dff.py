@@ -15,7 +15,7 @@ believe we asked for.
 
 import pandas as pd
 
-from _course import banner, load_dff
+from _course import banner, load_dff, month_coverage
 
 full = load_dff("dff.csv")
 
@@ -119,9 +119,25 @@ daily_tail["change"] = rate.diff().tail(10)
 print(daily_tail.to_string())
 
 print()
-monthly_tail = rate.resample("MS").mean().tail(12).round(3).to_frame("monthly mean")
+
+# Resampling always produces a bucket for the current month, however few days
+# have elapsed. Report how many days went into each average so a short month
+# cannot masquerade as a full one.
+coverage = month_coverage(rate)
+monthly_tail = rate.resample("MS").mean().round(3).to_frame("monthly mean")
+monthly_tail["days"] = coverage["observed"]
 monthly_tail["change"] = monthly_tail["monthly mean"].diff().round(3)
-print(monthly_tail.to_string())
+monthly_tail["complete"] = coverage["complete"]
+print(monthly_tail.tail(12).to_string())
+
+partial = monthly_tail.loc[~monthly_tail["complete"]]
+if len(partial):
+    last = partial.index[-1]
+    print(f"\nCAUTION: {last.strftime('%B %Y')} is incomplete -- "
+          f"{int(monthly_tail.loc[last, 'days'])} days of "
+          f"{last.days_in_month}. Its average covers a different span than the")
+    print("months beside it, so the change into it is not comparable. Drop it,")
+    print("or label it, but do not quietly plot it as though it were finished.")
 
 print("\nA policy rate holds flat for long stretches, so the daily tail is")
 print("mostly zeros in the change column. That is information: it tells you")

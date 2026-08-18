@@ -11,7 +11,7 @@ three defensible monthly measures and how far apart they can get.
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from _course import banner, load_dff
+from _course import banner, load_dff, month_coverage
 
 rate = load_dff("dff.csv")
 
@@ -40,7 +40,20 @@ monthly = pd.DataFrame({
     "last":  recent.resample("MS").last(),
 })
 
+# Resampling always emits a bucket for the current month, however few days have
+# elapsed. A 13-day "monthly mean" sitting beside 31-day neighbours is not a
+# comparable number, and nothing in the output says so unless we say it.
+coverage = month_coverage(recent)
+monthly["days"] = coverage["observed"]
+complete = coverage["complete"]
+
 print(monthly.head(12).round(4).to_string())
+
+if (~complete).any():
+    partial = monthly.index[~complete]
+    print(f"\nIncomplete month(s): "
+          f"{', '.join(d.strftime('%B %Y') for d in partial)} -- "
+          f"excluded from the comparisons below.")
 
 print("\n  mean  = average conditions DURING the month")
 print("  first = the rate the month OPENED with")
@@ -49,13 +62,15 @@ print("  last  = the rate the month CLOSED with")
 # ---------------------------------------------------------------------------
 banner("3. How much does the choice matter?")
 
-gap = (monthly["mean"] - monthly["last"]).abs()
+# Compare only months that actually ran their full length.
+full = monthly.loc[complete]
+gap = (full["mean"] - full["last"]).abs()
 worst = gap.idxmax()
 
 print(f"Largest gap between the monthly mean and the month-end rate:")
 print(f"  {gap.max():.3f} percentage points, in {worst.strftime('%B %Y')}")
-print(f"    mean       : {monthly.loc[worst, 'mean']:.3f}")
-print(f"    month-end  : {monthly.loc[worst, 'last']:.3f}")
+print(f"    mean       : {full.loc[worst, 'mean']:.3f}")
+print(f"    month-end  : {full.loc[worst, 'last']:.3f}")
 print(f"\nMonths where the two differ by more than 0.25 points: "
       f"{int((gap > 0.25).sum())} of {len(gap)}")
 
@@ -68,10 +83,10 @@ print("Choosing without stating the question is an unstated assumption.")
 banner("4. The same three measures, plotted")
 
 fig, ax = plt.subplots(figsize=(10, 4.5))
-ax.plot(monthly.index, monthly["mean"], label="monthly mean", linewidth=1.8)
-ax.plot(monthly.index, monthly["first"], label="first of month",
+ax.plot(full.index, full["mean"], label="monthly mean", linewidth=1.8)
+ax.plot(full.index, full["first"], label="first of month",
         linewidth=1.0, linestyle="--")
-ax.plot(monthly.index, monthly["last"], label="last of month",
+ax.plot(full.index, full["last"], label="last of month",
         linewidth=1.0, linestyle=":")
 ax.set_title("Federal Funds Effective Rate: three monthly measures")
 ax.set_ylabel("Percent")

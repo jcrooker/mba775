@@ -68,6 +68,24 @@ def load_state_unemployment(filename: str = "state_unemployment.csv") -> pd.Data
     return frame.sort_values(["date", "state"]).reset_index(drop=True)
 
 
+def month_coverage(series: pd.Series) -> pd.DataFrame:
+    """Days observed in each month, days the month actually has, and whether
+    the month is complete.
+
+    Resampling silently produces a bucket for the current month whatever the
+    date is. A month with three days of data appears beside months with thirty,
+    formatted identically, and any average or change computed from it is not
+    comparable. This makes that visible instead of leaving it to be discovered.
+    """
+    observed = series.resample("MS").count()
+    calendar_days = observed.index.days_in_month
+    return pd.DataFrame({
+        "observed": observed.astype(int),
+        "in_month": calendar_days.astype(int),
+        "complete": (observed.to_numpy() >= calendar_days.to_numpy()),
+    }, index=observed.index)
+
+
 def banner(title: str) -> None:
     """Print a section heading, so long output stays readable."""
     print()
