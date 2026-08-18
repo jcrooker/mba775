@@ -134,13 +134,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="how-to-run-the-course-code" class="level2">
 <h2 class="anchored" data-anchor-id="how-to-run-the-course-code">How to run the course code</h2>
-<p>You do not need to install Python. Everything runs through Claude’s code execution:</p>
-<ol type="1">
-<li><strong>Upload <code>COURSE_CONTEXT.md</code></strong> to your Claude conversation, once per session. It tells Claude how this course expects analytical work to be done.</li>
-<li><strong>Download the script and data file</strong> a lecture note names, from the <a href="https://github.com/jcrooker/mba775">course repository</a>.</li>
-<li><strong>Upload both and paste the prompt</strong> printed in that note.</li>
-</ol>
-<p>Every script reads a local CSV. Nothing downloads anything, so nothing depends on a network connection or an API key.</p>
+<p>You do not need to install anything, and you do not need to download anything. Open a Claude conversation and paste one prompt, naming the script and data file the lecture note asks for:</p>
+<blockquote class="blockquote">
+<p>Get the MBA 775 course materials from <a href="https://github.com/jcrooker/mba775" class="uri">https://github.com/jcrooker/mba775</a>. I need <code>scripts/01a_inspect_dff.py</code>, <code>scripts/_course.py</code>, and <code>data/dff.csv</code>. Read <code>COURSE_CONTEXT.md</code> from the same repository first — it explains how this course expects analytical work to be done.</p>
+<p>Run the script and show me its actual output. Then walk me through what each section does and what the results mean. Do not report any number you did not compute.</p>
+<p>If you cannot reach GitHub, tell me plainly and I will upload the files instead.</p>
+</blockquote>
+<p>Claude retrieves the files from the course repository and runs the code.</p>
+<p>If Claude says it cannot reach GitHub, web access is off for your account — download the files from the repository and upload them to the conversation instead.</p>
 </section>
 <section id="course-materials" class="level2">
 <h2 class="anchored" data-anchor-id="course-materials">Course materials</h2>
@@ -649,39 +650,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## How to run the course code</span></span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>You do not need to install Python. Everything runs through Claude's code</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>execution:</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Upload `COURSE_CONTEXT.md`** to your Claude conversation, once per</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>   session. It tells Claude how this course expects analytical work to be</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>   done.</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Download the script and data file** a lecture note names, from the</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>   <span class="co">[</span><span class="ot">course repository</span><span class="co">](https://github.com/jcrooker/mba775)</span>.</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Upload both and paste the prompt** printed in that note.</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>Every script reads a local CSV. Nothing downloads anything, so nothing depends</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>on a network connection or an API key.</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="fu">## Course materials</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Repository <span class="pp">|</span> <span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span> <span class="pp">|</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Scripts <span class="pp">|</span> <span class="co">[</span><span class="ot">`scripts/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/scripts)</span> <span class="pp">|</span></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Data <span class="pp">|</span> <span class="co">[</span><span class="ot">`data/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/data)</span> — with <span class="co">[</span><span class="ot">provenance</span><span class="co">](https://github.com/jcrooker/mba775/blob/main/data/README.md)</span> <span class="pp">|</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Context file <span class="pp">|</span> <span class="co">[</span><span class="ot">`COURSE_CONTEXT.md`</span><span class="co">](https://github.com/jcrooker/mba775/blob/main/COURSE_CONTEXT.md)</span> <span class="pp">|</span></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>To download everything at once: green **Code** button → **Download ZIP**.</span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="fu">## Using AI in this course</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>Claude is expected and encouraged everywhere except exams, which are in person</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>and closed to AI assistance.</span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>You are responsible for the analytical specification, the verification, the</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>interpretation, and the final recommendation. Claude is a capable junior</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>analyst, not the decision maker. You must be able to explain any work you</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>submit.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>You do not need to install anything, and you do not need to download anything.</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>Open a Claude conversation and paste one prompt, naming the script and data</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>file the lecture note asks for:</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Get the MBA 775 course materials from</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">. I need </span><span class="in">`scripts/01a_inspect_dff.py`</span><span class="at">,</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/_course.py`</span><span class="at">, and </span><span class="in">`data/dff.csv`</span><span class="at">. Read</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> from the same repository first — it explains how this</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; course expects analytical work to be done.</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Run the script and show me its actual output. Then walk me through what each</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; section does and what the results mean. Do not report any number you did not</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; compute.</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; If you cannot reach GitHub, tell me plainly and I will upload the files</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; instead.</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>Claude retrieves the files from the course repository and runs the code.</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>If Claude says it cannot reach GitHub, web access is off for your account —</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>download the files from the repository and upload them to the conversation</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>instead.</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="fu">## Course materials</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Repository <span class="pp">|</span> <span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span> <span class="pp">|</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Scripts <span class="pp">|</span> <span class="co">[</span><span class="ot">`scripts/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/scripts)</span> <span class="pp">|</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Data <span class="pp">|</span> <span class="co">[</span><span class="ot">`data/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/data)</span> — with <span class="co">[</span><span class="ot">provenance</span><span class="co">](https://github.com/jcrooker/mba775/blob/main/data/README.md)</span> <span class="pp">|</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Context file <span class="pp">|</span> <span class="co">[</span><span class="ot">`COURSE_CONTEXT.md`</span><span class="co">](https://github.com/jcrooker/mba775/blob/main/COURSE_CONTEXT.md)</span> <span class="pp">|</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>To download everything at once: green **Code** button → **Download ZIP**.</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="fu">## Using AI in this course</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>Claude is expected and encouraged everywhere except exams, which are in person</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>and closed to AI assistance.</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>You are responsible for the analytical specification, the verification, the</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>interpretation, and the final recommendation. Claude is a capable junior</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>analyst, not the decision maker. You must be able to explain any work you</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>submit.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

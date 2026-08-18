@@ -53,16 +53,38 @@ if rate.dtype != "float64":
     print("from it would be meaningless or would fail outright.")
 
 # ---------------------------------------------------------------------------
-banner("3. What is the publication calendar?")
+banner("3. Is the index itself sound?")
+
+# Check this BEFORE computing any coverage ratio. A duplicated date inflates
+# the observation count, which can offset a real gap and produce a reassuring
+# percentage for a series that is broken in two places at once. Verifying the
+# denominator of your own check is not paranoia; it is the job.
+n_duplicates = int(rate.index.duplicated().sum())
+
+print(f"Dates are unique   : {rate.index.is_unique}")
+print(f"Duplicate dates    : {n_duplicates}")
+print(f"Dates are in order : {rate.index.is_monotonic_increasing}")
+
+if n_duplicates:
+    print("\nWARNING: some dates appear more than once. Every count, mean, and")
+    print("coverage figure below is affected. Resolve this before continuing.")
+    print(rate.index[rate.index.duplicated(keep=False)].unique()[:10])
+
+# ---------------------------------------------------------------------------
+banner("4. What is the publication calendar?")
 
 # DFF is published on a 7-day daily calendar, so there should be a value on
 # every single calendar day -- weekends and holidays included. Many other
 # daily series (DGS10, SP500) are business-day only. Do not assume: check.
+#
+# Count DISTINCT dates, not rows, so a duplicate cannot disguise a gap.
 expected_days = (rate.index.max() - rate.index.min()).days + 1
-coverage = len(rate) / expected_days
+distinct_days = rate.index.nunique()
+coverage = distinct_days / expected_days
 
 print(f"Calendar days spanned : {expected_days:,}")
-print(f"Observations present  : {len(rate):,}")
+print(f"Distinct dates present: {distinct_days:,}")
+print(f"Rows in the file      : {len(rate):,}")
 print(f"Coverage              : {coverage:.1%}")
 
 if coverage > 0.99:
@@ -74,7 +96,7 @@ else:
     print("will sometimes come back empty.")
 
 # ---------------------------------------------------------------------------
-banner("4. Descriptive statistics")
+banner("5. Descriptive statistics")
 
 comparison = pd.DataFrame({
     "full history": full.describe(),
@@ -87,9 +109,23 @@ print("in common. A summary statistic is only as meaningful as the sample")
 print("behind it -- so the sample belongs in the write-up, every time.")
 
 # ---------------------------------------------------------------------------
-banner("5. The most recent observations")
+banner("6. The most recent observations")
 
-print(rate.tail(10).to_string())
+# Printing the last ten daily values of a policy rate usually shows ten
+# identical numbers -- true, and useless as a check. Show the change alongside
+# the level, and step back to monthly, so there is actually something to see.
+daily_tail = rate.tail(10).to_frame("rate")
+daily_tail["change"] = rate.diff().tail(10)
+print(daily_tail.to_string())
+
+print()
+monthly_tail = rate.resample("MS").mean().tail(12).round(3).to_frame("monthly mean")
+monthly_tail["change"] = monthly_tail["monthly mean"].diff().round(3)
+print(monthly_tail.to_string())
+
+print("\nA policy rate holds flat for long stretches, so the daily tail is")
+print("mostly zeros in the change column. That is information: it tells you")
+print("the series is not moving, which a column of identical levels does not.")
 
 # ---------------------------------------------------------------------------
 banner("Provenance -- record this with your submission")

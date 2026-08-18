@@ -1,12 +1,18 @@
 ::: {.scarlet}
 **Run this with Claude**
 
-Download `{{< meta script >}}` and `{{< meta datafile >}}` from the
-[course repository](https://github.com/jcrooker/mba775), upload both to Claude
-along with `COURSE_CONTEXT.md`, and paste this:
+Paste this into a Claude conversation. You do not need to download anything.
 
-> Here is a Python script from MBA 775 and the data file it reads. Run the
-> script and show me its actual output. Then walk me through what each section
-> does and what the results mean. Do not report any number you did not
-> compute. If anything fails, show me the error rather than working around it.
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/{{< meta script >}}`,
+> `scripts/_course.py`, and `data/{{< meta datafile >}}`. Read
+> `COURSE_CONTEXT.md` from the same repository first — it explains how this
+> course expects analytical work to be done.
+>
+> Run the script and show me its actual output. Then walk me through what each
+> section does and what the results mean. Do not report any number you did not
+> compute.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
 :::

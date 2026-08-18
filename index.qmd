@@ -20,18 +20,28 @@ that produced a number, the number does not go in your submission.
 
 ## How to run the course code
 
-You do not need to install Python. Everything runs through Claude's code
-execution:
+You do not need to install anything, and you do not need to download anything.
+Open a Claude conversation and paste one prompt, naming the script and data
+file the lecture note asks for:
 
-1. **Upload `COURSE_CONTEXT.md`** to your Claude conversation, once per
-   session. It tells Claude how this course expects analytical work to be
-   done.
-2. **Download the script and data file** a lecture note names, from the
-   [course repository](https://github.com/jcrooker/mba775).
-3. **Upload both and paste the prompt** printed in that note.
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
+> `scripts/_course.py`, and `data/dff.csv`. Read
+> `COURSE_CONTEXT.md` from the same repository first — it explains how this
+> course expects analytical work to be done.
+>
+> Run the script and show me its actual output. Then walk me through what each
+> section does and what the results mean. Do not report any number you did not
+> compute.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
 
-Every script reads a local CSV. Nothing downloads anything, so nothing depends
-on a network connection or an API key.
+Claude retrieves the files from the course repository and runs the code.
+
+If Claude says it cannot reach GitHub, web access is off for your account —
+download the files from the repository and upload them to the conversation
+instead.
 
 ## Course materials
 

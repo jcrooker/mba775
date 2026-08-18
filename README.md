@@ -1,4 +1,4 @@
-# MBA 775 — Data Modeling and Analytics
+# MBA 775 — Business Statistics and Data Analytics
 
 Course materials for MBA 775 at the University of Nevada, Las Vegas.
 Instructor: Dr. Skip Crooker.
@@ -9,18 +9,29 @@ Lecture notes: **<https://jcrooker.github.io/mba775/>**
 
 ## Start here (students)
 
-You do not need to install Python. You will run everything through Claude's
-code execution, which means three steps:
+You do not need to install anything, and you do not need to download anything.
+Open a Claude conversation and paste one prompt:
 
-1. **Upload `COURSE_CONTEXT.md`** to your Claude conversation, once per
-   session. It tells Claude how this course expects analytical work to be
-   done.
-2. **Download the script and the data file** a lecture note asks for, from
-   `scripts/` and `data/` below, and upload both.
-3. **Paste the prompt** printed in the lecture note.
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
+> `scripts/_course.py`, and `data/dff.csv`. Read
+> `COURSE_CONTEXT.md` from the same repository first — it explains how this
+> course expects analytical work to be done.
+>
+> Run the script and show me its actual output. Then walk me through what each
+> section does and what the results mean. Do not report any number you did not
+> compute.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
 
-That is the whole workflow. Every script reads a local CSV — nothing
-downloads anything, so nothing depends on a network or an API key.
+Claude retrieves the files from this repository and runs the code. Swap in a
+different script and data file as each lecture note directs.
+
+If Claude reports that it cannot reach GitHub, web access is turned off for
+your account. Download the files you need using the instructions below and
+upload them to the conversation instead — everything works the same way after
+that.
 
 ### Downloading a single file
 
