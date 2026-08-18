@@ -466,10 +466,14 @@ print(overlap.tail(4).to_string(index=False))
 ```
 
 A correlation of 0.992 says these two series carry the same information. The
-summary table says they are on **completely different scales**: the retired
-series is normalised to a mean of exactly 100 and never strays more than about
-three points from it, while the current series ranges from the high forties to
-above 120.
+summary table says they are built differently. The retired series is a
+*standardised index*, normalised to a long-run mean of exactly 100, never
+straying more than about three points from it. The current series is a
+**percentage balance** — roughly, the share of optimistic responses minus the
+share of pessimistic ones — and it ranges from the high forties to above 120.
+
+These are not the same measurement rescaled. They are two different ways of
+turning the same survey into a number.
 
 ::: {.scarlet}
 In October 2023 one of these series reads about 69 and the other about 98.
@@ -482,8 +486,56 @@ changed.**
 
 This is why *units* belong in the provenance record alongside the series name
 and the date range. "Consumer confidence was 69" is not a fact until you say
-which index, normalised how. Two correct numbers describing the same reality
-can differ by fifty percent, and neither is wrong.
+which measure, constructed how. Two correct numbers describing the same
+reality can differ by thirty points, and neither is wrong.
+
+```{python}
+#| label: cci-provenance
+print("Series     : USACSCICP02STSAM")
+print("Name       : Consumer Opinion Surveys: Composite Consumer Confidence,")
+print("             United States")
+print("Source     : OECD, via Federal Reserve Economic Data (FRED)")
+print("Units      : Percentage balance, seasonally adjusted")
+print("Frequency  : Monthly")
+print(f"Date range : {cci.date.min().date()} to {cci.date.max().date()}")
+print(f"Rows       : {len(cci):,}")
+```
+
+### An observation worth investigating
+
+```{python}
+#| label: cci-record-low
+low = cci.cci.min()
+low_date = cci.loc[cci.cci.idxmin(), "date"]
+rank = (cci.cci <= low).sum()
+
+print(f"Lowest reading in the series: {low:.2f} in "
+      f"{low_date.strftime('%B %Y')}")
+print(f"That is the lowest of {len(cci):,} monthly observations "
+      f"going back to {cci.date.min().year}.")
+print()
+print("Ten lowest readings on record:")
+print(cci.nsmallest(10, "cci").assign(
+    month=lambda d: d.date.dt.strftime("%b %Y"))[["month", "cci"]]
+    .to_string(index=False))
+```
+
+Consumer confidence is at its lowest recorded level in more than sixty years
+of this survey — below 2008, below 2020. Look at where the other low readings
+cluster and what was happening then.
+
+::: {.charcoal}
+**A question to think about.** Consumer confidence measures how households
+*feel* about the economy. Other indicators — employment, asset prices, output
+— measure what is *happening* to it. These usually move together. When they
+diverge sharply, one of three things is true: the sentiment measure is picking
+up something the hard data has not registered yet, the hard data is capturing
+something sentiment ignores, or the two are responding to different events
+entirely.
+
+Which chart would you build to tell them apart? What would you need on the
+same axis, and over what period?
+:::
 
 The discontinued series is `CSCICP03USM665S`; the current one is
 `USACSCICP02STSAM`. If you had built a forecast on the first one in early 2024
