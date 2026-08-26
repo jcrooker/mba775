@@ -390,9 +390,37 @@ a key is ever exposed, revoke it and request a new one.
 
 ### Our first task for Claude
 
-Everything this course needs lives in a public repository. You do not download
-it and you do not upload it — you tell Claude where it is. Open a Claude
-conversation and paste this:
+Everything this course needs lives in a public repository. There are two ways
+to get it in front of Claude, and it is worth knowing both before you start.
+
+**Path 2 below is the elegant one** — you tell Claude where the files are and
+it fetches them. It only works if your account's web access is on, and even
+then Claude cannot always retrieve a file by direct link. **Path 1 works
+everywhere.** Neither is more correct than the other; they differ only in who
+does the fetching.
+
+#### Path 1 — upload the files
+
+Download the four files in
+[`upload_packs/lab-1-chapter-01/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-1-chapter-01),
+drag all four into a new Claude conversation, and paste this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded four files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `01a_inspect_dff.py` and show me its actual output, verbatim. Walk
+> me through what each section does and what the results mean. Do not report
+> any number you did not compute, and if anything fails, show me the error
+> rather than describing what the output would have been.
+:::
+
+#### Path 2 — let Claude fetch the files
+
+Open a Claude conversation and paste this:
 
 ::: {.prompt}
 Prompt
@@ -426,6 +454,41 @@ Notice what this prompt specifies:
 That last point is worth dwelling on. An assistant asked to produce output will
 usually produce something. Telling it what to do when it *cannot* is how you
 find out that it couldn't.
+
+### If Claude says it cannot reach GitHub
+
+You will see a reply along these lines:
+
+> I don't have direct network access in this environment, and searching for
+> the repository didn't surface it. If you upload the files, I'll run the
+> script and show you the actual output.
+
+**Nothing is wrong.** Not with your work, not with the repository, and not
+with Claude. That answer is the prompt working exactly as written — the last
+line asked Claude to say so plainly instead of inventing results, and it did.
+
+Two things cause it, and they are worth telling apart.
+
+**Web access may simply be switched off.** It is a setting, not a default. To
+check: open **claude.ai**, click your name or initials in the lower-left
+corner, choose **Settings**, and look for the web search or web access toggle.
+If it is off, turn it on and start a *new* conversation — a conversation that
+began without web access does not gain it partway through.
+
+**Even with it on, a direct file link may not be fetchable.** Claude's web
+tools are built around searching, and a raw file inside a repository is not
+something a search engine has indexed. So Path 2 can fail on an account where
+web access is working perfectly well.
+
+Either way, the fix is the same: use Path 1. It needs no settings, no search,
+and no permission — and it is how most of this class will run the labs.
+
+::: {.charcoal}
+Do not let a stuck session turn into a fabricated answer. If Claude cannot get
+the files, it should tell you — and if it ever reports numbers *without*
+showing you the executed output that produced them, that is the failure this
+whole course is organized against.
+:::
 
 ### Where the data came from
 

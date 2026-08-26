@@ -1565,53 +1565,55 @@ conclusion it does not support.
 
 # Laboratory 4
 
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+Download the 6 files in
+[`upload_packs/lab-4-chapter-04/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-4-chapter-04)
+and drag all of them into a new Claude conversation. Then paste this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 6 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `04_probability.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
 ::: {.prompt}
 Prompt
 
 > Get the MBA 775 course materials from
-> <https://github.com/jcrooker/mba775>. I need `scripts/04_probability.py`,
-> `scripts/_prob.py`, `scripts/_charts.py`, `scripts/_stats.py`, and
-> `data/nevada_economy.csv`. Read `COURSE_CONTEXT.md` from the same repository
-> first.
+> <https://github.com/jcrooker/mba775>. I need
+> `scripts/04_probability.py`, `scripts/_course.py`, `scripts/_stats.py`,
+> `scripts/_prob.py`, `data/nevada_economy.csv`
+> Read `COURSE_CONTEXT.md` from the same repository first.
 >
-> Run the script and show me its actual output, verbatim. Then walk me through
-> each section and what the numbers mean. Do not report any number you did not
-> compute, and if anything fails, show me the error rather than describing what
-> the output would have been.
+> Run `04_probability.py` and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
 :::
 
-**Submit written answers to the following.** Each should be a short paragraph.
-
-1. Explain to a colleague why the probability of rolling a 7 with two dice is
-   not $\frac{1}{11}$, and state the general lesson about sample spaces.
-
-2. The Nevada economic states were defined by cutting each series at its 25th
-   and 75th percentiles. Explain which probabilities in this chapter that
-   choice fixes in advance and which it does not, and why the distinction
-   matters when you report one.
-
-3. Using the Nevada contingency table, state in plain English the difference
-   between $P(\text{bad in six months}\mid\text{mediocre today})$ and
-   $P(\text{mediocre today}\mid\text{bad in six months})$, and give a business
-   decision that turns on each.
-
-4. The drug's posterior probability of effectiveness given a passed trial is
-   far above its prior. Explain which of the two given conditional
-   probabilities does most of the work, and what that implies about designing
-   a test.
-
-5. Most adopters of the sports betting app came from regions with no
-   promotion, even though promoted regions had the higher adoption rate.
-   Explain how both are true, and describe a decision someone could get wrong
-   by attending to only one of them.
-
-6. The lunar-effect posterior differs from the prior in the expected
-   direction. Explain why this is not evidence of a lunar effect, and name
-   what would be.
-
-7. Pick any two of the Nevada economic states. Compute the probability of one
-   given the other, then compute it the other way round using Bayes' Theorem
-   and confirm the two agree. Show your work.
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
 
 ### Working in Excel
 

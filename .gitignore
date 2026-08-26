@@ -266,7 +266,6 @@ config/
 /dff.csv
 /dff_downloaded.csv
 
-
 # --- Course data too large to distribute ---------------------------------
 # The full Nevada AGI file is ~28 MB. Students fetch data one file at a time
 # through a chat window, and a file that size is a bad fetch. The committed
@@ -276,5 +275,7 @@ config/
 data/nevada_agi_2016.csv
 data/agi-in-tenthousands-nv-2016.csv
 
-
-
+# --- Upload packs are generated, but ARE committed -------------------------
+# tools/build_upload_packs.py rebuilds upload_packs/ from scripts/ and data/.
+# The folder is deliberately committed so students can download from GitHub
+# without cloning. Rebuild and re-commit after re-seeding data.

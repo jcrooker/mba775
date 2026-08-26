@@ -84,7 +84,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="lecture-notes-1030-chapter-04-introducing-probabilities_files/libs/bootstrap/bootstrap-b2c4fbcb19b093b54dcd5c52597e406f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
+
+
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -175,7 +178,11 @@ window.Quarto = {
   </ul></li>
   <li><a href="#laboratory-4" id="toc-laboratory-4" class="nav-link" data-scroll-target="#laboratory-4">Laboratory 4</a>
   <ul class="collapse">
+  <li><a href="#path-1-upload-the-files" id="toc-path-1-upload-the-files" class="nav-link" data-scroll-target="#path-1-upload-the-files">Path 1 — upload the files</a></li>
+  <li><a href="#path-2-let-claude-fetch-the-files" id="toc-path-2-let-claude-fetch-the-files" class="nav-link" data-scroll-target="#path-2-let-claude-fetch-the-files">Path 2 — let Claude fetch the files</a>
+  <ul class="collapse">
   <li><a href="#working-in-excel" id="toc-working-in-excel" class="nav-link" data-scroll-target="#working-in-excel">Working in Excel</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -205,7 +212,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Tuesday, August 18, 2026</p>
+      <p class="date">Wednesday, August 26, 2026</p>
     </div>
   </div>
   
@@ -2091,33 +2098,33 @@ P(roll a 7) = 0.166502;  P(roll a 7|last roll was a 7) = 0.16622;  change -0.000
 <style type="text/css">
 </style>
 
-<table id="T_c8b62" class="caption-top table table-sm table-striped small">
+<table id="T_1340e" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th class="blank level0" data-quarto-table-cell-role="th">&nbsp;</th>
-<th id="T_c8b62_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Full moon</th>
-<th id="T_c8b62_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Not full moon</th>
-<th id="T_c8b62_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">Total</th>
+<th id="T_1340e_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Full moon</th>
+<th id="T_1340e_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Not full moon</th>
+<th id="T_1340e_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">Total</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<th id="T_c8b62_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">Arrested</th>
-<td id="T_c8b62_row0_col0" class="data row0 col0">466</td>
-<td id="T_c8b62_row0_col1" class="data row0 col1">13,550</td>
-<td id="T_c8b62_row0_col2" class="data row0 col2">14,016</td>
+<th id="T_1340e_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">Arrested</th>
+<td id="T_1340e_row0_col0" class="data row0 col0">466</td>
+<td id="T_1340e_row0_col1" class="data row0 col1">13,550</td>
+<td id="T_1340e_row0_col2" class="data row0 col2">14,016</td>
 </tr>
 <tr class="even">
-<th id="T_c8b62_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">Not arrested</th>
-<td id="T_c8b62_row1_col0" class="data row1 col0">5,199,534</td>
-<td id="T_c8b62_row1_col1" class="data row1 col1">155,986,450</td>
-<td id="T_c8b62_row1_col2" class="data row1 col2">161,185,984</td>
+<th id="T_1340e_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">Not arrested</th>
+<td id="T_1340e_row1_col0" class="data row1 col0">5,199,534</td>
+<td id="T_1340e_row1_col1" class="data row1 col1">155,986,450</td>
+<td id="T_1340e_row1_col2" class="data row1 col2">161,185,984</td>
 </tr>
 <tr class="odd">
-<th id="T_c8b62_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">Total</th>
-<td id="T_c8b62_row2_col0" class="data row2 col0">5,200,000</td>
-<td id="T_c8b62_row2_col1" class="data row2 col1">156,000,000</td>
-<td id="T_c8b62_row2_col2" class="data row2 col2">161,200,000</td>
+<th id="T_1340e_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">Total</th>
+<td id="T_1340e_row2_col0" class="data row2 col0">5,200,000</td>
+<td id="T_1340e_row2_col1" class="data row2 col1">156,000,000</td>
+<td id="T_1340e_row2_col2" class="data row2 col2">161,200,000</td>
 </tr>
 </tbody>
 </table>
@@ -2793,23 +2800,31 @@ P(roll a 7) = 0.166502;  P(roll a 7|last roll was a 7) = 0.16622;  change -0.000
 </section>
 <section id="laboratory-4" class="level1">
 <h1>Laboratory 4</h1>
+<p>There are two ways to get these files to Claude. <strong>Start with Path 1.</strong> It works on every Claude account, including the free tier, and needs nothing turned on.</p>
+<section id="path-1-upload-the-files" class="level2">
+<h2 class="anchored" data-anchor-id="path-1-upload-the-files">Path 1 — upload the files</h2>
+<p>Download the 6 files in <a href="https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-4-chapter-04"><code>upload_packs/lab-4-chapter-04/</code></a> and drag all of them into a new Claude conversation. Then paste this:</p>
 <div class="prompt">
 <p>Prompt</p>
 <blockquote class="blockquote">
-<p>Get the MBA 775 course materials from <a href="https://github.com/jcrooker/mba775" class="uri">https://github.com/jcrooker/mba775</a>. I need <code>scripts/04_probability.py</code>, <code>scripts/_prob.py</code>, <code>scripts/_charts.py</code>, <code>scripts/_stats.py</code>, and <code>data/nevada_economy.csv</code>. Read <code>COURSE_CONTEXT.md</code> from the same repository first.</p>
-<p>Run the script and show me its actual output, verbatim. Then walk me through each section and what the numbers mean. Do not report any number you did not compute, and if anything fails, show me the error rather than describing what the output would have been.</p>
+<p>I have uploaded 6 files for a graduate business statistics course. Read <code>COURSE_CONTEXT.md</code> first — it explains how this course expects analytical work to be done.</p>
+<p>Then run <code>04_probability.py</code> and show me its actual output, verbatim. Walk me through what each section does and what the results mean. Do not report any number you did not compute, and if anything fails, show me the error rather than describing what the output would have been.</p>
 </blockquote>
 </div>
-<p><strong>Submit written answers to the following.</strong> Each should be a short paragraph.</p>
-<ol type="1">
-<li><p>Explain to a colleague why the probability of rolling a 7 with two dice is not <span class="math inline">\(\frac{1}{11}\)</span>, and state the general lesson about sample spaces.</p></li>
-<li><p>The Nevada economic states were defined by cutting each series at its 25th and 75th percentiles. Explain which probabilities in this chapter that choice fixes in advance and which it does not, and why the distinction matters when you report one.</p></li>
-<li><p>Using the Nevada contingency table, state in plain English the difference between <span class="math inline">\(P(\text{bad in six months}\mid\text{mediocre today})\)</span> and <span class="math inline">\(P(\text{mediocre today}\mid\text{bad in six months})\)</span>, and give a business decision that turns on each.</p></li>
-<li><p>The drug’s posterior probability of effectiveness given a passed trial is far above its prior. Explain which of the two given conditional probabilities does most of the work, and what that implies about designing a test.</p></li>
-<li><p>Most adopters of the sports betting app came from regions with no promotion, even though promoted regions had the higher adoption rate. Explain how both are true, and describe a decision someone could get wrong by attending to only one of them.</p></li>
-<li><p>The lunar-effect posterior differs from the prior in the expected direction. Explain why this is not evidence of a lunar effect, and name what would be.</p></li>
-<li><p>Pick any two of the Nevada economic states. Compute the probability of one given the other, then compute it the other way round using Bayes’ Theorem and confirm the two agree. Show your work.</p></li>
-</ol>
+</section>
+<section id="path-2-let-claude-fetch-the-files" class="level2">
+<h2 class="anchored" data-anchor-id="path-2-let-claude-fetch-the-files">Path 2 — let Claude fetch the files</h2>
+<p>If web access is working on your account, Claude can retrieve the files itself:</p>
+<div class="prompt">
+<p>Prompt</p>
+<blockquote class="blockquote">
+<p>Get the MBA 775 course materials from <a href="https://github.com/jcrooker/mba775" class="uri">https://github.com/jcrooker/mba775</a>. I need <code>scripts/04_probability.py</code>, <code>scripts/_course.py</code>, <code>scripts/_stats.py</code>, <code>scripts/_prob.py</code>, <code>data/nevada_economy.csv</code> Read <code>COURSE_CONTEXT.md</code> from the same repository first.</p>
+<p>Run <code>04_probability.py</code> and show me its actual output, verbatim. Then walk me through what each section does and what the results mean. Do not report any number you did not compute, and if anything fails, show me the error rather than describing what the output would have been.</p>
+</blockquote>
+</div>
+<div class="brown">
+<p>If Claude answers that it cannot reach GitHub, <strong>nothing is wrong with your work or with the repository.</strong> Claude’s web access is a setting, and even when it is on, Claude cannot always retrieve a file by direct link. Use Path 1 instead — it is the ordinary route, not a consolation prize.</p>
+</div>
 <section id="working-in-excel" class="level3">
 <h3 class="anchored" data-anchor-id="working-in-excel">Working in Excel</h3>
 <div class="prompt">
@@ -2821,6 +2836,7 @@ P(roll a 7) = 0.166502;  P(roll a 7|last roll was a 7) = 0.16622;  change -0.000
 <p>That workbook solves every Bayes problem in this chapter and most of the ones you will meet later. Change the priors and watch the posteriors move; that is the intuition the formula is trying to give you.</p>
 <!-- -->
 
+</section>
 </section>
 </section>
 
@@ -4844,72 +4860,74 @@ P(roll a 7) = 0.166502;  P(roll a 7|last roll was a 7) = 0.16622;  change -0.000
 <span id="cb56-1701"><a href="#cb56-1701" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb56-1702"><a href="#cb56-1702" aria-hidden="true" tabindex="-1"></a><span class="fu"># Laboratory 4</span></span>
 <span id="cb56-1703"><a href="#cb56-1703" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1704"><a href="#cb56-1704" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb56-1705"><a href="#cb56-1705" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb56-1706"><a href="#cb56-1706" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1707"><a href="#cb56-1707" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Get the MBA 775 course materials from</span></span>
-<span id="cb56-1708"><a href="#cb56-1708" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">. I need </span><span class="in">`scripts/04_probability.py`</span><span class="at">,</span></span>
-<span id="cb56-1709"><a href="#cb56-1709" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/_prob.py`</span><span class="at">, </span><span class="in">`scripts/_charts.py`</span><span class="at">, </span><span class="in">`scripts/_stats.py`</span><span class="at">, and</span></span>
-<span id="cb56-1710"><a href="#cb56-1710" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`data/nevada_economy.csv`</span><span class="at">. Read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> from the same repository</span></span>
-<span id="cb56-1711"><a href="#cb56-1711" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; first.</span></span>
-<span id="cb56-1712"><a href="#cb56-1712" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb56-1713"><a href="#cb56-1713" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Run the script and show me its actual output, verbatim. Then walk me through</span></span>
-<span id="cb56-1714"><a href="#cb56-1714" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; each section and what the numbers mean. Do not report any number you did not</span></span>
-<span id="cb56-1715"><a href="#cb56-1715" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; compute, and if anything fails, show me the error rather than describing what</span></span>
-<span id="cb56-1716"><a href="#cb56-1716" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; the output would have been.</span></span>
-<span id="cb56-1717"><a href="#cb56-1717" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb56-1718"><a href="#cb56-1718" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1719"><a href="#cb56-1719" aria-hidden="true" tabindex="-1"></a>**Submit written answers to the following.** Each should be a short paragraph.</span>
-<span id="cb56-1720"><a href="#cb56-1720" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1721"><a href="#cb56-1721" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Explain to a colleague why the probability of rolling a 7 with two dice is</span>
-<span id="cb56-1722"><a href="#cb56-1722" aria-hidden="true" tabindex="-1"></a>   not $\frac{1}{11}$, and state the general lesson about sample spaces.</span>
-<span id="cb56-1723"><a href="#cb56-1723" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1724"><a href="#cb56-1724" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>The Nevada economic states were defined by cutting each series at its 25th</span>
-<span id="cb56-1725"><a href="#cb56-1725" aria-hidden="true" tabindex="-1"></a>   and 75th percentiles. Explain which probabilities in this chapter that</span>
-<span id="cb56-1726"><a href="#cb56-1726" aria-hidden="true" tabindex="-1"></a>   choice fixes in advance and which it does not, and why the distinction</span>
-<span id="cb56-1727"><a href="#cb56-1727" aria-hidden="true" tabindex="-1"></a>   matters when you report one.</span>
+<span id="cb56-1704"><a href="#cb56-1704" aria-hidden="true" tabindex="-1"></a>There are two ways to get these files to Claude. **Start with Path 1.** It</span>
+<span id="cb56-1705"><a href="#cb56-1705" aria-hidden="true" tabindex="-1"></a>works on every Claude account, including the free tier, and needs nothing</span>
+<span id="cb56-1706"><a href="#cb56-1706" aria-hidden="true" tabindex="-1"></a>turned on.</span>
+<span id="cb56-1707"><a href="#cb56-1707" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1708"><a href="#cb56-1708" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 1 — upload the files</span></span>
+<span id="cb56-1709"><a href="#cb56-1709" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1710"><a href="#cb56-1710" aria-hidden="true" tabindex="-1"></a>Download the 6 files in</span>
+<span id="cb56-1711"><a href="#cb56-1711" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`upload_packs/lab-4-chapter-04/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-4-chapter-04)</span></span>
+<span id="cb56-1712"><a href="#cb56-1712" aria-hidden="true" tabindex="-1"></a>and drag all of them into a new Claude conversation. Then paste this:</span>
+<span id="cb56-1713"><a href="#cb56-1713" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1714"><a href="#cb56-1714" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb56-1715"><a href="#cb56-1715" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb56-1716"><a href="#cb56-1716" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1717"><a href="#cb56-1717" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I have uploaded 6 files for a graduate business statistics course. Read</span></span>
+<span id="cb56-1718"><a href="#cb56-1718" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first — it explains how this course expects analytical</span></span>
+<span id="cb56-1719"><a href="#cb56-1719" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; work to be done.</span></span>
+<span id="cb56-1720"><a href="#cb56-1720" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb56-1721"><a href="#cb56-1721" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`04_probability.py`</span><span class="at"> and show me its actual output, verbatim. Walk me through</span></span>
+<span id="cb56-1722"><a href="#cb56-1722" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
+<span id="cb56-1723"><a href="#cb56-1723" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
+<span id="cb56-1724"><a href="#cb56-1724" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
+<span id="cb56-1725"><a href="#cb56-1725" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb56-1726"><a href="#cb56-1726" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1727"><a href="#cb56-1727" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 2 — let Claude fetch the files</span></span>
 <span id="cb56-1728"><a href="#cb56-1728" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1729"><a href="#cb56-1729" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Using the Nevada contingency table, state in plain English the difference</span>
-<span id="cb56-1730"><a href="#cb56-1730" aria-hidden="true" tabindex="-1"></a>   between $P(\text{bad in six months}\mid\text{mediocre today})$ and</span>
-<span id="cb56-1731"><a href="#cb56-1731" aria-hidden="true" tabindex="-1"></a>   $P(\text{mediocre today}\mid\text{bad in six months})$, and give a business</span>
-<span id="cb56-1732"><a href="#cb56-1732" aria-hidden="true" tabindex="-1"></a>   decision that turns on each.</span>
-<span id="cb56-1733"><a href="#cb56-1733" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1734"><a href="#cb56-1734" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>The drug's posterior probability of effectiveness given a passed trial is</span>
-<span id="cb56-1735"><a href="#cb56-1735" aria-hidden="true" tabindex="-1"></a>   far above its prior. Explain which of the two given conditional</span>
-<span id="cb56-1736"><a href="#cb56-1736" aria-hidden="true" tabindex="-1"></a>   probabilities does most of the work, and what that implies about designing</span>
-<span id="cb56-1737"><a href="#cb56-1737" aria-hidden="true" tabindex="-1"></a>   a test.</span>
-<span id="cb56-1738"><a href="#cb56-1738" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1739"><a href="#cb56-1739" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>Most adopters of the sports betting app came from regions with no</span>
-<span id="cb56-1740"><a href="#cb56-1740" aria-hidden="true" tabindex="-1"></a>   promotion, even though promoted regions had the higher adoption rate.</span>
-<span id="cb56-1741"><a href="#cb56-1741" aria-hidden="true" tabindex="-1"></a>   Explain how both are true, and describe a decision someone could get wrong</span>
-<span id="cb56-1742"><a href="#cb56-1742" aria-hidden="true" tabindex="-1"></a>   by attending to only one of them.</span>
-<span id="cb56-1743"><a href="#cb56-1743" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1744"><a href="#cb56-1744" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>The lunar-effect posterior differs from the prior in the expected</span>
-<span id="cb56-1745"><a href="#cb56-1745" aria-hidden="true" tabindex="-1"></a>   direction. Explain why this is not evidence of a lunar effect, and name</span>
-<span id="cb56-1746"><a href="#cb56-1746" aria-hidden="true" tabindex="-1"></a>   what would be.</span>
-<span id="cb56-1747"><a href="#cb56-1747" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1748"><a href="#cb56-1748" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>Pick any two of the Nevada economic states. Compute the probability of one</span>
-<span id="cb56-1749"><a href="#cb56-1749" aria-hidden="true" tabindex="-1"></a>   given the other, then compute it the other way round using Bayes' Theorem</span>
-<span id="cb56-1750"><a href="#cb56-1750" aria-hidden="true" tabindex="-1"></a>   and confirm the two agree. Show your work.</span>
-<span id="cb56-1751"><a href="#cb56-1751" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1752"><a href="#cb56-1752" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
+<span id="cb56-1729"><a href="#cb56-1729" aria-hidden="true" tabindex="-1"></a>If web access is working on your account, Claude can retrieve the files</span>
+<span id="cb56-1730"><a href="#cb56-1730" aria-hidden="true" tabindex="-1"></a>itself:</span>
+<span id="cb56-1731"><a href="#cb56-1731" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1732"><a href="#cb56-1732" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb56-1733"><a href="#cb56-1733" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb56-1734"><a href="#cb56-1734" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1735"><a href="#cb56-1735" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Get the MBA 775 course materials from</span></span>
+<span id="cb56-1736"><a href="#cb56-1736" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">. I need</span></span>
+<span id="cb56-1737"><a href="#cb56-1737" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/04_probability.py`</span><span class="at">, </span><span class="in">`scripts/_course.py`</span><span class="at">, </span><span class="in">`scripts/_stats.py`</span><span class="at">,</span></span>
+<span id="cb56-1738"><a href="#cb56-1738" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/_prob.py`</span><span class="at">, </span><span class="in">`data/nevada_economy.csv`</span></span>
+<span id="cb56-1739"><a href="#cb56-1739" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> from the same repository first.</span></span>
+<span id="cb56-1740"><a href="#cb56-1740" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb56-1741"><a href="#cb56-1741" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Run </span><span class="in">`04_probability.py`</span><span class="at"> and show me its actual output, verbatim. Then walk me through</span></span>
+<span id="cb56-1742"><a href="#cb56-1742" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
+<span id="cb56-1743"><a href="#cb56-1743" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
+<span id="cb56-1744"><a href="#cb56-1744" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
+<span id="cb56-1745"><a href="#cb56-1745" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb56-1746"><a href="#cb56-1746" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1747"><a href="#cb56-1747" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
+<span id="cb56-1748"><a href="#cb56-1748" aria-hidden="true" tabindex="-1"></a>If Claude answers that it cannot reach GitHub, **nothing is wrong with your</span>
+<span id="cb56-1749"><a href="#cb56-1749" aria-hidden="true" tabindex="-1"></a>work or with the repository.** Claude's web access is a setting, and even when</span>
+<span id="cb56-1750"><a href="#cb56-1750" aria-hidden="true" tabindex="-1"></a>it is on, Claude cannot always retrieve a file by direct link. Use Path 1</span>
+<span id="cb56-1751"><a href="#cb56-1751" aria-hidden="true" tabindex="-1"></a>instead — it is the ordinary route, not a consolation prize.</span>
+<span id="cb56-1752"><a href="#cb56-1752" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb56-1753"><a href="#cb56-1753" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1754"><a href="#cb56-1754" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb56-1755"><a href="#cb56-1755" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb56-1756"><a href="#cb56-1756" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1757"><a href="#cb56-1757" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Build me an Excel workbook implementing a Bayes table. Sheet 1 takes, as</span></span>
-<span id="cb56-1758"><a href="#cb56-1758" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; editable inputs, a list of states of the world with their prior</span></span>
-<span id="cb56-1759"><a href="#cb56-1759" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; probabilities and the likelihood of the evidence under each state. Sheet 1</span></span>
-<span id="cb56-1760"><a href="#cb56-1760" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; then computes, with real formulas, the joint probability for each state, the</span></span>
-<span id="cb56-1761"><a href="#cb56-1761" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; total probability of the evidence, and the posterior probability for each</span></span>
-<span id="cb56-1762"><a href="#cb56-1762" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; state. Add a check cell that flags in red if the priors do not sum to 1.</span></span>
-<span id="cb56-1763"><a href="#cb56-1763" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Pre-fill it with Madison's five states from my Chapter 4 lecture notes. Give</span></span>
-<span id="cb56-1764"><a href="#cb56-1764" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; me the file to download.</span></span>
-<span id="cb56-1765"><a href="#cb56-1765" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb56-1766"><a href="#cb56-1766" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-1767"><a href="#cb56-1767" aria-hidden="true" tabindex="-1"></a>That workbook solves every Bayes problem in this chapter and most of the ones</span>
-<span id="cb56-1768"><a href="#cb56-1768" aria-hidden="true" tabindex="-1"></a>you will meet later. Change the priors and watch the posteriors move; that is</span>
-<span id="cb56-1769"><a href="#cb56-1769" aria-hidden="true" tabindex="-1"></a>the intuition the formula is trying to give you.</span>
+<span id="cb56-1754"><a href="#cb56-1754" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
+<span id="cb56-1755"><a href="#cb56-1755" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1756"><a href="#cb56-1756" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb56-1757"><a href="#cb56-1757" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb56-1758"><a href="#cb56-1758" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1759"><a href="#cb56-1759" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Build me an Excel workbook implementing a Bayes table. Sheet 1 takes, as</span></span>
+<span id="cb56-1760"><a href="#cb56-1760" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; editable inputs, a list of states of the world with their prior</span></span>
+<span id="cb56-1761"><a href="#cb56-1761" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; probabilities and the likelihood of the evidence under each state. Sheet 1</span></span>
+<span id="cb56-1762"><a href="#cb56-1762" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; then computes, with real formulas, the joint probability for each state, the</span></span>
+<span id="cb56-1763"><a href="#cb56-1763" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; total probability of the evidence, and the posterior probability for each</span></span>
+<span id="cb56-1764"><a href="#cb56-1764" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; state. Add a check cell that flags in red if the priors do not sum to 1.</span></span>
+<span id="cb56-1765"><a href="#cb56-1765" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Pre-fill it with Madison's five states from my Chapter 4 lecture notes. Give</span></span>
+<span id="cb56-1766"><a href="#cb56-1766" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; me the file to download.</span></span>
+<span id="cb56-1767"><a href="#cb56-1767" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb56-1768"><a href="#cb56-1768" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-1769"><a href="#cb56-1769" aria-hidden="true" tabindex="-1"></a>That workbook solves every Bayes problem in this chapter and most of the ones</span>
+<span id="cb56-1770"><a href="#cb56-1770" aria-hidden="true" tabindex="-1"></a>you will meet later. Change the priors and watch the posteriors move; that is</span>
+<span id="cb56-1771"><a href="#cb56-1771" aria-hidden="true" tabindex="-1"></a>the intuition the formula is trying to give you.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

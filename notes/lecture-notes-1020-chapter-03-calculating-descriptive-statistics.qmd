@@ -1378,53 +1378,58 @@ course. Four things it does not tell you:
 
 # Laboratory 3
 
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+Download the 11 files in
+[`upload_packs/lab-3-chapter-03/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-3-chapter-03)
+and drag all of them into a new Claude conversation. Then paste this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 11 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `03_descriptive_statistics.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
 ::: {.prompt}
 Prompt
 
 > Get the MBA 775 course materials from
 > <https://github.com/jcrooker/mba775>. I need
-> `scripts/03_descriptive_statistics.py`, `scripts/_stats.py`,
-> `scripts/_charts.py`, and the files `data/grad_student_gpa.csv`,
-> `data/state_population.csv`, `data/annual_returns.csv`, and
-> `data/nevada_agi_2016_sample.csv`. Read `COURSE_CONTEXT.md` from the same
-> repository first.
+> `scripts/03_descriptive_statistics.py`, `scripts/_course.py`,
+> `scripts/_stats.py`, `data/annual_returns.csv`,
+> `data/cpi_inflation.csv`, `data/grad_student_gpa.csv`,
+> `data/nevada_agi_2016_sample.csv`, `data/state_hpi_ur_pop.csv`,
+> `data/state_population.csv`, `data/unemployment_rate.csv`
+> Read `COURSE_CONTEXT.md` from the same repository first.
 >
-> Run the script and show me its actual output, verbatim. Then walk me through
-> each section and what the numbers mean. Do not report any number you did not
-> compute, and if anything fails, show me the error rather than describing what
-> the output would have been.
+> Run `03_descriptive_statistics.py` and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
 :::
 
-**Submit written answers to the following.** Each should be a short paragraph.
-
-1. For the Western states, the mean population is far above the median.
-   Explain to a city council which of the two you would put in a briefing
-   about a "typical Western state," and what a reader would wrongly conclude
-   from the other one.
-
-2. The population-weighted unemployment rate differs from the plain average of
-   the fifty state rates. Explain the difference to someone who thinks you
-   made an arithmetic error, and give one business situation — not about
-   states — where using the unweighted average would produce a materially
-   wrong decision.
-
-3. Walmart's standard deviation of annual returns is more than double the S&P
-   500's, yet its coefficient of variation is lower. Explain how both can be
-   true, and state which measure you would put in front of an investment
-   committee and why.
-
-4. Using the empirical rule table for Nevada AGI, explain why the three
-   standard deviation interval extends below zero and what that tells you
-   about applying the empirical rule to income data.
-
-5. Chebyshev's Theorem bounded the share of graduate students below a 3.0 GPA
-   far above the actual figure. Explain to a colleague who thinks the theorem
-   "didn't work" why a loose bound is not a failed bound, and describe one
-   circumstance where you would genuinely need it.
-
-6. Pick any two variables from the state data. Compute their correlation, draw
-   the scatter plot, and write the strongest claim the pair supports — then
-   write a claim someone might mistakenly make from the same number.
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
 
 ### Working in Excel
 

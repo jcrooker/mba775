@@ -707,32 +707,55 @@ _ = bar_chart(top["Member"], top["POPN"],
 
 ## Laboratory 2
 
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+### Path 1 — upload the files
+
+Download the 5 files in
+[`upload_packs/lab-2-chapter-02/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-2-chapter-02)
+and drag all of them into a new Claude conversation. Then paste this:
+
 ::: {.prompt}
 Prompt
 
-> Get the MBA 775 course materials from
-> <https://github.com/jcrooker/mba775>. I need `scripts/02_displaying_data.py`,
-> `scripts/_charts.py`, and `data/state_hpi_ur_pop.csv`. Read
-> `COURSE_CONTEXT.md` from the same repository first.
+> I have uploaded 5 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
 >
-> Run the script and show me its actual output, verbatim. Then walk me through
-> what each chart shows and what it does not support. Do not report any number
+> Then run `02_displaying_data.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
 > you did not compute, and if anything fails, show me the error rather than
 > describing what the output would have been.
 :::
 
-**Submit written answers to the following.** Each should be a short paragraph.
+### Path 2 — let Claude fetch the files
 
-1. Using the population growth histogram and the mean/median comparison,
-   describe the distribution to someone who cannot see the chart.
-2. The correlation between housing prices and population growth is +0.30.
-   Write the strongest claim this supports, and then a claim it does *not*
-   support that someone might mistakenly make from the bar chart.
-3. The Valentine's Day pie chart excludes 258 respondents. Write a caption for
-   it that is honest about its base.
-4. Pick any chart in this chapter and change one thing — axis, bin width, chart
-   type — to make it tell a different story. Say what you changed and why it
-   worked.
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Get the MBA 775 course materials from
+> <https://github.com/jcrooker/mba775>. I need
+> `scripts/02_displaying_data.py`, `scripts/_course.py`,
+> `scripts/_charts.py`, `data/state_hpi_ur_pop.csv`
+> Read `COURSE_CONTEXT.md` from the same repository first.
+>
+> Run `02_displaying_data.py` and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
 
 ### Working in Excel
 

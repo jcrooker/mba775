@@ -23,9 +23,16 @@ that produced a number, the number does not go in your submission.
 
 ## How to run the course code
 
-You do not need to install anything, and you do not need to download anything.
-Open a Claude conversation and paste one prompt, naming the script and data
-file the lecture note asks for:
+Each lecture note gives you two ways to get its files to Claude.
+
+**Path 1 — upload the files.** Every lab has a folder under
+[`upload_packs/`](https://github.com/jcrooker/mba775/tree/main/upload_packs)
+holding exactly the files that lab needs. Download them, drag them into a new
+Claude conversation, and paste the note's Path 1 prompt. This works on every
+Claude account, including the free tier.
+
+**Path 2 — let Claude fetch them.** If your account's web access is on, you can
+skip the downloading and name the repository instead:
 
 > Get the MBA 775 course materials from
 > <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
@@ -41,11 +48,10 @@ file the lecture note asks for:
 > If you cannot reach GitHub, tell me plainly and I will upload the files
 > instead.
 
-Claude retrieves the files from the course repository and runs the code.
-
-If Claude says it cannot reach GitHub, web access is off for your account —
-download the files from the repository and upload them to the conversation
-instead.
+If Claude answers that it cannot reach GitHub, nothing is wrong. Web access is
+a per-account setting, and even when it is on, Claude cannot always retrieve a
+file by direct link. Use Path 1 — the Chapter 1 note explains how to check the
+setting and walks through the upload route step by step.
 
 ## Course materials
 
@@ -54,6 +60,7 @@ instead.
 | Repository | <https://github.com/jcrooker/mba775> |
 | Scripts | [`scripts/`](https://github.com/jcrooker/mba775/tree/main/scripts) |
 | Data | [`data/`](https://github.com/jcrooker/mba775/tree/main/data) — with [provenance](https://github.com/jcrooker/mba775/blob/main/data/README.md) |
+| Upload packs | [`upload_packs/`](https://github.com/jcrooker/mba775/tree/main/upload_packs) — one folder per lab |
 | Context file | [`COURSE_CONTEXT.md`](https://github.com/jcrooker/mba775/blob/main/COURSE_CONTEXT.md) |
 
 To download everything at once: green **Code** button → **Download ZIP**.
