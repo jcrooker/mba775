@@ -426,18 +426,17 @@ Open a Claude conversation and paste this:
 ::: {.prompt}
 Prompt
 
-> Get the MBA 775 course materials from
-> <https://github.com/jcrooker/mba775>. I need `scripts/01a_inspect_dff.py`,
-> `scripts/_course.py`, and `data/dff.csv`. Read `COURSE_CONTEXT.md` from the
-> same repository first — it explains how this course expects analytical work
-> to be done.
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 1 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
 >
-> Run the script and show me its actual output, verbatim. Then walk me through
+> Then run `01a_inspect_dff.py` and show me its actual output, verbatim. Walk me through
 > what each section does and what the results mean. Do not report any number
 > you did not compute, and if anything fails, show me the error rather than
 > describing what the output would have been.
 >
-> If you cannot reach GitHub, tell me plainly and I will upload the files
+> If you cannot open that page, tell me plainly and I will upload the files
 > instead.
 :::
 
@@ -477,9 +476,11 @@ If it is off, turn it on and start a *new* conversation — a conversation that
 began without web access does not gain it partway through.
 
 **Even with it on, a direct file link may not be fetchable.** Claude's web
-tools are built around searching, and a raw file inside a repository is not
-something a search engine has indexed. So Path 2 can fail on an account where
-web access is working perfectly well.
+tools follow links found on pages they have already loaded, and generally
+refuse to open a URL constructed from scratch. That is why Path 2 points at a
+plain page of links on the course site rather than at a code repository —
+repositories serve their file listings through pages that block automated
+fetching, and a filename printed as text is not a link anything can follow.
 
 Either way, the fix is the same: use Path 1. It needs no settings, no search,
 and no permission — and it is how most of this class will run the labs.

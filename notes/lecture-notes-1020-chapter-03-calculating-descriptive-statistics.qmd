@@ -1410,19 +1410,18 @@ itself:
 ::: {.prompt}
 Prompt
 
-> Get the MBA 775 course materials from
-> <https://github.com/jcrooker/mba775>. I need
-> `scripts/03_descriptive_statistics.py`, `scripts/_course.py`,
-> `scripts/_stats.py`, `data/annual_returns.csv`,
-> `data/cpi_inflation.csv`, `data/grad_student_gpa.csv`,
-> `data/nevada_agi_2016_sample.csv`, `data/state_hpi_ur_pop.csv`,
-> `data/state_population.csv`, `data/unemployment_rate.csv`
-> Read `COURSE_CONTEXT.md` from the same repository first.
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 3 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
 >
-> Run `03_descriptive_statistics.py` and show me its actual output, verbatim. Then walk me through
+> Then run `03_descriptive_statistics.py` and show me its actual output, verbatim. Walk me through
 > what each section does and what the results mean. Do not report any number
 > you did not compute, and if anything fails, show me the error rather than
 > describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
 :::
 
 ::: {.brown}

@@ -29,13 +29,16 @@ import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-OUT = REPO / "upload_packs"
 
-# One zip per lab, written into docs/ so it publishes with the site. GitHub
-# has no way to download a folder, so without these a student would have to
-# open eleven files one at a time and save each -- which is exactly the
-# friction these packs exist to remove.
-ZIPS = REPO / "docs" / "upload_packs"
+# Everything lives under docs/ because only docs/ is published to the faculty
+# web server. Putting the packs anywhere else means students can reach them on
+# GitHub but not on the course site -- and the course site is the one an
+# assistant can actually fetch from, since it serves plain files rather than
+# GitHub's directory pages.
+OUT = REPO / "docs" / "upload_packs"
+ZIPS = OUT
+
+SITE = "https://crooker.faculty.unlv.edu/mba775/fall2026"
 
 # Zip sizes, filled in by build() and reported alongside the folder sizes.
 summary_zip: dict[str, float] = {}
@@ -175,10 +178,70 @@ it executes with nothing else available. Run it after re-seeding data.
 """
 
 
+
+INDEX_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MBA 775 — Laboratory files</title>
+<style>
+ body {{ font-family: "Source Sans Pro", system-ui, sans-serif; max-width: 46rem;
+        margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; line-height: 1.55; }}
+ h1 {{ color: #a03123; }}
+ h2 {{ color: #a03123; margin-top: 2rem; font-size: 1.15rem; }}
+ a {{ color: #a03123; }}
+ .zip {{ display: inline-block; background: #a03123; color: #fff; padding: .35rem .7rem;
+         border-radius: 4px; text-decoration: none; font-weight: 600; }}
+ ul {{ padding-left: 1.2rem; }}
+ .note {{ background: #fdf6f5; border-left: 4px solid #a03123; padding: 1rem;
+          border-radius: 4px; }}
+</style>
+</head>
+<body>
+<h1>MBA 775 — Laboratory files</h1>
+
+<p class="note">Every file each laboratory needs. Download the zip for the
+whole set, or take individual files from the list. These are plain files on
+an ordinary web server, so an assistant that can browse the web may be able
+to fetch them directly.</p>
+
+{sections}
+
+<p><a href="../">Back to the course notes</a></p>
+</body>
+</html>
+"""
+
+
+def write_index() -> int:
+    """A plain HTML page listing every lab file, published with the site.
+
+    Claude's web-fetch tool follows links found on pages it has already
+    loaded, but refuses to open a URL it constructed itself. GitHub compounds
+    this by blocking its directory-listing pages to automated fetching. An
+    ordinary page of ordinary links on an ordinary web server sidesteps both
+    problems -- which is the whole reason this file exists.
+    """
+    sections, count = [], 0
+    for name, spec in LABS.items():
+        items = "\n".join(
+            f'  <li><a href="{name}/{f}">{f}</a></li>'
+            for f in spec["scripts"] + spec["data"] + ["COURSE_CONTEXT.md"])
+        count += len(spec["scripts"]) + len(spec["data"]) + 1
+        sections.append(
+            f'<h2>Laboratory {spec["chapter"]} — {spec["topic"]}</h2>\n'
+            f'<p><a class="zip" href="{name}.zip">Download all as one zip</a></p>\n'
+            f'<ul>\n{items}\n</ul>')
+    (OUT / "index.html").write_text(
+        INDEX_HTML.format(sections="\n\n".join(sections)), encoding="utf-8")
+    return count
+
+
 def build() -> list[tuple[str, int, float]]:
     summary_zip.clear()
     if OUT.exists():
         shutil.rmtree(OUT)
+    OUT.mkdir(parents=True)
     summary = []
 
     for name, spec in LABS.items():
@@ -221,9 +284,6 @@ def build() -> list[tuple[str, int, float]]:
 
     # One zip per lab. Written into docs/ rather than the repository root so
     # the cPanel deployment picks them up -- only docs/ is published.
-    ZIPS.mkdir(parents=True, exist_ok=True)
-    for old_zip in ZIPS.glob("*.zip"):
-        old_zip.unlink()
     for name in LABS:
         archive = shutil.make_archive(str(ZIPS / name), "zip",
                                       root_dir=OUT, base_dir=name)
@@ -274,6 +334,9 @@ if __name__ == "__main__":
     for name, count, mb in build():
         print(f"  {name:<20} {count:>2} files to upload   "
               f"{mb:.2f} MB folder   {summary_zip[name]:.2f} MB zip")
+    n_links = write_index()
+    print(f"\n  index.html         {n_links} file links, published at")
+    print(f"                     {SITE}/upload_packs/")
 
     if "--verify" in sys.argv:
         print("\nVerifying each pack runs in isolation\n")
