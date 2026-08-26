@@ -84,10 +84,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="lecture-notes-1010-chapter-02-displaying-descriptive-statistics_files/libs/bootstrap/bootstrap-b2c4fbcb19b093b54dcd5c52597e406f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
-
-
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
-
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -1435,7 +1432,7 @@ Actual difference: 34%</code></pre>
 <p>There are two ways to get these files to Claude. <strong>Start with Path 1.</strong> It works on every Claude account, including the free tier, and needs nothing turned on.</p>
 <section id="path-1-upload-the-files" class="level3">
 <h3 class="anchored" data-anchor-id="path-1-upload-the-files">Path 1 — upload the files</h3>
-<p>Download the 5 files in <a href="https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-2-chapter-02"><code>upload_packs/lab-2-chapter-02/</code></a> and drag all of them into a new Claude conversation. Then paste this:</p>
+<p><strong><a href="../upload_packs/lab-2-chapter-02.zip">Download the Laboratory 2 pack</a></strong> — one file. Unzip it and you will have a folder holding 5 files. Drag all 5 into a new Claude conversation, wait for each to show as attached, then paste this:</p>
 <div class="prompt">
 <p>Prompt</p>
 <blockquote class="blockquote">
@@ -2641,71 +2638,72 @@ Actual difference: 34%</code></pre>
 <span id="cb53-785"><a href="#cb53-785" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb53-786"><a href="#cb53-786" aria-hidden="true" tabindex="-1"></a><span class="fu">### Path 1 — upload the files</span></span>
 <span id="cb53-787"><a href="#cb53-787" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-788"><a href="#cb53-788" aria-hidden="true" tabindex="-1"></a>Download the 5 files in</span>
-<span id="cb53-789"><a href="#cb53-789" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">`upload_packs/lab-2-chapter-02/`</span><span class="co">](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-2-chapter-02)</span></span>
-<span id="cb53-790"><a href="#cb53-790" aria-hidden="true" tabindex="-1"></a>and drag all of them into a new Claude conversation. Then paste this:</span>
-<span id="cb53-791"><a href="#cb53-791" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-792"><a href="#cb53-792" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb53-793"><a href="#cb53-793" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb53-794"><a href="#cb53-794" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-795"><a href="#cb53-795" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I have uploaded 5 files for a graduate business statistics course. Read</span></span>
-<span id="cb53-796"><a href="#cb53-796" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first — it explains how this course expects analytical</span></span>
-<span id="cb53-797"><a href="#cb53-797" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; work to be done.</span></span>
-<span id="cb53-798"><a href="#cb53-798" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb53-799"><a href="#cb53-799" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`02_displaying_data.py`</span><span class="at"> and show me its actual output, verbatim. Walk me through</span></span>
-<span id="cb53-800"><a href="#cb53-800" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
-<span id="cb53-801"><a href="#cb53-801" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
-<span id="cb53-802"><a href="#cb53-802" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
-<span id="cb53-803"><a href="#cb53-803" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb53-804"><a href="#cb53-804" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-805"><a href="#cb53-805" aria-hidden="true" tabindex="-1"></a><span class="fu">### Path 2 — let Claude fetch the files</span></span>
-<span id="cb53-806"><a href="#cb53-806" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-807"><a href="#cb53-807" aria-hidden="true" tabindex="-1"></a>If web access is working on your account, Claude can retrieve the files</span>
-<span id="cb53-808"><a href="#cb53-808" aria-hidden="true" tabindex="-1"></a>itself:</span>
-<span id="cb53-809"><a href="#cb53-809" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-810"><a href="#cb53-810" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb53-811"><a href="#cb53-811" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb53-812"><a href="#cb53-812" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-813"><a href="#cb53-813" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Get the MBA 775 course materials from</span></span>
-<span id="cb53-814"><a href="#cb53-814" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">. I need</span></span>
-<span id="cb53-815"><a href="#cb53-815" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/02_displaying_data.py`</span><span class="at">, </span><span class="in">`scripts/_course.py`</span><span class="at">,</span></span>
-<span id="cb53-816"><a href="#cb53-816" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/_charts.py`</span><span class="at">, </span><span class="in">`data/state_hpi_ur_pop.csv`</span></span>
-<span id="cb53-817"><a href="#cb53-817" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> from the same repository first.</span></span>
-<span id="cb53-818"><a href="#cb53-818" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb53-819"><a href="#cb53-819" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Run </span><span class="in">`02_displaying_data.py`</span><span class="at"> and show me its actual output, verbatim. Then walk me through</span></span>
-<span id="cb53-820"><a href="#cb53-820" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
-<span id="cb53-821"><a href="#cb53-821" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
-<span id="cb53-822"><a href="#cb53-822" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
-<span id="cb53-823"><a href="#cb53-823" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb53-824"><a href="#cb53-824" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-825"><a href="#cb53-825" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
-<span id="cb53-826"><a href="#cb53-826" aria-hidden="true" tabindex="-1"></a>If Claude answers that it cannot reach GitHub, **nothing is wrong with your</span>
-<span id="cb53-827"><a href="#cb53-827" aria-hidden="true" tabindex="-1"></a>work or with the repository.** Claude's web access is a setting, and even when</span>
-<span id="cb53-828"><a href="#cb53-828" aria-hidden="true" tabindex="-1"></a>it is on, Claude cannot always retrieve a file by direct link. Use Path 1</span>
-<span id="cb53-829"><a href="#cb53-829" aria-hidden="true" tabindex="-1"></a>instead — it is the ordinary route, not a consolation prize.</span>
-<span id="cb53-830"><a href="#cb53-830" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb53-831"><a href="#cb53-831" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-832"><a href="#cb53-832" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
-<span id="cb53-833"><a href="#cb53-833" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-834"><a href="#cb53-834" aria-hidden="true" tabindex="-1"></a>Many of you will present this material in Excel. You do not need to rebuild</span>
-<span id="cb53-835"><a href="#cb53-835" aria-hidden="true" tabindex="-1"></a>anything by hand — ask Claude to produce the spreadsheet:</span>
-<span id="cb53-836"><a href="#cb53-836" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-837"><a href="#cb53-837" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb53-838"><a href="#cb53-838" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb53-839"><a href="#cb53-839" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-840"><a href="#cb53-840" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Using </span><span class="in">`data/state_hpi_ur_pop.csv`</span><span class="at"> from</span></span>
-<span id="cb53-841"><a href="#cb53-841" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">, build an Excel workbook with two</span></span>
-<span id="cb53-842"><a href="#cb53-842" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; sheets. The first sheet holds the raw state data. The second holds a</span></span>
-<span id="cb53-843"><a href="#cb53-843" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; frequency distribution of the population growth column using 5-point bins</span></span>
-<span id="cb53-844"><a href="#cb53-844" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; from -5 to 25, with columns for the bin, the count, the relative frequency,</span></span>
-<span id="cb53-845"><a href="#cb53-845" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; and the cumulative relative frequency. Use real Excel formulas — FREQUENCY</span></span>
-<span id="cb53-846"><a href="#cb53-846" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; or COUNTIFS — rather than pasting static values, so I can change the bins and</span></span>
-<span id="cb53-847"><a href="#cb53-847" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; watch the table update. Give me the file to download.</span></span>
-<span id="cb53-848"><a href="#cb53-848" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb53-849"><a href="#cb53-849" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-850"><a href="#cb53-850" aria-hidden="true" tabindex="-1"></a>Once it is open in Excel, the frequency table drives a PivotChart the same way</span>
-<span id="cb53-851"><a href="#cb53-851" aria-hidden="true" tabindex="-1"></a>it always has. The difference is that you no longer transcribe anything by</span>
-<span id="cb53-852"><a href="#cb53-852" aria-hidden="true" tabindex="-1"></a>hand, so there is nothing to mistype.</span>
+<span id="cb53-788"><a href="#cb53-788" aria-hidden="true" tabindex="-1"></a>**[Download the Laboratory 2 pack](../upload_packs/lab-2-chapter-02.zip)** — one</span>
+<span id="cb53-789"><a href="#cb53-789" aria-hidden="true" tabindex="-1"></a>file. Unzip it and you will have a folder holding 5 files. Drag all 5</span>
+<span id="cb53-790"><a href="#cb53-790" aria-hidden="true" tabindex="-1"></a>into a new Claude conversation, wait for each to show as attached, then paste</span>
+<span id="cb53-791"><a href="#cb53-791" aria-hidden="true" tabindex="-1"></a>this:</span>
+<span id="cb53-792"><a href="#cb53-792" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-793"><a href="#cb53-793" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb53-794"><a href="#cb53-794" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb53-795"><a href="#cb53-795" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-796"><a href="#cb53-796" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I have uploaded 5 files for a graduate business statistics course. Read</span></span>
+<span id="cb53-797"><a href="#cb53-797" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first — it explains how this course expects analytical</span></span>
+<span id="cb53-798"><a href="#cb53-798" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; work to be done.</span></span>
+<span id="cb53-799"><a href="#cb53-799" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb53-800"><a href="#cb53-800" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`02_displaying_data.py`</span><span class="at"> and show me its actual output, verbatim. Walk me through</span></span>
+<span id="cb53-801"><a href="#cb53-801" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
+<span id="cb53-802"><a href="#cb53-802" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
+<span id="cb53-803"><a href="#cb53-803" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
+<span id="cb53-804"><a href="#cb53-804" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb53-805"><a href="#cb53-805" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-806"><a href="#cb53-806" aria-hidden="true" tabindex="-1"></a><span class="fu">### Path 2 — let Claude fetch the files</span></span>
+<span id="cb53-807"><a href="#cb53-807" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-808"><a href="#cb53-808" aria-hidden="true" tabindex="-1"></a>If web access is working on your account, Claude can retrieve the files</span>
+<span id="cb53-809"><a href="#cb53-809" aria-hidden="true" tabindex="-1"></a>itself:</span>
+<span id="cb53-810"><a href="#cb53-810" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-811"><a href="#cb53-811" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb53-812"><a href="#cb53-812" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb53-813"><a href="#cb53-813" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-814"><a href="#cb53-814" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Get the MBA 775 course materials from</span></span>
+<span id="cb53-815"><a href="#cb53-815" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">. I need</span></span>
+<span id="cb53-816"><a href="#cb53-816" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/02_displaying_data.py`</span><span class="at">, </span><span class="in">`scripts/_course.py`</span><span class="at">,</span></span>
+<span id="cb53-817"><a href="#cb53-817" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`scripts/_charts.py`</span><span class="at">, </span><span class="in">`data/state_hpi_ur_pop.csv`</span></span>
+<span id="cb53-818"><a href="#cb53-818" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> from the same repository first.</span></span>
+<span id="cb53-819"><a href="#cb53-819" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb53-820"><a href="#cb53-820" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Run </span><span class="in">`02_displaying_data.py`</span><span class="at"> and show me its actual output, verbatim. Then walk me through</span></span>
+<span id="cb53-821"><a href="#cb53-821" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; what each section does and what the results mean. Do not report any number</span></span>
+<span id="cb53-822"><a href="#cb53-822" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; you did not compute, and if anything fails, show me the error rather than</span></span>
+<span id="cb53-823"><a href="#cb53-823" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; describing what the output would have been.</span></span>
+<span id="cb53-824"><a href="#cb53-824" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb53-825"><a href="#cb53-825" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-826"><a href="#cb53-826" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
+<span id="cb53-827"><a href="#cb53-827" aria-hidden="true" tabindex="-1"></a>If Claude answers that it cannot reach GitHub, **nothing is wrong with your</span>
+<span id="cb53-828"><a href="#cb53-828" aria-hidden="true" tabindex="-1"></a>work or with the repository.** Claude's web access is a setting, and even when</span>
+<span id="cb53-829"><a href="#cb53-829" aria-hidden="true" tabindex="-1"></a>it is on, Claude cannot always retrieve a file by direct link. Use Path 1</span>
+<span id="cb53-830"><a href="#cb53-830" aria-hidden="true" tabindex="-1"></a>instead — it is the ordinary route, not a consolation prize.</span>
+<span id="cb53-831"><a href="#cb53-831" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb53-832"><a href="#cb53-832" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-833"><a href="#cb53-833" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
+<span id="cb53-834"><a href="#cb53-834" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-835"><a href="#cb53-835" aria-hidden="true" tabindex="-1"></a>Many of you will present this material in Excel. You do not need to rebuild</span>
+<span id="cb53-836"><a href="#cb53-836" aria-hidden="true" tabindex="-1"></a>anything by hand — ask Claude to produce the spreadsheet:</span>
+<span id="cb53-837"><a href="#cb53-837" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-838"><a href="#cb53-838" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb53-839"><a href="#cb53-839" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb53-840"><a href="#cb53-840" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-841"><a href="#cb53-841" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Using </span><span class="in">`data/state_hpi_ur_pop.csv`</span><span class="at"> from</span></span>
+<span id="cb53-842"><a href="#cb53-842" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="ot">&lt;https://github.com/jcrooker/mba775&gt;</span><span class="at">, build an Excel workbook with two</span></span>
+<span id="cb53-843"><a href="#cb53-843" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; sheets. The first sheet holds the raw state data. The second holds a</span></span>
+<span id="cb53-844"><a href="#cb53-844" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; frequency distribution of the population growth column using 5-point bins</span></span>
+<span id="cb53-845"><a href="#cb53-845" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; from -5 to 25, with columns for the bin, the count, the relative frequency,</span></span>
+<span id="cb53-846"><a href="#cb53-846" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; and the cumulative relative frequency. Use real Excel formulas — FREQUENCY</span></span>
+<span id="cb53-847"><a href="#cb53-847" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; or COUNTIFS — rather than pasting static values, so I can change the bins and</span></span>
+<span id="cb53-848"><a href="#cb53-848" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; watch the table update. Give me the file to download.</span></span>
+<span id="cb53-849"><a href="#cb53-849" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb53-850"><a href="#cb53-850" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-851"><a href="#cb53-851" aria-hidden="true" tabindex="-1"></a>Once it is open in Excel, the frequency table drives a PivotChart the same way</span>
+<span id="cb53-852"><a href="#cb53-852" aria-hidden="true" tabindex="-1"></a>it always has. The difference is that you no longer transcribe anything by</span>
+<span id="cb53-853"><a href="#cb53-853" aria-hidden="true" tabindex="-1"></a>hand, so there is nothing to mistype.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

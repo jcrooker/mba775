@@ -401,9 +401,10 @@ does the fetching.
 
 #### Path 1 — upload the files
 
-Download the four files in
-[`upload_packs/lab-1-chapter-01/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-1-chapter-01),
-drag all four into a new Claude conversation, and paste this:
+**[Download the Laboratory 1 pack](../upload_packs/lab-1-chapter-01.zip)** —
+one file. Unzip it and you will have a folder holding four files. Drag all
+four into a new Claude conversation, wait for each to show as attached, and
+paste this:
 
 ::: {.prompt}
 Prompt
@@ -482,6 +483,35 @@ web access is working perfectly well.
 
 Either way, the fix is the same: use Path 1. It needs no settings, no search,
 and no permission — and it is how most of this class will run the labs.
+
+### The setting that actually matters
+
+There is a second setting, and it matters far more than the first one.
+
+Under **Settings → Capabilities**, find **Code execution and file creation**
+and make sure it is **on**. On the Free, Pro, and Max plans you have to turn
+this on yourself; it is not enabled by default.
+
+::: {.scarlet}
+Without it, Claude cannot run anything. It will read the script, understand it
+perfectly well, and *describe* what the output would look like — in fluent,
+confident prose, with numbers that came from nowhere.
+
+That is not a broken lab. That is the exact failure this entire course is
+organized against, arriving disguised as success.
+:::
+
+**How to tell the difference.** When code execution is on, you will see the
+code actually run — a panel or block showing the script executing, and printed
+output appearing beneath it. When it is off, you get prose. If Claude tells you
+the series has 26,342 rows but you cannot find a line of output that *says*
+26,342, the number is not evidence. Ask directly:
+
+> Did you actually execute that script, or are you describing what it would
+> produce? Show me the raw output.
+
+An honest assistant will tell you. Then turn the setting on and start a new
+conversation.
 
 ::: {.charcoal}
 Do not let a stuck session turn into a fabricated answer. If Claude cannot get

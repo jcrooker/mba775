@@ -31,6 +31,15 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 OUT = REPO / "upload_packs"
 
+# One zip per lab, written into docs/ so it publishes with the site. GitHub
+# has no way to download a folder, so without these a student would have to
+# open eleven files one at a time and save each -- which is exactly the
+# friction these packs exist to remove.
+ZIPS = REPO / "docs" / "upload_packs"
+
+# Zip sizes, filled in by build() and reported alongside the folder sizes.
+summary_zip: dict[str, float] = {}
+
 # The file list for each lab is the script's ACTUAL dependencies -- every
 # module it imports and every data file it reads. Getting this wrong is not a
 # cosmetic error: a missing helper module stops the lab with a traceback.
@@ -167,6 +176,7 @@ it executes with nothing else available. Run it after re-seeding data.
 
 
 def build() -> list[tuple[str, int, float]]:
+    summary_zip.clear()
     if OUT.exists():
         shutil.rmtree(OUT)
     summary = []
@@ -208,6 +218,17 @@ def build() -> list[tuple[str, int, float]]:
         for name, spec in LABS.items())
     (OUT / "README.txt").write_text(TOP_README.format(index=index),
                                     encoding="utf-8")
+
+    # One zip per lab. Written into docs/ rather than the repository root so
+    # the cPanel deployment picks them up -- only docs/ is published.
+    ZIPS.mkdir(parents=True, exist_ok=True)
+    for old_zip in ZIPS.glob("*.zip"):
+        old_zip.unlink()
+    for name in LABS:
+        archive = shutil.make_archive(str(ZIPS / name), "zip",
+                                      root_dir=OUT, base_dir=name)
+        summary_zip[name] = Path(archive).stat().st_size / 1e6
+
     return summary
 
 
@@ -251,7 +272,8 @@ def verify() -> bool:
 if __name__ == "__main__":
     print("Building upload packs\n")
     for name, count, mb in build():
-        print(f"  {name:<20} {count:>2} files to upload   {mb:.2f} MB")
+        print(f"  {name:<20} {count:>2} files to upload   "
+              f"{mb:.2f} MB folder   {summary_zip[name]:.2f} MB zip")
 
     if "--verify" in sys.argv:
         print("\nVerifying each pack runs in isolation\n")
@@ -261,5 +283,7 @@ if __name__ == "__main__":
             sys.exit(1)
         print("\nAll packs execute standalone.")
 
-    print(f"\nWritten to {OUT}")
-    print("Commit the folder so students can download from it.")
+    print(f"\nFolders written to {OUT}")
+    print(f"Zips written to    {ZIPS}")
+    print("\nCommit both. The zips publish with the site; the folders let a")
+    print("student grab a single file without downloading the whole pack.")

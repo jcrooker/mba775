@@ -1571,9 +1571,10 @@ turned on.
 
 ## Path 1 — upload the files
 
-Download the 6 files in
-[`upload_packs/lab-4-chapter-04/`](https://github.com/jcrooker/mba775/tree/main/upload_packs/lab-4-chapter-04)
-and drag all of them into a new Claude conversation. Then paste this:
+**[Download the Laboratory 4 pack](../upload_packs/lab-4-chapter-04.zip)** — one
+file. Unzip it and you will have a folder holding 6 files. Drag all 6
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
 
 ::: {.prompt}
 Prompt

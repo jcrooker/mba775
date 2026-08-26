@@ -25,11 +25,17 @@ that produced a number, the number does not go in your submission.
 
 Each lecture note gives you two ways to get its files to Claude.
 
-**Path 1 — upload the files.** Every lab has a folder under
-[`upload_packs/`](https://github.com/jcrooker/mba775/tree/main/upload_packs)
-holding exactly the files that lab needs. Download them, drag them into a new
-Claude conversation, and paste the note's Path 1 prompt. This works on every
-Claude account, including the free tier.
+**Path 1 — upload the files.** Each lab has a downloadable pack holding
+exactly the files it needs. Download one file, unzip it, drag the contents into
+a new Claude conversation, and paste the note's Path 1 prompt. This works on
+every Claude account, including the free tier.
+
+| Lab | Pack | Files |
+|---|---|---|
+| 1 | [Chapter 1 pack](upload_packs/lab-1-chapter-01.zip) | 4 |
+| 2 | [Chapter 2 pack](upload_packs/lab-2-chapter-02.zip) | 5 |
+| 3 | [Chapter 3 pack](upload_packs/lab-3-chapter-03.zip) | 11 |
+| 4 | [Chapter 4 pack](upload_packs/lab-4-chapter-04.zip) | 6 |
 
 **Path 2 — let Claude fetch them.** If your account's web access is on, you can
 skip the downloading and name the repository instead:
@@ -60,7 +66,7 @@ setting and walks through the upload route step by step.
 | Repository | <https://github.com/jcrooker/mba775> |
 | Scripts | [`scripts/`](https://github.com/jcrooker/mba775/tree/main/scripts) |
 | Data | [`data/`](https://github.com/jcrooker/mba775/tree/main/data) — with [provenance](https://github.com/jcrooker/mba775/blob/main/data/README.md) |
-| Upload packs | [`upload_packs/`](https://github.com/jcrooker/mba775/tree/main/upload_packs) — one folder per lab |
+| Upload packs | [`upload_packs/`](https://github.com/jcrooker/mba775/tree/main/upload_packs) — one folder per lab, also published as zips above |
 | Context file | [`COURSE_CONTEXT.md`](https://github.com/jcrooker/mba775/blob/main/COURSE_CONTEXT.md) |
 
 To download everything at once: green **Code** button → **Download ZIP**.
