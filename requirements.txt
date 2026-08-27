@@ -1,9 +1,13 @@
-# MBA 775 — instructor environment for rendering lecture notes.
+# MBA 775 - instructor environment for rendering lecture notes.
 # Students do not need this; their code runs in Claude's sandbox.
+#
+# plotly was removed deliberately. Claude's sandbox has no network access, so
+# a student who copies plotly code out of a note cannot pip install it -- the
+# chart simply cannot be produced. Every figure in these notes is now drawn
+# with matplotlib via scripts/_charts.py, which is the module students get.
 
 pandas
 matplotlib
-plotly
 nbformat
 jupyter
 ipykernel

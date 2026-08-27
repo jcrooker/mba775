@@ -15,17 +15,21 @@ import sys
 # fred_tools.py lives in tools/. Quarto runs chunks from the repository root
 # (execute-dir: project in _quarto.yml), so add that folder to the import path.
 sys.path.insert(0, "tools")
+sys.path.insert(0, "scripts")
 
 import warnings
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.express as px
-import plotly.io as pio
 
 import fred_tools
 from fred_tools import fred_series
+
+# The same chart helpers the students receive in their laboratory pack. Every
+# figure in this note is drawn with the module they have, so code copied out
+# of here runs in their environment rather than raising ImportError.
+from _charts import box_plot, time_series
 
 # Keep an unmodified copy of every download in data/raw/ and reuse it on later
 # renders. This is the reproducibility discipline described below, applied to
@@ -39,12 +43,6 @@ pd.set_option("display.width", 120)
 
 UNLV_SCARLET = "#a03123"
 UNLV_GRAY = "#666666"
-
-pio.templates.default = "plotly_white"
-
-# Embed plotly.js in the rendered HTML rather than loading it from a CDN, so
-# the notes display correctly in a classroom with no internet connection.
-pio.renderers.default = "notebook"
 
 mpl.rcParams.update({
     "figure.facecolor": "white",
@@ -588,8 +586,18 @@ print(f"Any non-numeric values coerced to NaN: {missing_count}")
 
 # Visualizing the data
 
-We will use **Plotly** for interactive figures, which is the Python counterpart
-to the `plotly` package used in previous versions of these notes.
+Every figure in this note is drawn with `_charts.py` — the same module that
+comes in your laboratory pack. That is deliberate: code you copy out of this
+note runs in your environment, because it uses nothing you do not have.
+
+::: {.brown}
+The chunk below calls `fred_series()`, which lives in `tools/fred_tools.py` —
+**instructor tooling, not part of your laboratory pack.** It is shown so you
+can see where the data came from, which is this chapter's subject. Do not copy
+it into your own session; it will fail with a `NameError`, because that module
+is not among the files you were given. Your scripts read the local `dff.csv`
+instead, which is the reproducibility discipline this chapter argues for.
+:::
 
 ```{python}
 #| label: dff-full-history
@@ -608,14 +616,11 @@ print(f"Full history: {len(dff_full):,} observations, "
 my_dff = dff_full.reset_index()
 my_dff["Decade"] = my_dff["Date"].dt.year.floordiv(10).mul(10).astype(str) + "s"
 
-fig = px.box(
-    my_dff,
-    x="DFF",
-    color="Decade",
-    title="Daily Federal Funds Effective Rate, by decade",
-)
-fig.update_layout(height=520, xaxis_title="Federal funds rate (percent)")
-fig.show()
+decades = sorted(my_dff["Decade"].unique())
+_ = box_plot([my_dff.loc[my_dff["Decade"] == d, "DFF"] for d in decades],
+             labels=decades,
+             title="Daily Federal Funds Effective Rate, by decade",
+             xlab="Federal funds rate (percent)")
 ```
 
 ## Selecting versus calculating: an audit
@@ -866,15 +871,12 @@ if unassigned:
 ```{python}
 #| label: region-box
 
-fig = px.box(
-    my_datfr.sort_values("Region_Index"),
-    x="UR",
-    color="Region",
-    hover_data=["State"],
-    title="State unemployment rates by Census region",
-)
-fig.update_layout(height=560, xaxis_title="Unemployment rate (percent)")
-fig.show()
+regions = (my_datfr.sort_values("Region_Index")["Region"].drop_duplicates()
+                    .tolist())
+_ = box_plot([my_datfr.loc[my_datfr["Region"] == r, "UR"] for r in regions],
+             labels=regions,
+             title="State unemployment rates by Census region",
+             xlab="Unemployment rate (percent)")
 ```
 
 ## Branches in statistics
@@ -934,13 +936,9 @@ sample behind it.
 #| label: dff-timeseries
 
 ts = dff_full.reset_index()
-fig = px.line(
-    ts, x="Date", y="DFF",
-    title="Federal Funds Effective Rate",
-    color_discrete_sequence=[UNLV_SCARLET],
-)
-fig.update_layout(height=480, yaxis_title="Percent")
-fig.show()
+_ = time_series(ts["Date"], ts["DFF"],
+                title="Federal Funds Effective Rate",
+                ylab="Percent")
 ```
 
 The time series plot shows structure — the 1980s peak, the long descent, the
