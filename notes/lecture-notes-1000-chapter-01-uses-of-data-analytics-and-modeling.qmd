@@ -734,11 +734,47 @@ need to download anything else. In the same conversation where you ran
 ::: {.prompt}
 Prompt
 
-> Now run `01c_state_cross_section.py` from the files I uploaded. Before you
-> compare any states, tell me whether every state's most recent observation
-> falls on the same date. If the dates differ, report the differences and ask
-> me to choose a common-date rule rather than silently combining unlike
-> periods. Show me the actual output.
+> Now run `01c_state_cross_section.py` from the files I uploaded. Show me the
+> actual output. Then answer two questions separately, and do not merge them:
+>
+> First: does every state's most recent observation fall on the same date? If
+> the dates differ, report the differences and ask me to choose a common-date
+> rule rather than silently combining unlike periods.
+>
+> Second: are there any missing values anywhere in this series — not just at
+> the end? If so, tell me how many, which states, and which dates. Do not drop
+> them silently.
+:::
+
+::: {.scarlet}
+Run it, and then read the two answers against each other.
+
+The first check passes. Every state reports through the same month, so this
+really is a clean cross section and there is no rule for you to choose.
+
+The second check does not pass. Look at what it found.
+:::
+
+That gap is the lesson. The date-alignment check examines each state's
+**latest** observation, and the hole is not at the end of the series — it is in
+the middle. No month is absent from the file, so a row count cannot see it
+either: the row exists, and the value inside it is empty.
+
+::: {.charcoal}
+**A check that passes is not the same as data that is clean.** It means the
+question you asked came back fine. A different question, asked of the same
+file, comes back differently.
+
+This is why `01a_inspect_dff.py` reports a missing-value count rather than
+assuming zero, and why the script you just ran prints how many observations it
+is about to discard instead of discarding them quietly. An analysis that drops
+data without saying so is not wrong in its arithmetic. It is wrong about what
+it is describing — and nobody reading the output can tell.
+
+`data/README.md` documents this gap and says plainly that it is how FRED
+distributes the series. Missing months in official statistics usually have a
+reason, and finding out what it was is a better exercise than filling the
+hole.
 :::
 
 ::: {.charcoal}
@@ -870,13 +906,16 @@ The prompt you started with, plus anything else you had to ask for and why.
 The interesting part is the second half: where did the canned prompt prove
 insufficient, and what did you have to say to get what you needed?
 
-**3. A judgment call you made.**
+**3. The check that passed, and the one that did not.**
 
-When you ran `01c_state_cross_section.py`, Claude should have stopped and
-asked you to choose a common-date rule rather than combining states measured
-in different periods. Report what it asked, what you chose, and why. If it
-*didn't* stop and ask, say that instead — that is a more interesting finding
-and I want to know about it.
+When you ran `01c_state_cross_section.py`, the date-alignment check came back
+clean — every state reports through the same month. Report that result, and
+then report what the missing-value check found in the same file.
+
+Then answer this in two or three sentences: **why can a data set pass a date
+alignment check and still have a hole in it?** Be specific about what each
+check actually examines. Finally, say what you would tell a colleague who had
+already built a chart from this series without running the second check.
 
 **4. One paragraph.**
 
