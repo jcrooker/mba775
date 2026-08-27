@@ -832,18 +832,64 @@ States.
 
 ### Laboratory 1 deliverable
 
-Submit the following:
+Submit four things. Do not submit the scripts or the data files — I wrote
+those and I already have them. What I want is what *you* established.
 
-+ your Python script;
-+ `dff_downloaded.csv` as retrieved;
-+ a provenance record giving the FRED series ID, source URL, retrieval date,
-  frequency, units, and date range;
-+ the prompt you used with Claude and a short description of material revisions
-  you requested;
-+ a verification record reporting row count, date range, and missing-value
-  count, each traceable to executed output; and
-+ a one-paragraph explanation of why a monthly mean and a month-end observation
-  answer different questions.
+**1. A data audit.**
+
+`data/README.md` in the course materials makes specific, checkable claims
+about `dff.csv`. Check each one against output you actually ran, and report
+the result as a table:
+
+| Claim in `data/README.md` | What your executed output showed | Agree? |
+|---|---|---|
+| Series is `DFF`, Federal Funds Effective Rate | | |
+| Units: percent, not seasonally adjusted | | |
+| Frequency: daily, 7-day — a value on every calendar day | | |
+| Date range | | |
+| Row count | | |
+| Missing values | | |
+
+For each row, the middle column must be traceable to something Claude
+printed. If a claim and the output disagree, say which, by how much, and what
+you would do about it before using the data.
+
+::: {.brown}
+Two of those claims are harder than they look. "A value on every calendar day"
+is not established by a row count — you have to check that no calendar date
+between the first and last observation is absent. And "not seasonally
+adjusted" cannot be verified from the file at all; it is a property of how
+FRED published the series, and the only way to check it is to go look. Say so
+if you cannot verify something from the data. **"I could not confirm this from
+the file" is a complete and correct answer.**
+:::
+
+**2. Your prompts.**
+
+The prompt you started with, plus anything else you had to ask for and why.
+The interesting part is the second half: where did the canned prompt prove
+insufficient, and what did you have to say to get what you needed?
+
+**3. A judgment call you made.**
+
+When you ran `01c_state_cross_section.py`, Claude should have stopped and
+asked you to choose a common-date rule rather than combining states measured
+in different periods. Report what it asked, what you chose, and why. If it
+*didn't* stop and ask, say that instead — that is a more interesting finding
+and I want to know about it.
+
+**4. One paragraph.**
+
+Why a monthly mean and a month-end observation answer different questions,
+and a business situation where choosing the wrong one would lead somewhere
+costly.
+
+::: {.charcoal}
+Notice what is not on this list. You are not submitting code you did not
+write, or a data file I gave you. Every item asks what you established, chose,
+or concluded — which is the part of this work that is actually yours, and the
+only part I can grade.
+:::
 
 **Average US State Unemployment Rate**
 

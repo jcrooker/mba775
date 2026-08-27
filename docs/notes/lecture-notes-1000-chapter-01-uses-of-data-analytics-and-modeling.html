@@ -1289,15 +1289,68 @@ All 50 states report the same date. This is a clean cross section.</code></pre>
 </section>
 <section id="laboratory-1-deliverable" class="level3">
 <h3 class="anchored" data-anchor-id="laboratory-1-deliverable">Laboratory 1 deliverable</h3>
-<p>Submit the following:</p>
-<ul>
-<li>your Python script;</li>
-<li><code>dff_downloaded.csv</code> as retrieved;</li>
-<li>a provenance record giving the FRED series ID, source URL, retrieval date, frequency, units, and date range;</li>
-<li>the prompt you used with Claude and a short description of material revisions you requested;</li>
-<li>a verification record reporting row count, date range, and missing-value count, each traceable to executed output; and</li>
-<li>a one-paragraph explanation of why a monthly mean and a month-end observation answer different questions.</li>
-</ul>
+<p>Submit four things. Do not submit the scripts or the data files — I wrote those and I already have them. What I want is what <em>you</em> established.</p>
+<p><strong>1. A data audit.</strong></p>
+<p><code>data/README.md</code> in the course materials makes specific, checkable claims about <code>dff.csv</code>. Check each one against output you actually ran, and report the result as a table:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Claim in <code>data/README.md</code></th>
+<th>What your executed output showed</th>
+<th>Agree?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Series is <code>DFF</code>, Federal Funds Effective Rate</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Units: percent, not seasonally adjusted</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Frequency: daily, 7-day — a value on every calendar day</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Date range</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Row count</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Missing values</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>For each row, the middle column must be traceable to something Claude printed. If a claim and the output disagree, say which, by how much, and what you would do about it before using the data.</p>
+<div class="brown">
+<p>Two of those claims are harder than they look. “A value on every calendar day” is not established by a row count — you have to check that no calendar date between the first and last observation is absent. And “not seasonally adjusted” cannot be verified from the file at all; it is a property of how FRED published the series, and the only way to check it is to go look. Say so if you cannot verify something from the data. <strong>“I could not confirm this from the file” is a complete and correct answer.</strong></p>
+</div>
+<p><strong>2. Your prompts.</strong></p>
+<p>The prompt you started with, plus anything else you had to ask for and why. The interesting part is the second half: where did the canned prompt prove insufficient, and what did you have to say to get what you needed?</p>
+<p><strong>3. A judgment call you made.</strong></p>
+<p>When you ran <code>01c_state_cross_section.py</code>, Claude should have stopped and asked you to choose a common-date rule rather than combining states measured in different periods. Report what it asked, what you chose, and why. If it <em>didn’t</em> stop and ask, say that instead — that is a more interesting finding and I want to know about it.</p>
+<p><strong>4. One paragraph.</strong></p>
+<p>Why a monthly mean and a month-end observation answer different questions, and a business situation where choosing the wrong one would lead somewhere costly.</p>
+<div class="charcoal">
+<p>Notice what is not on this list. You are not submitting code you did not write, or a data file I gave you. Every item asks what you established, chose, or concluded — which is the part of this work that is actually yours, and the only part I can grade.</p>
+</div>
 <p><strong>Average US State Unemployment Rate</strong></p>
 <p>The Census Bureau designates US States into defined regions and divisions. Since the 1950s, this has included four statistical regions with 9 subdivisions. This list is available on <a href="https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States">Wikipedia</a>.</p>
 <div id="state-regions" class="cell" data-execution_count="15">
@@ -2773,212 +2826,258 @@ Name: DFF, dtype: float64</code></pre>
 <span id="cb33-860"><a href="#cb33-860" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb33-861"><a href="#cb33-861" aria-hidden="true" tabindex="-1"></a><span class="fu">### Laboratory 1 deliverable</span></span>
 <span id="cb33-862"><a href="#cb33-862" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-863"><a href="#cb33-863" aria-hidden="true" tabindex="-1"></a>Submit the following:</span>
-<span id="cb33-864"><a href="#cb33-864" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-865"><a href="#cb33-865" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>your Python script;</span>
-<span id="cb33-866"><a href="#cb33-866" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span><span class="in">`dff_downloaded.csv`</span> as retrieved;</span>
-<span id="cb33-867"><a href="#cb33-867" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>a provenance record giving the FRED series ID, source URL, retrieval date,</span>
-<span id="cb33-868"><a href="#cb33-868" aria-hidden="true" tabindex="-1"></a>  frequency, units, and date range;</span>
-<span id="cb33-869"><a href="#cb33-869" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>the prompt you used with Claude and a short description of material revisions</span>
-<span id="cb33-870"><a href="#cb33-870" aria-hidden="true" tabindex="-1"></a>  you requested;</span>
-<span id="cb33-871"><a href="#cb33-871" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>a verification record reporting row count, date range, and missing-value</span>
-<span id="cb33-872"><a href="#cb33-872" aria-hidden="true" tabindex="-1"></a>  count, each traceable to executed output; and</span>
-<span id="cb33-873"><a href="#cb33-873" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>a one-paragraph explanation of why a monthly mean and a month-end observation</span>
-<span id="cb33-874"><a href="#cb33-874" aria-hidden="true" tabindex="-1"></a>  answer different questions.</span>
-<span id="cb33-875"><a href="#cb33-875" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-876"><a href="#cb33-876" aria-hidden="true" tabindex="-1"></a>**Average US State Unemployment Rate**</span>
-<span id="cb33-877"><a href="#cb33-877" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-878"><a href="#cb33-878" aria-hidden="true" tabindex="-1"></a>The Census Bureau designates US States into defined regions and divisions.</span>
-<span id="cb33-879"><a href="#cb33-879" aria-hidden="true" tabindex="-1"></a>Since the 1950s, this has included four statistical regions with 9</span>
-<span id="cb33-880"><a href="#cb33-880" aria-hidden="true" tabindex="-1"></a>subdivisions. This list is available on</span>
-<span id="cb33-881"><a href="#cb33-881" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Wikipedia</span><span class="co">](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States)</span>.</span>
-<span id="cb33-882"><a href="#cb33-882" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-885"><a href="#cb33-885" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-886"><a href="#cb33-886" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: state-regions</span></span>
-<span id="cb33-887"><a href="#cb33-887" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-888"><a href="#cb33-888" aria-hidden="true" tabindex="-1"></a>state_regions <span class="op">=</span> {</span>
-<span id="cb33-889"><a href="#cb33-889" aria-hidden="true" tabindex="-1"></a>    <span class="st">"new_england"</span>:        [<span class="st">"CT"</span>, <span class="st">"ME"</span>, <span class="st">"MA"</span>, <span class="st">"NH"</span>, <span class="st">"RI"</span>, <span class="st">"VT"</span>],</span>
-<span id="cb33-890"><a href="#cb33-890" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mid_atlantic"</span>:       [<span class="st">"NJ"</span>, <span class="st">"NY"</span>, <span class="st">"PA"</span>],</span>
-<span id="cb33-891"><a href="#cb33-891" aria-hidden="true" tabindex="-1"></a>    <span class="st">"east_north_central"</span>: [<span class="st">"IL"</span>, <span class="st">"IN"</span>, <span class="st">"MI"</span>, <span class="st">"OH"</span>, <span class="st">"WI"</span>],</span>
-<span id="cb33-892"><a href="#cb33-892" aria-hidden="true" tabindex="-1"></a>    <span class="st">"west_north_central"</span>: [<span class="st">"IA"</span>, <span class="st">"KS"</span>, <span class="st">"MN"</span>, <span class="st">"MO"</span>, <span class="st">"NE"</span>, <span class="st">"ND"</span>, <span class="st">"SD"</span>],</span>
-<span id="cb33-893"><a href="#cb33-893" aria-hidden="true" tabindex="-1"></a>    <span class="st">"south_atlantic"</span>:     [<span class="st">"DE"</span>, <span class="st">"FL"</span>, <span class="st">"GA"</span>, <span class="st">"MD"</span>, <span class="st">"NC"</span>, <span class="st">"SC"</span>, <span class="st">"VA"</span>, <span class="st">"WV"</span>],</span>
-<span id="cb33-894"><a href="#cb33-894" aria-hidden="true" tabindex="-1"></a>    <span class="st">"east_south_central"</span>: [<span class="st">"AL"</span>, <span class="st">"KY"</span>, <span class="st">"MS"</span>, <span class="st">"TN"</span>],</span>
-<span id="cb33-895"><a href="#cb33-895" aria-hidden="true" tabindex="-1"></a>    <span class="st">"west_south_central"</span>: [<span class="st">"AR"</span>, <span class="st">"LA"</span>, <span class="st">"OK"</span>, <span class="st">"TX"</span>],</span>
-<span id="cb33-896"><a href="#cb33-896" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mountain"</span>:           [<span class="st">"AZ"</span>, <span class="st">"CO"</span>, <span class="st">"ID"</span>, <span class="st">"MT"</span>, <span class="st">"NV"</span>, <span class="st">"NM"</span>, <span class="st">"UT"</span>, <span class="st">"WY"</span>],</span>
-<span id="cb33-897"><a href="#cb33-897" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pacific"</span>:            [<span class="st">"AK"</span>, <span class="st">"CA"</span>, <span class="st">"HI"</span>, <span class="st">"OR"</span>, <span class="st">"WA"</span>],</span>
-<span id="cb33-898"><a href="#cb33-898" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb33-899"><a href="#cb33-899" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-900"><a href="#cb33-900" aria-hidden="true" tabindex="-1"></a>lookup <span class="op">=</span> {</span>
-<span id="cb33-901"><a href="#cb33-901" aria-hidden="true" tabindex="-1"></a>    st: (<span class="ss">f"</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">"</span>, i)</span>
-<span id="cb33-902"><a href="#cb33-902" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, (name, members) <span class="kw">in</span> <span class="bu">enumerate</span>(state_regions.items(), start<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb33-903"><a href="#cb33-903" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> st <span class="kw">in</span> members</span>
-<span id="cb33-904"><a href="#cb33-904" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb33-905"><a href="#cb33-905" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-906"><a href="#cb33-906" aria-hidden="true" tabindex="-1"></a>my_datfr[<span class="st">"Region"</span>] <span class="op">=</span> my_datfr[<span class="st">"State"</span>].<span class="bu">map</span>(<span class="kw">lambda</span> s: lookup[s][<span class="dv">0</span>])</span>
-<span id="cb33-907"><a href="#cb33-907" aria-hidden="true" tabindex="-1"></a>my_datfr[<span class="st">"Region_Index"</span>] <span class="op">=</span> my_datfr[<span class="st">"State"</span>].<span class="bu">map</span>(<span class="kw">lambda</span> s: lookup[s][<span class="dv">1</span>])</span>
+<span id="cb33-863"><a href="#cb33-863" aria-hidden="true" tabindex="-1"></a>Submit four things. Do not submit the scripts or the data files — I wrote</span>
+<span id="cb33-864"><a href="#cb33-864" aria-hidden="true" tabindex="-1"></a>those and I already have them. What I want is what *you* established.</span>
+<span id="cb33-865"><a href="#cb33-865" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-866"><a href="#cb33-866" aria-hidden="true" tabindex="-1"></a>**1. A data audit.**</span>
+<span id="cb33-867"><a href="#cb33-867" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-868"><a href="#cb33-868" aria-hidden="true" tabindex="-1"></a><span class="in">`data/README.md`</span> in the course materials makes specific, checkable claims</span>
+<span id="cb33-869"><a href="#cb33-869" aria-hidden="true" tabindex="-1"></a>about <span class="in">`dff.csv`</span>. Check each one against output you actually ran, and report</span>
+<span id="cb33-870"><a href="#cb33-870" aria-hidden="true" tabindex="-1"></a>the result as a table:</span>
+<span id="cb33-871"><a href="#cb33-871" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-872"><a href="#cb33-872" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Claim in <span class="in">`data/README.md`</span> <span class="pp">|</span> What your executed output showed <span class="pp">|</span> Agree? <span class="pp">|</span></span>
+<span id="cb33-873"><a href="#cb33-873" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb33-874"><a href="#cb33-874" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Series is <span class="in">`DFF`</span>, Federal Funds Effective Rate <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-875"><a href="#cb33-875" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Units: percent, not seasonally adjusted <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-876"><a href="#cb33-876" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequency: daily, 7-day — a value on every calendar day <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-877"><a href="#cb33-877" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Date range <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-878"><a href="#cb33-878" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Row count <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-879"><a href="#cb33-879" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Missing values <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb33-880"><a href="#cb33-880" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-881"><a href="#cb33-881" aria-hidden="true" tabindex="-1"></a>For each row, the middle column must be traceable to something Claude</span>
+<span id="cb33-882"><a href="#cb33-882" aria-hidden="true" tabindex="-1"></a>printed. If a claim and the output disagree, say which, by how much, and what</span>
+<span id="cb33-883"><a href="#cb33-883" aria-hidden="true" tabindex="-1"></a>you would do about it before using the data.</span>
+<span id="cb33-884"><a href="#cb33-884" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-885"><a href="#cb33-885" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
+<span id="cb33-886"><a href="#cb33-886" aria-hidden="true" tabindex="-1"></a>Two of those claims are harder than they look. "A value on every calendar day"</span>
+<span id="cb33-887"><a href="#cb33-887" aria-hidden="true" tabindex="-1"></a>is not established by a row count — you have to check that no calendar date</span>
+<span id="cb33-888"><a href="#cb33-888" aria-hidden="true" tabindex="-1"></a>between the first and last observation is absent. And "not seasonally</span>
+<span id="cb33-889"><a href="#cb33-889" aria-hidden="true" tabindex="-1"></a>adjusted" cannot be verified from the file at all; it is a property of how</span>
+<span id="cb33-890"><a href="#cb33-890" aria-hidden="true" tabindex="-1"></a>FRED published the series, and the only way to check it is to go look. Say so</span>
+<span id="cb33-891"><a href="#cb33-891" aria-hidden="true" tabindex="-1"></a>if you cannot verify something from the data. **"I could not confirm this from</span>
+<span id="cb33-892"><a href="#cb33-892" aria-hidden="true" tabindex="-1"></a>the file" is a complete and correct answer.**</span>
+<span id="cb33-893"><a href="#cb33-893" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-894"><a href="#cb33-894" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-895"><a href="#cb33-895" aria-hidden="true" tabindex="-1"></a>**2. Your prompts.**</span>
+<span id="cb33-896"><a href="#cb33-896" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-897"><a href="#cb33-897" aria-hidden="true" tabindex="-1"></a>The prompt you started with, plus anything else you had to ask for and why.</span>
+<span id="cb33-898"><a href="#cb33-898" aria-hidden="true" tabindex="-1"></a>The interesting part is the second half: where did the canned prompt prove</span>
+<span id="cb33-899"><a href="#cb33-899" aria-hidden="true" tabindex="-1"></a>insufficient, and what did you have to say to get what you needed?</span>
+<span id="cb33-900"><a href="#cb33-900" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-901"><a href="#cb33-901" aria-hidden="true" tabindex="-1"></a>**3. A judgment call you made.**</span>
+<span id="cb33-902"><a href="#cb33-902" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-903"><a href="#cb33-903" aria-hidden="true" tabindex="-1"></a>When you ran <span class="in">`01c_state_cross_section.py`</span>, Claude should have stopped and</span>
+<span id="cb33-904"><a href="#cb33-904" aria-hidden="true" tabindex="-1"></a>asked you to choose a common-date rule rather than combining states measured</span>
+<span id="cb33-905"><a href="#cb33-905" aria-hidden="true" tabindex="-1"></a>in different periods. Report what it asked, what you chose, and why. If it</span>
+<span id="cb33-906"><a href="#cb33-906" aria-hidden="true" tabindex="-1"></a>*didn't* stop and ask, say that instead — that is a more interesting finding</span>
+<span id="cb33-907"><a href="#cb33-907" aria-hidden="true" tabindex="-1"></a>and I want to know about it.</span>
 <span id="cb33-908"><a href="#cb33-908" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-909"><a href="#cb33-909" aria-hidden="true" tabindex="-1"></a>unassigned <span class="op">=</span> my_datfr.loc[my_datfr[<span class="st">"Region"</span>].isna(), <span class="st">"State"</span>].tolist()</span>
-<span id="cb33-910"><a href="#cb33-910" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"States assigned to a region: </span><span class="sc">{</span>my_datfr[<span class="st">'Region'</span>]<span class="sc">.</span>notna()<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> "</span></span>
-<span id="cb33-911"><a href="#cb33-911" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"of </span><span class="sc">{</span><span class="bu">len</span>(my_datfr)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb33-912"><a href="#cb33-912" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> unassigned:</span>
-<span id="cb33-913"><a href="#cb33-913" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Unassigned:"</span>, unassigned)</span>
-<span id="cb33-914"><a href="#cb33-914" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb33-915"><a href="#cb33-915" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-918"><a href="#cb33-918" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-919"><a href="#cb33-919" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: region-box</span></span>
-<span id="cb33-920"><a href="#cb33-920" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-921"><a href="#cb33-921" aria-hidden="true" tabindex="-1"></a>regions <span class="op">=</span> (my_datfr.sort_values(<span class="st">"Region_Index"</span>)[<span class="st">"Region"</span>].drop_duplicates()</span>
-<span id="cb33-922"><a href="#cb33-922" aria-hidden="true" tabindex="-1"></a>                    .tolist())</span>
-<span id="cb33-923"><a href="#cb33-923" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> box_plot([my_datfr.loc[my_datfr[<span class="st">"Region"</span>] <span class="op">==</span> r, <span class="st">"UR"</span>] <span class="cf">for</span> r <span class="kw">in</span> regions],</span>
-<span id="cb33-924"><a href="#cb33-924" aria-hidden="true" tabindex="-1"></a>             labels<span class="op">=</span>regions,</span>
-<span id="cb33-925"><a href="#cb33-925" aria-hidden="true" tabindex="-1"></a>             title<span class="op">=</span><span class="st">"State unemployment rates by Census region"</span>,</span>
-<span id="cb33-926"><a href="#cb33-926" aria-hidden="true" tabindex="-1"></a>             xlab<span class="op">=</span><span class="st">"Unemployment rate (percent)"</span>)</span>
-<span id="cb33-927"><a href="#cb33-927" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-909"><a href="#cb33-909" aria-hidden="true" tabindex="-1"></a>**4. One paragraph.**</span>
+<span id="cb33-910"><a href="#cb33-910" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-911"><a href="#cb33-911" aria-hidden="true" tabindex="-1"></a>Why a monthly mean and a month-end observation answer different questions,</span>
+<span id="cb33-912"><a href="#cb33-912" aria-hidden="true" tabindex="-1"></a>and a business situation where choosing the wrong one would lead somewhere</span>
+<span id="cb33-913"><a href="#cb33-913" aria-hidden="true" tabindex="-1"></a>costly.</span>
+<span id="cb33-914"><a href="#cb33-914" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-915"><a href="#cb33-915" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
+<span id="cb33-916"><a href="#cb33-916" aria-hidden="true" tabindex="-1"></a>Notice what is not on this list. You are not submitting code you did not</span>
+<span id="cb33-917"><a href="#cb33-917" aria-hidden="true" tabindex="-1"></a>write, or a data file I gave you. Every item asks what you established, chose,</span>
+<span id="cb33-918"><a href="#cb33-918" aria-hidden="true" tabindex="-1"></a>or concluded — which is the part of this work that is actually yours, and the</span>
+<span id="cb33-919"><a href="#cb33-919" aria-hidden="true" tabindex="-1"></a>only part I can grade.</span>
+<span id="cb33-920"><a href="#cb33-920" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-921"><a href="#cb33-921" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-922"><a href="#cb33-922" aria-hidden="true" tabindex="-1"></a>**Average US State Unemployment Rate**</span>
+<span id="cb33-923"><a href="#cb33-923" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-924"><a href="#cb33-924" aria-hidden="true" tabindex="-1"></a>The Census Bureau designates US States into defined regions and divisions.</span>
+<span id="cb33-925"><a href="#cb33-925" aria-hidden="true" tabindex="-1"></a>Since the 1950s, this has included four statistical regions with 9</span>
+<span id="cb33-926"><a href="#cb33-926" aria-hidden="true" tabindex="-1"></a>subdivisions. This list is available on</span>
+<span id="cb33-927"><a href="#cb33-927" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Wikipedia</span><span class="co">](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States)</span>.</span>
 <span id="cb33-928"><a href="#cb33-928" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-929"><a href="#cb33-929" aria-hidden="true" tabindex="-1"></a><span class="fu">## Branches in statistics</span></span>
-<span id="cb33-930"><a href="#cb33-930" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-931"><a href="#cb33-931" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-932"><a href="#cb33-932" aria-hidden="true" tabindex="-1"></a>The purpose of **descriptive statistics** is to summarize, or display, data to</span>
-<span id="cb33-933"><a href="#cb33-933" aria-hidden="true" tabindex="-1"></a>quickly get an overview of the information.</span>
-<span id="cb33-934"><a href="#cb33-934" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-935"><a href="#cb33-935" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-938"><a href="#cb33-938" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-939"><a href="#cb33-939" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: descriptive-monthly</span></span>
-<span id="cb33-940"><a href="#cb33-940" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the month-start selections."</span></span>
-<span id="cb33-941"><a href="#cb33-941" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-942"><a href="#cb33-942" aria-hidden="true" tabindex="-1"></a>sel <span class="op">=</span> selected[<span class="st">"federal_funds_rate"</span>].dropna()</span>
-<span id="cb33-943"><a href="#cb33-943" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-944"><a href="#cb33-944" aria-hidden="true" tabindex="-1"></a>fig_m, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.2</span>))</span>
-<span id="cb33-945"><a href="#cb33-945" aria-hidden="true" tabindex="-1"></a>ax.boxplot(sel.values, vert<span class="op">=</span><span class="va">False</span>, widths<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb33-946"><a href="#cb33-946" aria-hidden="true" tabindex="-1"></a>           patch_artist<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb33-947"><a href="#cb33-947" aria-hidden="true" tabindex="-1"></a>           boxprops<span class="op">=</span>{<span class="st">"facecolor"</span>: UNLV_SCARLET, <span class="st">"alpha"</span>: <span class="fl">0.7</span>},</span>
-<span id="cb33-948"><a href="#cb33-948" aria-hidden="true" tabindex="-1"></a>           medianprops<span class="op">=</span>{<span class="st">"color"</span>: <span class="st">"white"</span>})</span>
-<span id="cb33-949"><a href="#cb33-949" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Federal funds rate (percent)"</span>)</span>
-<span id="cb33-950"><a href="#cb33-950" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
-<span id="cb33-951"><a href="#cb33-951" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Month-start observations since 2020"</span>)</span>
-<span id="cb33-952"><a href="#cb33-952" aria-hidden="true" tabindex="-1"></a>fig_m.tight_layout()</span>
-<span id="cb33-953"><a href="#cb33-953" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb33-931"><a href="#cb33-931" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-932"><a href="#cb33-932" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: state-regions</span></span>
+<span id="cb33-933"><a href="#cb33-933" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-934"><a href="#cb33-934" aria-hidden="true" tabindex="-1"></a>state_regions <span class="op">=</span> {</span>
+<span id="cb33-935"><a href="#cb33-935" aria-hidden="true" tabindex="-1"></a>    <span class="st">"new_england"</span>:        [<span class="st">"CT"</span>, <span class="st">"ME"</span>, <span class="st">"MA"</span>, <span class="st">"NH"</span>, <span class="st">"RI"</span>, <span class="st">"VT"</span>],</span>
+<span id="cb33-936"><a href="#cb33-936" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mid_atlantic"</span>:       [<span class="st">"NJ"</span>, <span class="st">"NY"</span>, <span class="st">"PA"</span>],</span>
+<span id="cb33-937"><a href="#cb33-937" aria-hidden="true" tabindex="-1"></a>    <span class="st">"east_north_central"</span>: [<span class="st">"IL"</span>, <span class="st">"IN"</span>, <span class="st">"MI"</span>, <span class="st">"OH"</span>, <span class="st">"WI"</span>],</span>
+<span id="cb33-938"><a href="#cb33-938" aria-hidden="true" tabindex="-1"></a>    <span class="st">"west_north_central"</span>: [<span class="st">"IA"</span>, <span class="st">"KS"</span>, <span class="st">"MN"</span>, <span class="st">"MO"</span>, <span class="st">"NE"</span>, <span class="st">"ND"</span>, <span class="st">"SD"</span>],</span>
+<span id="cb33-939"><a href="#cb33-939" aria-hidden="true" tabindex="-1"></a>    <span class="st">"south_atlantic"</span>:     [<span class="st">"DE"</span>, <span class="st">"FL"</span>, <span class="st">"GA"</span>, <span class="st">"MD"</span>, <span class="st">"NC"</span>, <span class="st">"SC"</span>, <span class="st">"VA"</span>, <span class="st">"WV"</span>],</span>
+<span id="cb33-940"><a href="#cb33-940" aria-hidden="true" tabindex="-1"></a>    <span class="st">"east_south_central"</span>: [<span class="st">"AL"</span>, <span class="st">"KY"</span>, <span class="st">"MS"</span>, <span class="st">"TN"</span>],</span>
+<span id="cb33-941"><a href="#cb33-941" aria-hidden="true" tabindex="-1"></a>    <span class="st">"west_south_central"</span>: [<span class="st">"AR"</span>, <span class="st">"LA"</span>, <span class="st">"OK"</span>, <span class="st">"TX"</span>],</span>
+<span id="cb33-942"><a href="#cb33-942" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mountain"</span>:           [<span class="st">"AZ"</span>, <span class="st">"CO"</span>, <span class="st">"ID"</span>, <span class="st">"MT"</span>, <span class="st">"NV"</span>, <span class="st">"NM"</span>, <span class="st">"UT"</span>, <span class="st">"WY"</span>],</span>
+<span id="cb33-943"><a href="#cb33-943" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pacific"</span>:            [<span class="st">"AK"</span>, <span class="st">"CA"</span>, <span class="st">"HI"</span>, <span class="st">"OR"</span>, <span class="st">"WA"</span>],</span>
+<span id="cb33-944"><a href="#cb33-944" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-945"><a href="#cb33-945" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-946"><a href="#cb33-946" aria-hidden="true" tabindex="-1"></a>lookup <span class="op">=</span> {</span>
+<span id="cb33-947"><a href="#cb33-947" aria-hidden="true" tabindex="-1"></a>    st: (<span class="ss">f"</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">. </span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">"</span>, i)</span>
+<span id="cb33-948"><a href="#cb33-948" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, (name, members) <span class="kw">in</span> <span class="bu">enumerate</span>(state_regions.items(), start<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb33-949"><a href="#cb33-949" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> st <span class="kw">in</span> members</span>
+<span id="cb33-950"><a href="#cb33-950" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-951"><a href="#cb33-951" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-952"><a href="#cb33-952" aria-hidden="true" tabindex="-1"></a>my_datfr[<span class="st">"Region"</span>] <span class="op">=</span> my_datfr[<span class="st">"State"</span>].<span class="bu">map</span>(<span class="kw">lambda</span> s: lookup[s][<span class="dv">0</span>])</span>
+<span id="cb33-953"><a href="#cb33-953" aria-hidden="true" tabindex="-1"></a>my_datfr[<span class="st">"Region_Index"</span>] <span class="op">=</span> my_datfr[<span class="st">"State"</span>].<span class="bu">map</span>(<span class="kw">lambda</span> s: lookup[s][<span class="dv">1</span>])</span>
 <span id="cb33-954"><a href="#cb33-954" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-955"><a href="#cb33-955" aria-hidden="true" tabindex="-1"></a>sel.describe().<span class="bu">round</span>(<span class="dv">4</span>)</span>
-<span id="cb33-956"><a href="#cb33-956" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb33-957"><a href="#cb33-957" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-960"><a href="#cb33-960" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-961"><a href="#cb33-961" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: descriptive-full</span></span>
-<span id="cb33-962"><a href="#cb33-962" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the full daily series."</span></span>
-<span id="cb33-963"><a href="#cb33-963" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-964"><a href="#cb33-964" aria-hidden="true" tabindex="-1"></a>full <span class="op">=</span> dff_full[<span class="st">"DFF"</span>].dropna()</span>
-<span id="cb33-965"><a href="#cb33-965" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-966"><a href="#cb33-966" aria-hidden="true" tabindex="-1"></a>fig_f, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.2</span>))</span>
-<span id="cb33-967"><a href="#cb33-967" aria-hidden="true" tabindex="-1"></a>ax.boxplot(full.values, vert<span class="op">=</span><span class="va">False</span>, widths<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb33-968"><a href="#cb33-968" aria-hidden="true" tabindex="-1"></a>           patch_artist<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb33-969"><a href="#cb33-969" aria-hidden="true" tabindex="-1"></a>           boxprops<span class="op">=</span>{<span class="st">"facecolor"</span>: UNLV_SCARLET, <span class="st">"alpha"</span>: <span class="fl">0.7</span>},</span>
-<span id="cb33-970"><a href="#cb33-970" aria-hidden="true" tabindex="-1"></a>           medianprops<span class="op">=</span>{<span class="st">"color"</span>: <span class="st">"white"</span>})</span>
-<span id="cb33-971"><a href="#cb33-971" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Federal funds rate (percent)"</span>)</span>
-<span id="cb33-972"><a href="#cb33-972" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
-<span id="cb33-973"><a href="#cb33-973" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Full daily history"</span>)</span>
-<span id="cb33-974"><a href="#cb33-974" aria-hidden="true" tabindex="-1"></a>fig_f.tight_layout()</span>
-<span id="cb33-975"><a href="#cb33-975" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb33-955"><a href="#cb33-955" aria-hidden="true" tabindex="-1"></a>unassigned <span class="op">=</span> my_datfr.loc[my_datfr[<span class="st">"Region"</span>].isna(), <span class="st">"State"</span>].tolist()</span>
+<span id="cb33-956"><a href="#cb33-956" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"States assigned to a region: </span><span class="sc">{</span>my_datfr[<span class="st">'Region'</span>]<span class="sc">.</span>notna()<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> "</span></span>
+<span id="cb33-957"><a href="#cb33-957" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"of </span><span class="sc">{</span><span class="bu">len</span>(my_datfr)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb33-958"><a href="#cb33-958" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> unassigned:</span>
+<span id="cb33-959"><a href="#cb33-959" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Unassigned:"</span>, unassigned)</span>
+<span id="cb33-960"><a href="#cb33-960" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-961"><a href="#cb33-961" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-964"><a href="#cb33-964" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-965"><a href="#cb33-965" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: region-box</span></span>
+<span id="cb33-966"><a href="#cb33-966" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-967"><a href="#cb33-967" aria-hidden="true" tabindex="-1"></a>regions <span class="op">=</span> (my_datfr.sort_values(<span class="st">"Region_Index"</span>)[<span class="st">"Region"</span>].drop_duplicates()</span>
+<span id="cb33-968"><a href="#cb33-968" aria-hidden="true" tabindex="-1"></a>                    .tolist())</span>
+<span id="cb33-969"><a href="#cb33-969" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> box_plot([my_datfr.loc[my_datfr[<span class="st">"Region"</span>] <span class="op">==</span> r, <span class="st">"UR"</span>] <span class="cf">for</span> r <span class="kw">in</span> regions],</span>
+<span id="cb33-970"><a href="#cb33-970" aria-hidden="true" tabindex="-1"></a>             labels<span class="op">=</span>regions,</span>
+<span id="cb33-971"><a href="#cb33-971" aria-hidden="true" tabindex="-1"></a>             title<span class="op">=</span><span class="st">"State unemployment rates by Census region"</span>,</span>
+<span id="cb33-972"><a href="#cb33-972" aria-hidden="true" tabindex="-1"></a>             xlab<span class="op">=</span><span class="st">"Unemployment rate (percent)"</span>)</span>
+<span id="cb33-973"><a href="#cb33-973" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-974"><a href="#cb33-974" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-975"><a href="#cb33-975" aria-hidden="true" tabindex="-1"></a><span class="fu">## Branches in statistics</span></span>
 <span id="cb33-976"><a href="#cb33-976" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-977"><a href="#cb33-977" aria-hidden="true" tabindex="-1"></a>full.describe().<span class="bu">round</span>(<span class="dv">4</span>)</span>
-<span id="cb33-978"><a href="#cb33-978" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb33-979"><a href="#cb33-979" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-980"><a href="#cb33-980" aria-hidden="true" tabindex="-1"></a>Descriptive statistics are useful, but have limitations. By summarizing large</span>
-<span id="cb33-981"><a href="#cb33-981" aria-hidden="true" tabindex="-1"></a>quantities of data, you lose information. The two summaries above describe the</span>
-<span id="cb33-982"><a href="#cb33-982" aria-hidden="true" tabindex="-1"></a>same underlying rate, and they disagree about nearly everything — because they</span>
-<span id="cb33-983"><a href="#cb33-983" aria-hidden="true" tabindex="-1"></a>cover different periods. A summary statistic is only as meaningful as the</span>
-<span id="cb33-984"><a href="#cb33-984" aria-hidden="true" tabindex="-1"></a>sample behind it.</span>
-<span id="cb33-985"><a href="#cb33-985" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-988"><a href="#cb33-988" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-989"><a href="#cb33-989" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: dff-timeseries</span></span>
-<span id="cb33-990"><a href="#cb33-990" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-991"><a href="#cb33-991" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> dff_full.reset_index()</span>
-<span id="cb33-992"><a href="#cb33-992" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> time_series(ts[<span class="st">"Date"</span>], ts[<span class="st">"DFF"</span>],</span>
-<span id="cb33-993"><a href="#cb33-993" aria-hidden="true" tabindex="-1"></a>                title<span class="op">=</span><span class="st">"Federal Funds Effective Rate"</span>,</span>
-<span id="cb33-994"><a href="#cb33-994" aria-hidden="true" tabindex="-1"></a>                ylab<span class="op">=</span><span class="st">"Percent"</span>)</span>
-<span id="cb33-995"><a href="#cb33-995" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb33-996"><a href="#cb33-996" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-997"><a href="#cb33-997" aria-hidden="true" tabindex="-1"></a>The time series plot shows structure — the 1980s peak, the long descent, the</span>
-<span id="cb33-998"><a href="#cb33-998" aria-hidden="true" tabindex="-1"></a>zero lower bound, the recent tightening — that no box plot can express. This is</span>
-<span id="cb33-999"><a href="#cb33-999" aria-hidden="true" tabindex="-1"></a>the information the summary discarded.</span>
+<span id="cb33-977"><a href="#cb33-977" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-978"><a href="#cb33-978" aria-hidden="true" tabindex="-1"></a>The purpose of **descriptive statistics** is to summarize, or display, data to</span>
+<span id="cb33-979"><a href="#cb33-979" aria-hidden="true" tabindex="-1"></a>quickly get an overview of the information.</span>
+<span id="cb33-980"><a href="#cb33-980" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-981"><a href="#cb33-981" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-984"><a href="#cb33-984" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-985"><a href="#cb33-985" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: descriptive-monthly</span></span>
+<span id="cb33-986"><a href="#cb33-986" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the month-start selections."</span></span>
+<span id="cb33-987"><a href="#cb33-987" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-988"><a href="#cb33-988" aria-hidden="true" tabindex="-1"></a>sel <span class="op">=</span> selected[<span class="st">"federal_funds_rate"</span>].dropna()</span>
+<span id="cb33-989"><a href="#cb33-989" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-990"><a href="#cb33-990" aria-hidden="true" tabindex="-1"></a>fig_m, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.2</span>))</span>
+<span id="cb33-991"><a href="#cb33-991" aria-hidden="true" tabindex="-1"></a>ax.boxplot(sel.values, vert<span class="op">=</span><span class="va">False</span>, widths<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb33-992"><a href="#cb33-992" aria-hidden="true" tabindex="-1"></a>           patch_artist<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb33-993"><a href="#cb33-993" aria-hidden="true" tabindex="-1"></a>           boxprops<span class="op">=</span>{<span class="st">"facecolor"</span>: UNLV_SCARLET, <span class="st">"alpha"</span>: <span class="fl">0.7</span>},</span>
+<span id="cb33-994"><a href="#cb33-994" aria-hidden="true" tabindex="-1"></a>           medianprops<span class="op">=</span>{<span class="st">"color"</span>: <span class="st">"white"</span>})</span>
+<span id="cb33-995"><a href="#cb33-995" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Federal funds rate (percent)"</span>)</span>
+<span id="cb33-996"><a href="#cb33-996" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
+<span id="cb33-997"><a href="#cb33-997" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Month-start observations since 2020"</span>)</span>
+<span id="cb33-998"><a href="#cb33-998" aria-hidden="true" tabindex="-1"></a>fig_m.tight_layout()</span>
+<span id="cb33-999"><a href="#cb33-999" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
 <span id="cb33-1000"><a href="#cb33-1000" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1001"><a href="#cb33-1001" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1002"><a href="#cb33-1002" aria-hidden="true" tabindex="-1"></a>A **population** represents all possible subjects of interest. A **sample** is</span>
-<span id="cb33-1003"><a href="#cb33-1003" aria-hidden="true" tabindex="-1"></a>a subset of a population.</span>
-<span id="cb33-1004"><a href="#cb33-1004" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1005"><a href="#cb33-1005" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1006"><a href="#cb33-1006" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1007"><a href="#cb33-1007" aria-hidden="true" tabindex="-1"></a>**Inferential statistics** allows us to make claims or conclusions about the</span>
-<span id="cb33-1008"><a href="#cb33-1008" aria-hidden="true" tabindex="-1"></a>data and its population.</span>
-<span id="cb33-1009"><a href="#cb33-1009" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1010"><a href="#cb33-1010" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1011"><a href="#cb33-1011" aria-hidden="true" tabindex="-1"></a>Inferential statistics at work:</span>
-<span id="cb33-1012"><a href="#cb33-1012" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1013"><a href="#cb33-1013" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Production engineers tell us that a properly functioning production line will</span>
-<span id="cb33-1014"><a href="#cb33-1014" aria-hidden="true" tabindex="-1"></a>  produce boxes of cereal with a weight of 18.0 oz.</span>
-<span id="cb33-1015"><a href="#cb33-1015" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>We select a **random sample** of cereal from boxes coming from this</span>
-<span id="cb33-1016"><a href="#cb33-1016" aria-hidden="true" tabindex="-1"></a>  production line (i.e., population).</span>
-<span id="cb33-1017"><a href="#cb33-1017" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>We calculate the sample average to be 18.2 oz.</span>
-<span id="cb33-1018"><a href="#cb33-1018" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Using **inferential statistics**, we determine that the probability of</span>
-<span id="cb33-1019"><a href="#cb33-1019" aria-hidden="true" tabindex="-1"></a>  observing a sample average of 18.2 oz is less than 1% if the actual</span>
-<span id="cb33-1020"><a href="#cb33-1020" aria-hidden="true" tabindex="-1"></a>  population average were 18.0 oz.</span>
-<span id="cb33-1021"><a href="#cb33-1021" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Conclude that the actual population average is greater than 18.0 oz. That is,</span>
-<span id="cb33-1022"><a href="#cb33-1022" aria-hidden="true" tabindex="-1"></a>  we find that there is a problem with this production line that needs to be</span>
-<span id="cb33-1023"><a href="#cb33-1023" aria-hidden="true" tabindex="-1"></a>  solved.</span>
-<span id="cb33-1024"><a href="#cb33-1024" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1025"><a href="#cb33-1025" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1026"><a href="#cb33-1026" aria-hidden="true" tabindex="-1"></a>**Predictive statistics** analyzes past data to predict future values and make</span>
-<span id="cb33-1027"><a href="#cb33-1027" aria-hidden="true" tabindex="-1"></a>predictions.</span>
-<span id="cb33-1028"><a href="#cb33-1028" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1029"><a href="#cb33-1029" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1030"><a href="#cb33-1030" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1031"><a href="#cb33-1031" aria-hidden="true" tabindex="-1"></a>Data that describe a characteristic about a population are known as</span>
-<span id="cb33-1032"><a href="#cb33-1032" aria-hidden="true" tabindex="-1"></a>**parameters**.</span>
-<span id="cb33-1033"><a href="#cb33-1033" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1034"><a href="#cb33-1034" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1035"><a href="#cb33-1035" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1036"><a href="#cb33-1036" aria-hidden="true" tabindex="-1"></a>Data that describe a characteristic about a sample are known as **statistics**.</span>
-<span id="cb33-1037"><a href="#cb33-1037" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1038"><a href="#cb33-1038" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1039"><a href="#cb33-1039" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1040"><a href="#cb33-1040" aria-hidden="true" tabindex="-1"></a>**Business analytics** uses statistical analysis and predictive models in the</span>
-<span id="cb33-1041"><a href="#cb33-1041" aria-hidden="true" tabindex="-1"></a>business world to analyze data and make meaningful conclusions about decisions.</span>
-<span id="cb33-1042"><a href="#cb33-1042" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1043"><a href="#cb33-1043" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1044"><a href="#cb33-1044" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
-<span id="cb33-1045"><a href="#cb33-1045" aria-hidden="true" tabindex="-1"></a>**Data Analytics** uses statistical analysis and predictive models to answer</span>
-<span id="cb33-1046"><a href="#cb33-1046" aria-hidden="true" tabindex="-1"></a>questions in the business world and more broadly to make meaningful conclusions</span>
-<span id="cb33-1047"><a href="#cb33-1047" aria-hidden="true" tabindex="-1"></a>about decisions.</span>
-<span id="cb33-1048"><a href="#cb33-1048" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1049"><a href="#cb33-1049" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1050"><a href="#cb33-1050" aria-hidden="true" tabindex="-1"></a><span class="fu">## Ethics and statistics — it's a dangerous world of data out there</span></span>
+<span id="cb33-1001"><a href="#cb33-1001" aria-hidden="true" tabindex="-1"></a>sel.describe().<span class="bu">round</span>(<span class="dv">4</span>)</span>
+<span id="cb33-1002"><a href="#cb33-1002" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-1003"><a href="#cb33-1003" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1006"><a href="#cb33-1006" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-1007"><a href="#cb33-1007" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: descriptive-full</span></span>
+<span id="cb33-1008"><a href="#cb33-1008" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Distribution of the full daily series."</span></span>
+<span id="cb33-1009"><a href="#cb33-1009" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1010"><a href="#cb33-1010" aria-hidden="true" tabindex="-1"></a>full <span class="op">=</span> dff_full[<span class="st">"DFF"</span>].dropna()</span>
+<span id="cb33-1011"><a href="#cb33-1011" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1012"><a href="#cb33-1012" aria-hidden="true" tabindex="-1"></a>fig_f, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.2</span>))</span>
+<span id="cb33-1013"><a href="#cb33-1013" aria-hidden="true" tabindex="-1"></a>ax.boxplot(full.values, vert<span class="op">=</span><span class="va">False</span>, widths<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb33-1014"><a href="#cb33-1014" aria-hidden="true" tabindex="-1"></a>           patch_artist<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb33-1015"><a href="#cb33-1015" aria-hidden="true" tabindex="-1"></a>           boxprops<span class="op">=</span>{<span class="st">"facecolor"</span>: UNLV_SCARLET, <span class="st">"alpha"</span>: <span class="fl">0.7</span>},</span>
+<span id="cb33-1016"><a href="#cb33-1016" aria-hidden="true" tabindex="-1"></a>           medianprops<span class="op">=</span>{<span class="st">"color"</span>: <span class="st">"white"</span>})</span>
+<span id="cb33-1017"><a href="#cb33-1017" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Federal funds rate (percent)"</span>)</span>
+<span id="cb33-1018"><a href="#cb33-1018" aria-hidden="true" tabindex="-1"></a>ax.set_yticks([])</span>
+<span id="cb33-1019"><a href="#cb33-1019" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Full daily history"</span>)</span>
+<span id="cb33-1020"><a href="#cb33-1020" aria-hidden="true" tabindex="-1"></a>fig_f.tight_layout()</span>
+<span id="cb33-1021"><a href="#cb33-1021" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb33-1022"><a href="#cb33-1022" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1023"><a href="#cb33-1023" aria-hidden="true" tabindex="-1"></a>full.describe().<span class="bu">round</span>(<span class="dv">4</span>)</span>
+<span id="cb33-1024"><a href="#cb33-1024" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-1025"><a href="#cb33-1025" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1026"><a href="#cb33-1026" aria-hidden="true" tabindex="-1"></a>Descriptive statistics are useful, but have limitations. By summarizing large</span>
+<span id="cb33-1027"><a href="#cb33-1027" aria-hidden="true" tabindex="-1"></a>quantities of data, you lose information. The two summaries above describe the</span>
+<span id="cb33-1028"><a href="#cb33-1028" aria-hidden="true" tabindex="-1"></a>same underlying rate, and they disagree about nearly everything — because they</span>
+<span id="cb33-1029"><a href="#cb33-1029" aria-hidden="true" tabindex="-1"></a>cover different periods. A summary statistic is only as meaningful as the</span>
+<span id="cb33-1030"><a href="#cb33-1030" aria-hidden="true" tabindex="-1"></a>sample behind it.</span>
+<span id="cb33-1031"><a href="#cb33-1031" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1034"><a href="#cb33-1034" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-1035"><a href="#cb33-1035" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: dff-timeseries</span></span>
+<span id="cb33-1036"><a href="#cb33-1036" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1037"><a href="#cb33-1037" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> dff_full.reset_index()</span>
+<span id="cb33-1038"><a href="#cb33-1038" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> time_series(ts[<span class="st">"Date"</span>], ts[<span class="st">"DFF"</span>],</span>
+<span id="cb33-1039"><a href="#cb33-1039" aria-hidden="true" tabindex="-1"></a>                title<span class="op">=</span><span class="st">"Federal Funds Effective Rate"</span>,</span>
+<span id="cb33-1040"><a href="#cb33-1040" aria-hidden="true" tabindex="-1"></a>                ylab<span class="op">=</span><span class="st">"Percent"</span>)</span>
+<span id="cb33-1041"><a href="#cb33-1041" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb33-1042"><a href="#cb33-1042" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1043"><a href="#cb33-1043" aria-hidden="true" tabindex="-1"></a>The time series plot shows structure — the 1980s peak, the long descent, the</span>
+<span id="cb33-1044"><a href="#cb33-1044" aria-hidden="true" tabindex="-1"></a>zero lower bound, the recent tightening — that no box plot can express. This is</span>
+<span id="cb33-1045"><a href="#cb33-1045" aria-hidden="true" tabindex="-1"></a>the information the summary discarded.</span>
+<span id="cb33-1046"><a href="#cb33-1046" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1047"><a href="#cb33-1047" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1048"><a href="#cb33-1048" aria-hidden="true" tabindex="-1"></a>A **population** represents all possible subjects of interest. A **sample** is</span>
+<span id="cb33-1049"><a href="#cb33-1049" aria-hidden="true" tabindex="-1"></a>a subset of a population.</span>
+<span id="cb33-1050"><a href="#cb33-1050" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb33-1051"><a href="#cb33-1051" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1052"><a href="#cb33-1052" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
-<span id="cb33-1053"><a href="#cb33-1053" aria-hidden="true" tabindex="-1"></a>A **biased sample** is a sample that does not represent the intended population</span>
-<span id="cb33-1054"><a href="#cb33-1054" aria-hidden="true" tabindex="-1"></a>and that can lead to distorted findings. Biased sampling can occur either</span>
-<span id="cb33-1055"><a href="#cb33-1055" aria-hidden="true" tabindex="-1"></a>intentionally or unintentionally.</span>
-<span id="cb33-1056"><a href="#cb33-1056" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb33-1057"><a href="#cb33-1057" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1058"><a href="#cb33-1058" aria-hidden="true" tabindex="-1"></a>One of the most frequent *abuses* of statistics that I notice regularly is the</span>
-<span id="cb33-1059"><a href="#cb33-1059" aria-hidden="true" tabindex="-1"></a>focus on low probability events and the use of these outcomes in the</span>
-<span id="cb33-1060"><a href="#cb33-1060" aria-hidden="true" tabindex="-1"></a>**headlines**. For example, a properly trained data analyst will report a 95%</span>
-<span id="cb33-1061"><a href="#cb33-1061" aria-hidden="true" tabindex="-1"></a>confidence interval for a particular parameter. The analyst may say that there</span>
-<span id="cb33-1062"><a href="#cb33-1062" aria-hidden="true" tabindex="-1"></a>is a 95% chance that the Nevada State net budget will range from</span>
-<span id="cb33-1063"><a href="#cb33-1063" aria-hidden="true" tabindex="-1"></a>$(-\$750\text{ million}, \$2100\text{ million})$. It would be *misleading* in</span>
-<span id="cb33-1064"><a href="#cb33-1064" aria-hidden="true" tabindex="-1"></a>an article to say that:</span>
-<span id="cb33-1065"><a href="#cb33-1065" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1066"><a href="#cb33-1066" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Researchers find the State of Nevada is in budgetary peril: A budget</span></span>
-<span id="cb33-1067"><a href="#cb33-1067" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; shortfall of nearly \$1 Billion in the cards</span></span>
-<span id="cb33-1068"><a href="#cb33-1068" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1069"><a href="#cb33-1069" aria-hidden="true" tabindex="-1"></a>When we see a wide ranging 95% confidence interval, the appropriate takeaway is</span>
-<span id="cb33-1070"><a href="#cb33-1070" aria-hidden="true" tabindex="-1"></a>that there is a lot of **uncertainty** and a lot is **unknown** about the</span>
-<span id="cb33-1071"><a href="#cb33-1071" aria-hidden="true" tabindex="-1"></a>processes. I believe journalists and politicians behave like they do because it</span>
-<span id="cb33-1072"><a href="#cb33-1072" aria-hidden="true" tabindex="-1"></a>sells papers and can spur voting interest.</span>
-<span id="cb33-1073"><a href="#cb33-1073" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-1074"><a href="#cb33-1074" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
-<span id="cb33-1075"><a href="#cb33-1075" aria-hidden="true" tabindex="-1"></a>The same failure mode appears in AI-assisted work. An assistant will produce a</span>
-<span id="cb33-1076"><a href="#cb33-1076" aria-hidden="true" tabindex="-1"></a>confident paragraph whether or not the underlying computation supports it.</span>
-<span id="cb33-1077"><a href="#cb33-1077" aria-hidden="true" tabindex="-1"></a>Confidence in the prose is not evidence about the data. **Check the output.**</span>
-<span id="cb33-1078"><a href="#cb33-1078" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1052"><a href="#cb33-1052" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1053"><a href="#cb33-1053" aria-hidden="true" tabindex="-1"></a>**Inferential statistics** allows us to make claims or conclusions about the</span>
+<span id="cb33-1054"><a href="#cb33-1054" aria-hidden="true" tabindex="-1"></a>data and its population.</span>
+<span id="cb33-1055"><a href="#cb33-1055" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1056"><a href="#cb33-1056" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1057"><a href="#cb33-1057" aria-hidden="true" tabindex="-1"></a>Inferential statistics at work:</span>
+<span id="cb33-1058"><a href="#cb33-1058" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1059"><a href="#cb33-1059" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Production engineers tell us that a properly functioning production line will</span>
+<span id="cb33-1060"><a href="#cb33-1060" aria-hidden="true" tabindex="-1"></a>  produce boxes of cereal with a weight of 18.0 oz.</span>
+<span id="cb33-1061"><a href="#cb33-1061" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>We select a **random sample** of cereal from boxes coming from this</span>
+<span id="cb33-1062"><a href="#cb33-1062" aria-hidden="true" tabindex="-1"></a>  production line (i.e., population).</span>
+<span id="cb33-1063"><a href="#cb33-1063" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>We calculate the sample average to be 18.2 oz.</span>
+<span id="cb33-1064"><a href="#cb33-1064" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Using **inferential statistics**, we determine that the probability of</span>
+<span id="cb33-1065"><a href="#cb33-1065" aria-hidden="true" tabindex="-1"></a>  observing a sample average of 18.2 oz is less than 1% if the actual</span>
+<span id="cb33-1066"><a href="#cb33-1066" aria-hidden="true" tabindex="-1"></a>  population average were 18.0 oz.</span>
+<span id="cb33-1067"><a href="#cb33-1067" aria-hidden="true" tabindex="-1"></a><span class="ss">+ </span>Conclude that the actual population average is greater than 18.0 oz. That is,</span>
+<span id="cb33-1068"><a href="#cb33-1068" aria-hidden="true" tabindex="-1"></a>  we find that there is a problem with this production line that needs to be</span>
+<span id="cb33-1069"><a href="#cb33-1069" aria-hidden="true" tabindex="-1"></a>  solved.</span>
+<span id="cb33-1070"><a href="#cb33-1070" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1071"><a href="#cb33-1071" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1072"><a href="#cb33-1072" aria-hidden="true" tabindex="-1"></a>**Predictive statistics** analyzes past data to predict future values and make</span>
+<span id="cb33-1073"><a href="#cb33-1073" aria-hidden="true" tabindex="-1"></a>predictions.</span>
+<span id="cb33-1074"><a href="#cb33-1074" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1075"><a href="#cb33-1075" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1076"><a href="#cb33-1076" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1077"><a href="#cb33-1077" aria-hidden="true" tabindex="-1"></a>Data that describe a characteristic about a population are known as</span>
+<span id="cb33-1078"><a href="#cb33-1078" aria-hidden="true" tabindex="-1"></a>**parameters**.</span>
+<span id="cb33-1079"><a href="#cb33-1079" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1080"><a href="#cb33-1080" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1081"><a href="#cb33-1081" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1082"><a href="#cb33-1082" aria-hidden="true" tabindex="-1"></a>Data that describe a characteristic about a sample are known as **statistics**.</span>
+<span id="cb33-1083"><a href="#cb33-1083" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1084"><a href="#cb33-1084" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1085"><a href="#cb33-1085" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1086"><a href="#cb33-1086" aria-hidden="true" tabindex="-1"></a>**Business analytics** uses statistical analysis and predictive models in the</span>
+<span id="cb33-1087"><a href="#cb33-1087" aria-hidden="true" tabindex="-1"></a>business world to analyze data and make meaningful conclusions about decisions.</span>
+<span id="cb33-1088"><a href="#cb33-1088" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1089"><a href="#cb33-1089" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1090"><a href="#cb33-1090" aria-hidden="true" tabindex="-1"></a>::: {.scarlet}</span>
+<span id="cb33-1091"><a href="#cb33-1091" aria-hidden="true" tabindex="-1"></a>**Data Analytics** uses statistical analysis and predictive models to answer</span>
+<span id="cb33-1092"><a href="#cb33-1092" aria-hidden="true" tabindex="-1"></a>questions in the business world and more broadly to make meaningful conclusions</span>
+<span id="cb33-1093"><a href="#cb33-1093" aria-hidden="true" tabindex="-1"></a>about decisions.</span>
+<span id="cb33-1094"><a href="#cb33-1094" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1095"><a href="#cb33-1095" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1096"><a href="#cb33-1096" aria-hidden="true" tabindex="-1"></a><span class="fu">## Ethics and statistics — it's a dangerous world of data out there</span></span>
+<span id="cb33-1097"><a href="#cb33-1097" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1098"><a href="#cb33-1098" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
+<span id="cb33-1099"><a href="#cb33-1099" aria-hidden="true" tabindex="-1"></a>A **biased sample** is a sample that does not represent the intended population</span>
+<span id="cb33-1100"><a href="#cb33-1100" aria-hidden="true" tabindex="-1"></a>and that can lead to distorted findings. Biased sampling can occur either</span>
+<span id="cb33-1101"><a href="#cb33-1101" aria-hidden="true" tabindex="-1"></a>intentionally or unintentionally.</span>
+<span id="cb33-1102"><a href="#cb33-1102" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb33-1103"><a href="#cb33-1103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1104"><a href="#cb33-1104" aria-hidden="true" tabindex="-1"></a>One of the most frequent *abuses* of statistics that I notice regularly is the</span>
+<span id="cb33-1105"><a href="#cb33-1105" aria-hidden="true" tabindex="-1"></a>focus on low probability events and the use of these outcomes in the</span>
+<span id="cb33-1106"><a href="#cb33-1106" aria-hidden="true" tabindex="-1"></a>**headlines**. For example, a properly trained data analyst will report a 95%</span>
+<span id="cb33-1107"><a href="#cb33-1107" aria-hidden="true" tabindex="-1"></a>confidence interval for a particular parameter. The analyst may say that there</span>
+<span id="cb33-1108"><a href="#cb33-1108" aria-hidden="true" tabindex="-1"></a>is a 95% chance that the Nevada State net budget will range from</span>
+<span id="cb33-1109"><a href="#cb33-1109" aria-hidden="true" tabindex="-1"></a>$(-\$750\text{ million}, \$2100\text{ million})$. It would be *misleading* in</span>
+<span id="cb33-1110"><a href="#cb33-1110" aria-hidden="true" tabindex="-1"></a>an article to say that:</span>
+<span id="cb33-1111"><a href="#cb33-1111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1112"><a href="#cb33-1112" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Researchers find the State of Nevada is in budgetary peril: A budget</span></span>
+<span id="cb33-1113"><a href="#cb33-1113" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; shortfall of nearly \$1 Billion in the cards</span></span>
+<span id="cb33-1114"><a href="#cb33-1114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1115"><a href="#cb33-1115" aria-hidden="true" tabindex="-1"></a>When we see a wide ranging 95% confidence interval, the appropriate takeaway is</span>
+<span id="cb33-1116"><a href="#cb33-1116" aria-hidden="true" tabindex="-1"></a>that there is a lot of **uncertainty** and a lot is **unknown** about the</span>
+<span id="cb33-1117"><a href="#cb33-1117" aria-hidden="true" tabindex="-1"></a>processes. I believe journalists and politicians behave like they do because it</span>
+<span id="cb33-1118"><a href="#cb33-1118" aria-hidden="true" tabindex="-1"></a>sells papers and can spur voting interest.</span>
+<span id="cb33-1119"><a href="#cb33-1119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-1120"><a href="#cb33-1120" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
+<span id="cb33-1121"><a href="#cb33-1121" aria-hidden="true" tabindex="-1"></a>The same failure mode appears in AI-assisted work. An assistant will produce a</span>
+<span id="cb33-1122"><a href="#cb33-1122" aria-hidden="true" tabindex="-1"></a>confident paragraph whether or not the underlying computation supports it.</span>
+<span id="cb33-1123"><a href="#cb33-1123" aria-hidden="true" tabindex="-1"></a>Confidence in the prose is not evidence about the data. **Check the output.**</span>
+<span id="cb33-1124"><a href="#cb33-1124" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
