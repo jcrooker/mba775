@@ -20,11 +20,20 @@ WHAT TO DO
 3. Drag all 11 files into the message box at once. Wait until each
    one shows as attached.
 
-4. Paste the Laboratory 3 prompt from the lecture note - the one that
-   begins "I have uploaded". Send it.
+4. Paste the prompt from the lecture note for whichever exercise you
+   are doing - the one that begins "I have uploaded". Send it.
 
 Claude will read COURSE_CONTEXT.md, run the script, and show you the
 output.
+
+
+SCRIPTS YOU CAN RUN FROM THIS PACK
+
+    03_descriptive_statistics.py
+        central tendency, variability, relative position, association
+
+Upload the whole pack once; you can then run any of these in the same
+conversation without uploading anything again.
 
 
 THE FILES

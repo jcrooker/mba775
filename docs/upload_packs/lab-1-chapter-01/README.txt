@@ -13,25 +13,43 @@ Nothing here needs to be installed, unzipped further, or edited.
 
 WHAT TO DO
 
-1. Download all 4 files listed below.
+1. Download all 7 files listed below.
 
 2. Open a NEW conversation at claude.ai.
 
-3. Drag all 4 files into the message box at once. Wait until each
+3. Drag all 7 files into the message box at once. Wait until each
    one shows as attached.
 
-4. Paste the Laboratory 1 prompt from the lecture note - the one that
-   begins "I have uploaded". Send it.
+4. Paste the prompt from the lecture note for whichever exercise you
+   are doing - the one that begins "I have uploaded". Send it.
 
 Claude will read COURSE_CONTEXT.md, run the script, and show you the
 output.
 
 
+SCRIPTS YOU CAN RUN FROM THIS PACK
+
+    01a_inspect_dff.py
+        verify a data set before analysing it: types, coverage, missing values, provenance
+
+    01b_monthly_transformations.py
+        selecting an observation versus calculating a statistic
+
+    01c_state_cross_section.py
+        a cross section of the 50 states, and whether the dates actually line up
+
+Upload the whole pack once; you can then run any of these in the same
+conversation without uploading anything again.
+
+
 THE FILES
 
     01a_inspect_dff.py
+    01b_monthly_transformations.py
+    01c_state_cross_section.py
     _course.py
     dff.csv
+    state_unemployment.csv
     COURSE_CONTEXT.md
 
 Upload ALL of them. The script will stop with an error if any are

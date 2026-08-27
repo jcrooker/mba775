@@ -400,14 +400,15 @@ does the fetching.
 #### Path 1 — upload the files
 
 **[Download the Laboratory 1 pack](../upload_packs/lab-1-chapter-01.zip)** —
-one file. Unzip it and you will have a folder holding four files. Drag all
-four into a new Claude conversation, wait for each to show as attached, and
-paste this:
+one file. Unzip it and you will have a folder holding seven files: the three
+scripts used in this chapter, the helper they share, two data files, and the
+course rules. Drag all seven into a new Claude conversation, wait for each to
+show as attached, and paste this:
 
 ::: {.prompt}
 Prompt
 
-> I have uploaded four files for a graduate business statistics course. Read
+> I have uploaded seven files for a graduate business statistics course. Read
 > `COURSE_CONTEXT.md` first — it explains how this course expects analytical
 > work to be done.
 >
@@ -726,17 +727,31 @@ differ, and the latest non-missing date need not be identical for every state.
 A defensible comparison must establish a common reference date or explicitly
 document any timing differences.
 
-Ask Claude:
+The Laboratory 1 pack already contains this script and its data — you do not
+need to download anything else. In the same conversation where you ran
+`01a_inspect_dff.py`, ask Claude:
 
-> Get `scripts/01c_state_cross_section.py`, `scripts/_course.py`, and
-> `data/state_unemployment.csv` from <https://github.com/jcrooker/mba775> and
-> run the script. Before you compare any states, tell me whether every state's
-> most recent observation falls on the same date. If the dates differ, report
-> the differences and ask me to choose a common-date rule rather than silently
-> combining unlike periods. Show me the actual output.
+::: {.prompt}
+Prompt
 
-This task introduces an important habit: **Claude should surface a consequential
-analytical choice rather than quietly make it for us.**
+> Now run `01c_state_cross_section.py` from the files I uploaded. Before you
+> compare any states, tell me whether every state's most recent observation
+> falls on the same date. If the dates differ, report the differences and ask
+> me to choose a common-date rule rather than silently combining unlike
+> periods. Show me the actual output.
+:::
+
+::: {.charcoal}
+This task introduces the habit the rest of the course depends on: **Claude
+should surface a consequential analytical choice rather than quietly make it
+for us.**
+
+Notice that the prompt does not merely ask for the answer. It asks Claude to
+*stop* at a specific point and hand a decision back. An assistant left to its
+own devices will pick a rule — probably a reasonable one — and never mention
+that a choice was made. The unstated assumption is the danger, not the rule
+itself.
+:::
 
 ```{python}
 #| label: state-abbrevs

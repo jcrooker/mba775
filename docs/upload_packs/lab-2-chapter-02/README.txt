@@ -20,11 +20,20 @@ WHAT TO DO
 3. Drag all 5 files into the message box at once. Wait until each
    one shows as attached.
 
-4. Paste the Laboratory 2 prompt from the lecture note - the one that
-   begins "I have uploaded". Send it.
+4. Paste the prompt from the lecture note for whichever exercise you
+   are doing - the one that begins "I have uploaded". Send it.
 
 Claude will read COURSE_CONTEXT.md, run the script, and show you the
 output.
+
+
+SCRIPTS YOU CAN RUN FROM THIS PACK
+
+    02_displaying_data.py
+        frequency tables, histograms, ogives, Pareto and pie charts, contingency tables, scatter plots
+
+Upload the whole pack once; you can then run any of these in the same
+conversation without uploading anything again.
 
 
 THE FILES

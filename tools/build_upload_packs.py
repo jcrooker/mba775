@@ -50,21 +50,34 @@ LABS = {
     "lab-1-chapter-01": {
         "chapter": 1,
         "topic": "inspecting a data series",
-        "run": "01a_inspect_dff.py",
-        "scripts": ["01a_inspect_dff.py", "_course.py"],
-        "data": ["dff.csv"],
+        "run": {
+            "01a_inspect_dff.py":
+                "verify a data set before analysing it: types, coverage, "
+                "missing values, provenance",
+            "01b_monthly_transformations.py":
+                "selecting an observation versus calculating a statistic",
+            "01c_state_cross_section.py":
+                "a cross section of the 50 states, and whether the dates "
+                "actually line up",
+        },
+        "scripts": ["01a_inspect_dff.py", "01b_monthly_transformations.py",
+                    "01c_state_cross_section.py", "_course.py"],
+        "data": ["dff.csv", "state_unemployment.csv"],
     },
     "lab-2-chapter-02": {
         "chapter": 2,
         "topic": "displaying data",
-        "run": "02_displaying_data.py",
+        "run": {"02_displaying_data.py":
+                "frequency tables, histograms, ogives, Pareto and pie charts, "
+                "contingency tables, scatter plots"},
         "scripts": ["02_displaying_data.py", "_course.py", "_charts.py"],
         "data": ["state_hpi_ur_pop.csv"],
     },
     "lab-3-chapter-03": {
         "chapter": 3,
         "topic": "calculating descriptive statistics",
-        "run": "03_descriptive_statistics.py",
+        "run": {"03_descriptive_statistics.py":
+                "central tendency, variability, relative position, association"},
         "scripts": ["03_descriptive_statistics.py", "_course.py", "_stats.py"],
         "data": ["annual_returns.csv", "cpi_inflation.csv",
                  "grad_student_gpa.csv", "nevada_agi_2016_sample.csv",
@@ -74,7 +87,9 @@ LABS = {
     "lab-4-chapter-04": {
         "chapter": 4,
         "topic": "probability",
-        "run": "04_probability.py",
+        "run": {"04_probability.py":
+                "classical and empirical probability, conditional probability, "
+                "independence, Bayes' Theorem, counting"},
         "scripts": ["04_probability.py", "_course.py", "_stats.py", "_prob.py"],
         "data": ["nevada_economy.csv"],
     },
@@ -102,11 +117,19 @@ WHAT TO DO
 3. Drag all {count} files into the message box at once. Wait until each
    one shows as attached.
 
-4. Paste the Laboratory {n} prompt from the lecture note - the one that
-   begins "I have uploaded". Send it.
+4. Paste the prompt from the lecture note for whichever exercise you
+   are doing - the one that begins "I have uploaded". Send it.
 
 Claude will read COURSE_CONTEXT.md, run the script, and show you the
 output.
+
+
+SCRIPTS YOU CAN RUN FROM THIS PACK
+
+{runnable}
+
+Upload the whole pack once; you can then run any of these in the same
+conversation without uploading anything again.
 
 
 THE FILES
@@ -228,10 +251,13 @@ def write_index() -> int:
             f'  <li><a href="{name}/{f}">{f}</a></li>'
             for f in spec["scripts"] + spec["data"] + ["COURSE_CONTEXT.md"])
         count += len(spec["scripts"]) + len(spec["data"]) + 1
+        runs = "".join(f"<li><code>{r}</code> — {d}</li>"
+                       for r, d in spec["run"].items())
         sections.append(
             f'<h2>Laboratory {spec["chapter"]} — {spec["topic"]}</h2>\n'
             f'<p><a class="zip" href="{name}.zip">Download all as one zip</a></p>\n'
-            f'<ul>\n{items}\n</ul>')
+            f'<p><strong>Scripts you can run:</strong></p>\n<ul>{runs}</ul>\n'
+            f'<p><strong>All files:</strong></p>\n<ul>\n{items}\n</ul>')
     (OUT / "index.html").write_text(
         INDEX_HTML.format(sections="\n\n".join(sections)), encoding="utf-8")
     return count
@@ -267,10 +293,12 @@ def build() -> list[tuple[str, int, float]]:
 
         uploads = spec["scripts"] + spec["data"] + ["COURSE_CONTEXT.md"]
         listing = "\n".join(f"    {f}" for f in uploads)
+        runnable = "\n\n".join(
+            f"    {name}\n        {desc}" for name, desc in spec["run"].items())
         (pack / "README.txt").write_text(
             PACK_README.format(n=spec["chapter"], chapter=spec["chapter"],
                                topic=spec["topic"], count=len(uploads),
-                               listing=listing),
+                               listing=listing, runnable=runnable),
             encoding="utf-8")
 
         size = sum(f.stat().st_size for f in pack.iterdir() if f.is_file())
@@ -302,7 +330,8 @@ def verify() -> bool:
     all_ok = True
     for name, spec in LABS.items():
         pack = OUT / name
-        with tempfile.TemporaryDirectory() as tmp:
+        for script in spec["run"]:
+          with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             for f in pack.iterdir():
                 if f.is_file() and f.suffix in {".py", ".csv", ".md"}:
@@ -317,12 +346,12 @@ def verify() -> bool:
             env = os.environ.copy()
             env["MPLBACKEND"] = "Agg"
             result = subprocess.run(
-                [sys.executable, spec["run"]], cwd=tmp,
+                [sys.executable, script], cwd=tmp,
                 capture_output=True, text=True, env=env)
-        ok = result.returncode == 0
-        all_ok &= ok
-        print(f"  {name:<20} {'PASS' if ok else 'FAIL'}")
-        if not ok:
+          ok = result.returncode == 0
+          all_ok &= ok
+          print(f"  {name:<20} {script:<34} {'PASS' if ok else 'FAIL'}")
+          if not ok:
             tail = (result.stderr or result.stdout).strip().splitlines()[-4:]
             for line in tail:
                 print(f"      {line}")
