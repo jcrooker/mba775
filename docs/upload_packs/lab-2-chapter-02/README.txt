@@ -13,11 +13,11 @@ Nothing here needs to be installed, unzipped further, or edited.
 
 WHAT TO DO
 
-1. Download all 5 files listed below.
+1. Download all 7 files listed below.
 
 2. Open a NEW conversation at claude.ai.
 
-3. Drag all 5 files into the message box at once. Wait until each
+3. Drag all 7 files into the message box at once. Wait until each
    one shows as attached.
 
 4. Paste the prompt from the lecture note for whichever exercise you
@@ -41,6 +41,8 @@ THE FILES
     02_displaying_data.py
     _course.py
     _charts.py
+    world_poverty_income.csv
+    gdp_per_capita_panel.csv
     state_hpi_ur_pop.csv
     COURSE_CONTEXT.md
 

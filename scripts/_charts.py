@@ -210,6 +210,46 @@ def discrete_histogram(x, title=None, xlab=None, ylab="Frequency",
     return pd.DataFrame({"value": values, "count": counts})
 
 
+def connected_scatter(x, y, labels=None, title=None, xlab=None, ylab=None,
+                      logx=False, annotate_every=1, figsize=(10, 5.5)):
+    """A scatter whose points are joined in order -- a *time path*.
+
+    Two variables plotted against each other, with the points connected in the
+    order they occurred. It is not a time series (neither axis is time) and it
+    is not an ordinary scatter (the order of the points carries meaning). What
+    it shows is where a thing has travelled through a two-variable space.
+
+    `logx` puts the horizontal axis on a log scale, which is the honest choice
+    when the variable spans more than an order of magnitude -- and which is a
+    decision worth showing the reader rather than making silently.
+    """
+    xs, ys = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(xs, ys, color=UNLV_SCARLET, linewidth=2.6, zorder=2,
+            solid_capstyle="round")
+    ax.scatter(xs, ys, s=34, color=UNLV_SCARLET, zorder=3,
+               edgecolor="white", linewidth=1.1)
+
+    if labels is not None:
+        for i, (xi, yi, li) in enumerate(zip(xs, ys, labels)):
+            if i % annotate_every == 0:
+                ax.annotate(str(li), (xi, yi), textcoords="offset points",
+                            xytext=(7, 7), fontsize=8.5, color=UNLV_GRAY)
+
+    if logx:
+        ax.set_xscale("log")
+        ax.xaxis.set_major_formatter(
+            plt.FuncFormatter(lambda v, _: f"${v:,.0f}"))
+        ax.set_xticks([1000, 2000, 5000, 10000, 20000])
+        ax.minorticks_off()
+
+    _finish(ax, title, xlab, ylab, grid_axis="both")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"x": xs, "y": ys})
+
+
 def binned_bar(x, y, bins=6, title=None, xlab=None, ylab=None,
                statistic="mean", figsize=(9, 4.5)):
     """Average (or median) of `y` within equal-width bins of `x`.

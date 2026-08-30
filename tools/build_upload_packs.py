@@ -71,7 +71,8 @@ LABS = {
                 "frequency tables, histograms, ogives, Pareto and pie charts, "
                 "contingency tables, scatter plots"},
         "scripts": ["02_displaying_data.py", "_course.py", "_charts.py"],
-        "data": ["state_hpi_ur_pop.csv"],
+        "data": ["world_poverty_income.csv", "gdp_per_capita_panel.csv",
+                 "state_hpi_ur_pop.csv"],
         # Workbooks are DOWNLOADED and opened in Excel, not uploaded to an
         # assistant. They are kept out of the upload count deliberately: a
         # student who uploads a .xlsx expecting it to be part of the lab has

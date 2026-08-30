@@ -25,7 +25,7 @@ import pandas as pd
 from _charts import (frequency_table, contingency_table, histogram, binned_bar,
                      discrete_histogram, bar_chart, pareto_chart, pie_chart,
                      ogive, heatmap, stem_and_leaf, scatter, time_series,
-                     UNLV_SCARLET, UNLV_GRAY)
+                     connected_scatter, UNLV_SCARLET, UNLV_GRAY)
 
 warnings.filterwarnings("ignore")
 pd.set_option("display.max_rows", 60)
@@ -35,6 +35,8 @@ poll = pd.read_csv("data/monmouth_poll.csv")
 recessions = pd.read_csv("data/us_recession_daily.csv", parse_dates=["date"])
 cci = pd.read_csv("data/consumer_confidence.csv", parse_dates=["date"])
 cci_old = pd.read_csv("data/consumer_confidence_discontinued.csv", parse_dates=["date"])
+world = pd.read_csv("data/world_poverty_income.csv")
+gdp_panel = pd.read_csv("data/gdp_per_capita_panel.csv")
 ```
 
 ## Objectives
@@ -84,11 +86,202 @@ choose from, and some are far better than others at showing a particular
 pattern. AI is a genuine boon to producing them — and no help at all in
 deciding which one is honest.
 
-## The data
+## Seeing a pattern that a table hides
 
-We will work with a panel of the 50 US states: the house price index, its
-change over the past decade, the unemployment rate, current population, and
-population growth over the past decade.
+### Two centuries of data, as a table
+
+Here is the Maddison Project's estimate of GDP per capita, for every country
+it covers, for every year it covers.
+
+```{python}
+#| label: gdp-panel-size
+print(f"{len(gdp_panel):,} rows")
+print(f"{gdp_panel['entity'].nunique()} countries and regions")
+print(f"years {gdp_panel['year'].min()} to {gdp_panel['year'].max()}")
+print()
+print(gdp_panel.head(10).to_string(index=False))
+```
+
+Ten of twenty-one thousand rows. Nobody is going to read this, and printing
+more of it would not help. So narrow it all the way down — one row per
+observation for the *world*, with the share of people living in extreme
+poverty beside it.
+
+```{python}
+#| label: world-table
+show = pd.DataFrame({
+    "Year": world.year,
+    "GDP per capita": world.gdp_pc,
+    "% in extreme poverty": world.share_poor,
+    "In poverty (millions)": (world.n_poor / 1e6),
+    "World population (millions)": ((world.n_poor + world.n_notpoor) / 1e6),
+})
+print(show.to_string(index=False, float_format=lambda v: f"{v:,.1f}"))
+```
+
+**Ten rows.** This one you can read, and reading it tells you two things
+immediately: income went up, and the share in poverty went down.
+
+Now say what *shape* that relationship has. Is it steady? Does it accelerate?
+Does it flatten out at high incomes? Is it tight, or is it loose with a lot of
+exceptions?
+
+You cannot answer any of that from the table, and the table is only ten rows
+long. This is the part worth being precise about: **the table is not hiding
+the facts. It is hiding the structure.**
+
+### The same ten rows, drawn
+
+```{python}
+#| label: poverty-connected
+_ = connected_scatter(world["gdp_pc"], world["share_poor"],
+                      labels=world["year"], logx=True,
+                      title="Extreme poverty and income, the world 1820 to 2015",
+                      xlab="GDP per capita (international-$, 2011 prices, log scale)",
+                      ylab="Share living in extreme poverty (%)")
+```
+
+Neither axis is time. Both variables are measured quantities, and the points
+are joined in the order they happened — so the line is the path the world has
+travelled through two centuries. It goes one way.
+
+```{python}
+#| label: poverty-headline
+first, last = world.iloc[0], world.iloc[-1]
+for row in (first, last):
+    pop = row.n_poor + row.n_notpoor
+    print(f"{int(row.year)}   {row.share_poor:5.1f}% in extreme poverty   "
+          f"GDP per capita ${row.gdp_pc:,.0f}   "
+          f"world population {pop/1e9:.2f} billion")
+```
+
+::: {.scarlet}
+In 1820, **nine people in ten** on this planet lived in extreme poverty. By
+2015, **one in ten** did.
+
+There is no precedent for that in recorded history, and no table of ten rows
+makes you feel it.
+:::
+
+### How strong is it, and why the axis is logarithmic
+
+```{python}
+#| label: poverty-correlation
+print(f"correlation of poverty share with GDP per capita       "
+      f"r = {world['share_poor'].corr(world['gdp_pc']):+.3f}")
+print(f"correlation of poverty share with LOG GDP per capita   "
+      f"r = {world['share_poor'].corr(np.log(world['gdp_pc'])):+.3f}")
+```
+
+Both are strong. The second is stronger, and that is the justification for the
+log axis rather than a decorative preference: income spans more than an order
+of magnitude over this period — from about \$1,100 to about \$15,000 — and the
+relationship is closer to straight when income is expressed in *multiples*
+rather than in dollars.
+
+::: {.charcoal}
+This is a real choice, and it belongs in the "charts that mislead" discussion
+later in this chapter as much as here. On a linear axis the same ten points
+bunch up at the left and the last century dominates the picture. On a log axis
+they spread evenly and the whole two hundred years is legible.
+
+Neither version is false. They answer different questions, and the axis is
+where you decide which question you are asking.
+:::
+
+### The number that did not fall
+
+Now the harder half of the same data, from the same two columns.
+
+```{python}
+#| label: poverty-counts
+peak = world.loc[world["n_poor"].idxmax()]
+print(f"Number of people in extreme poverty")
+print(f"  1820   {first.n_poor/1e6:>7,.0f} million")
+print(f"  {int(peak.year)}   {peak.n_poor/1e6:>7,.0f} million   <- the peak")
+print(f"  2015   {last.n_poor/1e6:>7,.0f} million")
+print()
+print(f"The SHARE fell from {first.share_poor:.1f}% to {last.share_poor:.1f}%.")
+print(f"The COUNT fell by only "
+      f"{100*(1 - last.n_poor/first.n_poor):.0f}%.")
+print(f"World population grew "
+      f"{(last.n_poor+last.n_notpoor)/(first.n_poor+first.n_notpoor):.1f} times.")
+```
+
+The number of people living in extreme poverty **peaked in 1980**, at nearly
+two billion — more than twice the 1820 figure — during a period when the
+*share* was falling the whole time. And in 2015 it was still 733 million
+people.
+
+::: {.scarlet}
+Both of these are true, computed from the same two columns:
+
+> Extreme poverty has almost been eliminated — it fell from 89% to 10%.
+
+> Seven hundred and thirty-three million people still live in extreme poverty,
+> barely fewer than in 1820.
+
+Which one you put in the caption decides what your reader believes, and
+neither one is a lie. This is the Valentine's Day pie chart from later in this
+chapter, at world-historical scale: **the arithmetic is not the argument. The
+choice of denominator is.**
+:::
+
+### What this chart is, and what it is not
+
+Four things belong in the provenance record before anyone quotes a number off
+it.
+
+```{python}
+#| label: poverty-provenance
+print("Poverty : World population living in extreme poverty")
+print("          Ravallion (2016), updated with World Bank (2019), via")
+print("          Our World in Data")
+print("Line    : $1.90 per day, international-$ at 2011 prices")
+print("Income  : Maddison Project Database 2023 (Bolt and van Zanden),")
+print("          constant international-$ at 2011 prices, via Our World in Data")
+print(f"Coverage: {int(world.year.min())} to {int(world.year.max())}, "
+      f"{len(world)} observations")
+```
+
+1. **The poverty line here is superseded.** These figures use \$1.90 a day at
+   2011 prices. The World Bank has since moved to \$2.15 at 2017 prices and
+   then to \$3.00 at 2021 prices. Each revision changes how many people are
+   counted as extremely poor without anyone's circumstances changing at all —
+   the same lesson as the two consumer confidence series later in this
+   chapter, applied to the most-quoted statistic in development economics.
+
+2. **The early numbers are reconstructions, not measurements.** Nobody
+   surveyed household consumption in 1820. The figure is modelled from
+   national accounts and distribution estimates, and different teams have
+   published different reconstructions — some put 1820 nearer three-quarters
+   than nine-tenths. **The level is uncertain. The direction is not.**
+
+3. **It stops in 2015**, because that is where this particular series stops.
+
+4. **It is a time path, not a comparison of countries.** The claim it supports
+   is about the world getting richer and less poor together over two hundred
+   years. It is *not* the claim that a rich country today has less poverty than
+   a poor one — that would need a different chart, drawn from the country panel
+   rather than the world row.
+
+::: {.charcoal}
+With all four caveats stated, the finding survives every one of them. That is
+what a robust result looks like: you can attack the poverty line, the
+reconstruction method, the end date and the units, and the picture does not
+change shape.
+
+Hold on to that, because the next chart in this chapter does not survive its
+first caveat at all.
+:::
+
+## And here is a chart that looks like a pattern
+
+### The data for this one
+
+A different data set: a panel of the 50 US states carrying a house price
+index, its change over the past decade, the unemployment rate, current
+population, and population growth over the past decade.
 
 ```{python}
 #| label: state-head
@@ -130,8 +323,6 @@ practice, and it is a limitation you should state rather than hide — house
 prices from one quarter and unemployment from six months later are not a
 snapshot of a single moment.
 :::
-
-## Seeing a pattern that a table hides
 
 Here is average house price index by unemployment rate, in equal-width bins.
 
@@ -269,27 +460,10 @@ _ = scatter(states["gPOP"], states["gHPI"],
 ```
 
 The scatter shows what the bar chart cannot: real spread, and obvious
-exceptions. The clearest one is a pair of states with **identical** population
-growth.
-
-```{python}
-#| label: same-x-different-y
-pair = states[states["Member"].isin(["NH", "ND"])][["Member", "gPOP", "gHPI"]]
-print(pair.to_string(index=False))
-
-tx = states[states["Member"] == "TX"].iloc[0]
-rank = int((states["gPOP"] > tx["gPOP"]).sum()) + 1
-print(f"\nTexas grew {tx['gPOP']:.1f}% ({rank}th fastest in the country) "
-      f"and appreciated {tx['gHPI']:.1f}%,")
-print(f"against a median of {states['gHPI'].median():.1f}%.")
-```
-
-New Hampshire and North Dakota grew at exactly the same rate, and one of them
-saw house prices rise by roughly two and a half times what the other did.
-Texas is among the fastest-growing states in the country and appreciated less
-than the median state.
-
-In the binned bar chart, all three of them disappeared into an average.
+exceptions. Maine and New Hampshire grew slowly and appreciated enormously.
+North Dakota grew faster than average and appreciated less than almost anyone.
+Compare this with the binned bar chart above, where those states disappeared
+into an average.
 
 ::: {.charcoal}
 **Binning averages away the disagreement.** Both charts are honest; the
@@ -1133,14 +1307,14 @@ turned on.
 ### Path 1 — upload the files
 
 **[Download the Laboratory 2 pack](../upload_packs/lab-2-chapter-02.zip)** — one
-file. Unzip it and you will have a folder holding 5 files. Drag all 5
+file. Unzip it and you will have a folder holding 7 files. Drag all 7
 into a new Claude conversation, wait for each to show as attached, then paste
 this:
 
 ::: {.prompt}
 Prompt
 
-> I have uploaded 5 files for a graduate business statistics course. Read
+> I have uploaded 7 files for a graduate business statistics course. Read
 > `COURSE_CONTEXT.md` first — it explains how this course expects analytical
 > work to be done.
 >
