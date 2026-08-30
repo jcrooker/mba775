@@ -184,6 +184,15 @@ _ = scatter(states["gPOP"], states["gHPI"], labels=states["Member"],
             xlab="Population growth over the decade (%)",
             ylab="House price growth over the decade (%)")
 
+pair = states[states["Member"].isin(["NH", "ND"])][["Member", "gPOP", "gHPI"]]
+print("\nTwo states with IDENTICAL population growth:")
+print(pair.to_string(index=False))
+
+tx = states[states["Member"] == "TX"].iloc[0]
+rank = int((states["gPOP"] > tx["gPOP"]).sum()) + 1
+print(f"\nTexas grew {tx['gPOP']:.1f}% ({rank}th fastest) and appreciated "
+      f"{tx['gHPI']:.1f}%, against a median of {states['gHPI'].median():.1f}%.")
+
 print("\nBinning averages away the disagreement. Both charts are honest;")
 print("the scatter is more informative about how much confidence the")
 print("pattern deserves -- and the strongest claim either supports is still")

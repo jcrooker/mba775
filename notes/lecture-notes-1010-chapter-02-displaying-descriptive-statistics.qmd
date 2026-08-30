@@ -269,10 +269,27 @@ _ = scatter(states["gPOP"], states["gHPI"],
 ```
 
 The scatter shows what the bar chart cannot: real spread, and obvious
-exceptions. Maine and New Hampshire grew slowly and appreciated enormously.
-North Dakota grew faster than average and appreciated less than almost anyone.
-Compare this with the binned bar chart above, where those states disappeared
-into an average.
+exceptions. The clearest one is a pair of states with **identical** population
+growth.
+
+```{python}
+#| label: same-x-different-y
+pair = states[states["Member"].isin(["NH", "ND"])][["Member", "gPOP", "gHPI"]]
+print(pair.to_string(index=False))
+
+tx = states[states["Member"] == "TX"].iloc[0]
+rank = int((states["gPOP"] > tx["gPOP"]).sum()) + 1
+print(f"\nTexas grew {tx['gPOP']:.1f}% ({rank}th fastest in the country) "
+      f"and appreciated {tx['gHPI']:.1f}%,")
+print(f"against a median of {states['gHPI'].median():.1f}%.")
+```
+
+New Hampshire and North Dakota grew at exactly the same rate, and one of them
+saw house prices rise by roughly two and a half times what the other did.
+Texas is among the fastest-growing states in the country and appreciated less
+than the median state.
+
+In the binned bar chart, all three of them disappeared into an average.
 
 ::: {.charcoal}
 **Binning averages away the disagreement.** Both charts are honest; the
