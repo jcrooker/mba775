@@ -9,7 +9,8 @@
 # depend on a live network.
 #
 # Produces, in data/:
-#   state_hpi_ur_pop.csv   50 states: HPI, unemployment, population, growth
+#   state_hpi_ur_pop.csv   50 states: house price index (level AND ten-year
+#                          change), unemployment, population, population growth
 #   us_recession_daily.csv NBER recession indicator, daily since 1854
 #   consumer_confidence.csv  US consumer confidence index, monthly
 #   monmouth_poll.csv      Monmouth University Poll #240, questions 16 and 38
@@ -79,6 +80,15 @@ value_near <- function(d, target) {
   d$value[which.min(abs(as.numeric(d$date - target)))]
 }
 
+date_near <- function(d, target) {
+  # The DATE of that same observation. Reported so the note can state the
+  # window each growth rate is actually measured over, rather than implying
+  # the two windows line up exactly. They do not: population runs to the most
+  # recent Census vintage, the house price index to the most recent quarter.
+  if (!nrow(d)) return(as.Date(NA))
+  d$date[which.min(abs(as.numeric(d$date - target)))]
+}
+
 # --- 1. State panel -------------------------------------------------------
 
 cat("1. State housing, unemployment, and population\n")
@@ -104,16 +114,33 @@ for (abb in state_abb) {
   pop_now  <- last_value(pop)
   pop_then <- value_near(pop, last_date(pop) - 3653)   # ten years earlier
 
+  # The HPI is an INDEX with 1980Q1 = 100, so its level measures cumulative
+  # appreciation since 1980 and is not comparable across states as a price.
+  # What IS comparable, and what matches the ten-year population growth
+  # window, is the ten-year CHANGE in the index. Carry both: the level so the
+  # note can show what goes wrong with it, the change so it can show the fix.
+  hpi_now  <- last_value(hpi)
+  hpi_then <- value_near(hpi, last_date(hpi) - 3653)
+  hpi_then_date <- date_near(hpi, last_date(hpi) - 3653)
+  # Also the FIVE-year change. The note uses it to show that a relationship
+  # can be strong over one window and absent over another, so the window
+  # belongs in the sentence. Computed here so the note never asserts it.
+  hpi_five <- value_near(hpi, last_date(hpi) - 1826)
+
   rows[[abb]] <- data.frame(
     Member = abb,
-    HPI    = last_value(hpi),
+    HPI    = hpi_now,
+    HPIO   = hpi_then,
+    gHPI   = round(100 * (hpi_now - hpi_then) / hpi_then, 1),
+    gHPI5  = round(100 * (hpi_now - hpi_five) / hpi_five, 1),
     UR     = last_value(ur),
     POPN   = pop_now,
     POPO   = pop_then,
     gPOP   = round(100 * (pop_now - pop_then) / pop_then, 1),
-    HPI_date = last_date(hpi),
-    UR_date  = last_date(ur),
-    POP_date = last_date(pop),
+    HPI_date  = last_date(hpi),
+    HPIO_date = hpi_then_date,
+    UR_date   = last_date(ur),
+    POP_date  = last_date(pop),
     stringsAsFactors = FALSE
   )
 }
@@ -131,6 +158,12 @@ if (nrow(state_data)) {
               max(state_data$POP_date)))
   cat(sprintf("   Population growth measured over the ten years to %s\n",
               max(state_data$POP_date)))
+  cat(sprintf("   House price growth measured over the ten years to %s\n",
+              max(state_data$HPI_date)))
+  cat(sprintf("   r(house price growth, population growth) = %+.3f\n",
+              cor(state_data$gHPI, state_data$gPOP)))
+  cat(sprintf("   r(house price LEVEL,  population growth) = %+.3f  <- the index trap\n",
+              cor(state_data$HPI, state_data$gPOP)))
 }
 
 # --- 2. Recession indicator ----------------------------------------------

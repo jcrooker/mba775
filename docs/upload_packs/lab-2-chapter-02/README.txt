@@ -72,3 +72,27 @@ Both mean a file is missing from the conversation. Re-upload it.
 
 Do not accept a result Claude describes without showing you the output
 that produced it. That rule is the whole point of this course.
+
+
+EXCEL WORKBOOKS - DOWNLOAD THESE, DO NOT UPLOAD THEM
+
+    ch02-frequency-BROKEN.xlsx
+    ch02-frequency-FIXED.xlsx
+    ch02-frequency-STARTER.xlsx
+
+These are not part of the upload above. Open them in Excel (or Google
+Sheets, or LibreOffice - all three evaluate the formulas).
+
+    BROKEN   what a one-line prompt returns. Open the Checks sheet
+             first. Three rules of Chapter 2 are broken and none of
+             them is visible in the chart.
+
+    FIXED    what a specified prompt returns. Open it, change cell
+             C10 on the Distribution sheet from 25 to 22, and read
+             the Checks sheet again.
+
+    STARTER  the data, the class boundaries, and the six checks. The
+             table is yours to build. You are finished when all six
+             checks read PASS.
+
+The lecture note walks through all three.

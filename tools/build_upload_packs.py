@@ -72,6 +72,13 @@ LABS = {
                 "contingency tables, scatter plots"},
         "scripts": ["02_displaying_data.py", "_course.py", "_charts.py"],
         "data": ["state_hpi_ur_pop.csv"],
+        # Workbooks are DOWNLOADED and opened in Excel, not uploaded to an
+        # assistant. They are kept out of the upload count deliberately: a
+        # student who uploads a .xlsx expecting it to be part of the lab has
+        # misunderstood what it is for.
+        "workbooks": ["ch02-frequency-BROKEN.xlsx",
+                      "ch02-frequency-FIXED.xlsx",
+                      "ch02-frequency-STARTER.xlsx"],
     },
     "lab-3-chapter-03": {
         "chapter": 3,
@@ -164,6 +171,30 @@ Both mean a file is missing from the conversation. Re-upload it.
 
 Do not accept a result Claude describes without showing you the output
 that produced it. That rule is the whole point of this course.
+{workbooks}"""
+
+WORKBOOK_BLOCK = """
+
+EXCEL WORKBOOKS - DOWNLOAD THESE, DO NOT UPLOAD THEM
+
+{listing}
+
+These are not part of the upload above. Open them in Excel (or Google
+Sheets, or LibreOffice - all three evaluate the formulas).
+
+    BROKEN   what a one-line prompt returns. Open the Checks sheet
+             first. Three rules of Chapter 2 are broken and none of
+             them is visible in the chart.
+
+    FIXED    what a specified prompt returns. Open it, change cell
+             C10 on the Distribution sheet from 25 to 22, and read
+             the Checks sheet again.
+
+    STARTER  the data, the class boundaries, and the six checks. The
+             table is yours to build. You are finished when all six
+             checks read PASS.
+
+The lecture note walks through all three.
 """
 
 TOP_README = """MBA 775 - UPLOAD PACKS
@@ -289,20 +320,35 @@ def build() -> list[tuple[str, int, float]]:
                     f"{name}: missing data/{d} -- run the chapter's seeder first")
             shutil.copy(src, pack / d)
 
+        for w in spec.get("workbooks", []):
+            src = REPO / "data" / w
+            if not src.exists():
+                raise FileNotFoundError(
+                    f"{name}: missing data/{w} -- run "
+                    "python tools/build_chapter02_workbooks.py first")
+            shutil.copy(src, pack / w)
+
         shutil.copy(REPO / "COURSE_CONTEXT.md", pack / "COURSE_CONTEXT.md")
 
         uploads = spec["scripts"] + spec["data"] + ["COURSE_CONTEXT.md"]
         listing = "\n".join(f"    {f}" for f in uploads)
         runnable = "\n\n".join(
             f"    {name}\n        {desc}" for name, desc in spec["run"].items())
+        books = spec.get("workbooks", [])
+        workbooks = "" if not books else WORKBOOK_BLOCK.format(
+            listing="\n".join(f"    {f}" for f in books))
         (pack / "README.txt").write_text(
             PACK_README.format(n=spec["chapter"], chapter=spec["chapter"],
                                topic=spec["topic"], count=len(uploads),
-                               listing=listing, runnable=runnable),
+                               listing=listing, runnable=runnable,
+                               workbooks=workbooks),
             encoding="utf-8")
 
         size = sum(f.stat().st_size for f in pack.iterdir() if f.is_file())
         summary.append((name, len(uploads), size / 1e6))
+        if books:
+            print(f"  {name:<20} + {len(books)} Excel workbook(s) "
+                  f"(download only, not counted as uploads)")
 
     index = "\n".join(
         f"    {name}/   Chapter {spec['chapter']} - {spec['topic']}"

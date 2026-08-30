@@ -46,8 +46,13 @@ cci_old = pd.read_csv("data/consumer_confidence_discontinued.csv", parse_dates=[
 + Display quality issues with a *Pareto chart*.
 + Organize two variables in a *contingency table* and read a *heatmap*.
 + Present a distribution with a *stem and leaf* display.
-+ Show the relationship between two variables using a *scatter plot*.
++ Show the relationship between two variables using a *scatter plot*, and
+  say which variable belongs on which axis.
 + Recognize the ways a technically correct chart can still mislead.
++ Notice when two variables are not in comparable *units*, and say what the
+  comparison is actually measuring.
++ Specify a chart or a frequency distribution precisely enough that an AI
+  assistant can build it in Excel — and verify what comes back.
 
 The code that draws each chart is folded away. Click **Show the code** if you
 are curious, but nothing in this chapter is assessed on your ability to write
@@ -78,9 +83,9 @@ deciding which one is honest.
 
 ## The data
 
-We will work with a panel of the 50 US states: the housing price index, the
-unemployment rate, current population, and population growth over the past
-decade.
+We will work with a panel of the 50 US states: the house price index, its
+change over the past decade, the unemployment rate, current population, and
+population growth over the past decade.
 
 ```{python}
 #| label: state-head
@@ -89,7 +94,7 @@ states.head(8)
 
 ```{python}
 #| label: state-summary
-states[["HPI", "UR", "POPN", "gPOP"]].describe().round(2)
+states[["HPI", "gHPI", "UR", "POPN", "gPOP"]].describe().round(2)
 ```
 
 Before reading anything into those numbers, one check carried over from
@@ -97,31 +102,41 @@ Chapter 1:
 
 ```{python}
 #| label: as-of-dates
-for col, label in [("HPI_date", "Housing price index"),
+for col, label in [("HPI_date", "House price index"),
                    ("UR_date", "Unemployment rate"),
                    ("POP_date", "Population")]:
     dates = pd.to_datetime(states[col])
     print(f"{label:<22} as of {dates.max().date()}  "
           f"({'all states agree' if dates.nunique() == 1 else 'DATES DIFFER'})")
+
+print()
+print("Both growth rates cover ten years -- but not the same ten years:")
+hpi_end = pd.to_datetime(states["HPI_date"]).max()
+hpi_start = pd.to_datetime(states["HPIO_date"]).max()
+pop_end = pd.to_datetime(states["POP_date"]).max()
+pop_start = pop_end - pd.DateOffset(years=10)
+print(f"  House price growth   {hpi_start.date()} to {hpi_end.date()}")
+print(f"  Population growth    {pop_start.date()} to {pop_end.date()}")
 ```
 
 ::: {.scarlet}
-These three variables are measured **as of three different dates**, spanning
-more than a year. Every chart in this chapter puts them side by side anyway.
-That is normal practice, and it is a limitation you should state rather than
-hide — housing prices from one quarter and unemployment from six months later
-are not a snapshot of a single moment.
+These variables are measured **as of different dates**, spanning more than a
+year, and the two ten-year windows are offset from each other by about a year.
+Every chart in this chapter puts them side by side anyway. That is normal
+practice, and it is a limitation you should state rather than hide — house
+prices from one quarter and unemployment from six months later are not a
+snapshot of a single moment.
 :::
 
 ## Seeing a pattern that a table hides
 
-Here is average housing price index by unemployment rate, in equal-width bins.
+Here is average house price index by unemployment rate, in equal-width bins.
 
 ```{python}
 #| label: hpi-by-ur
 _ = binned_bar(states["UR"], states["HPI"], bins=6,
-               title="Average housing price index by unemployment rate",
-               xlab="Unemployment rate bin (%)", ylab="Housing price index")
+               title="Average house price index by unemployment rate",
+               xlab="Unemployment rate bin (%)", ylab="House price index")
 ```
 
 There is no pattern here worth reporting. The bars wander. Note the `n=`
@@ -133,35 +148,170 @@ Now the same chart against population growth.
 ```{python}
 #| label: hpi-by-gpop
 _ = binned_bar(states["gPOP"], states["HPI"], bins=6,
-               title="Average housing price index by population growth",
+               title="Average house price index by population growth",
                xlab="Population growth over the decade (%)",
-               ylab="Housing price index")
+               ylab="House price index")
 ```
 
 This one does look like something: states with faster population growth tend
-to have higher housing prices. Before believing it, ask how strong "tend to"
-is.
+to have higher house price indexes. Before believing it, ask how strong "tend
+to" is.
 
 ```{python}
 #| label: correlations
 for col, label in [("UR", "unemployment rate"),
                    ("POPN", "population"),
                    ("gPOP", "population growth")]:
-    print(f"Correlation of housing price index with {label:<20} "
+    print(f"Correlation of house price INDEX with {label:<20} "
           f"r = {states['HPI'].corr(states[col]):+.3f}")
 ```
 
-::: {.charcoal}
-A correlation of **+0.30** is a real relationship and a weak one. It is
-consistent with population growth pushing up housing prices. It is equally
-consistent with high-priced states attracting migration, or with a third
-factor — climate, taxes, industry — driving both. **The chart cannot tell you
-which**, and neither can the correlation.
+A correlation of +0.30 is a real relationship and a weak one. That is a fine
+place to stop — most analyses do. Let us not stop there, because there is
+something wrong with the question.
+
+### Look at which states are at the top
+
+```{python}
+#| label: hpi-extremes
+top = states.nlargest(6, "HPI")[["Member", "HPI", "gPOP"]]
+bottom = states.nsmallest(6, "HPI")[["Member", "HPI", "gPOP"]]
+print("Highest house price index")
+print(top.to_string(index=False))
+print("\nLowest house price index")
+print(bottom.to_string(index=False))
+print("\nFastest-growing states, and where they rank on the index")
+fast = states.nlargest(6, "gPOP")[["Member", "gPOP", "HPI"]]
+print(fast.to_string(index=False))
+```
+
+Massachusetts, New York and Rhode Island lead a chart supposedly about
+housing, and they are among the slowest-growing states in the country.
+Texas grew 15.4% and sits in the bottom half. Idaho grew 22.8% — the fastest
+in the nation — and is nowhere near the top.
+
+Something is wrong. Read the series documentation.
+
+```{python}
+#| label: hpi-provenance
+print("Series     : {ST}STHPI, one per state")
+print("Name       : All-Transactions House Price Index")
+print("Source     : U.S. Federal Housing Finance Agency, via FRED")
+print("Units      : Index, 1980 Q1 = 100")
+print("Frequency  : Quarterly")
+```
+
+::: {.scarlet}
+**Index, 1980 Q1 = 100.** Every state starts at 100 in 1980 by construction.
+So a state's index *level* does not measure what a house costs there. It
+measures **how much prices have risen since 1980** — cumulative appreciation
+over forty-five years.
+
+Massachusetts is at the top because Massachusetts has appreciated the most
+since 1980, not because it is expensive today. The chart is not a housing
+price chart at all. It is a chart of forty-five-year growth, being compared
+against ten-year growth.
 :::
 
-That distinction is the whole job. A bar chart showing a pattern licenses the
-sentence "states with faster growth have higher prices." It does not license
-"population growth raises housing prices."
+This is the same failure as the consumer confidence series later in this
+chapter: two correct numbers, describing the same reality, that are not
+comparable because they were constructed differently. Here it is worse in one
+way — nothing in the file says so. The column is labelled `HPI` and every
+value in it is right.
+
+### The fix is to compare like with like
+
+`gPOP` is a **ten-year change**. So compare it to the **ten-year change in the
+index**, which is a percentage and is comparable across states.
+
+```{python}
+#| label: hpi-change-by-gpop
+_ = binned_bar(states["gPOP"], states["gHPI"], bins=6,
+               title="Average ten-year house price growth by population growth",
+               xlab="Population growth over the decade (%)",
+               ylab="House price growth over the decade (%)")
+```
+
+```{python}
+#| label: correlations-fixed
+pairs = [("HPI", "gPOP", "house price INDEX LEVEL", "population growth"),
+         ("gHPI", "gPOP", "house price CHANGE (10y)", "population growth"),
+         ("gHPI", "UR", "house price CHANGE (10y)", "unemployment rate")]
+for ycol, xcol, ylab, xlab in pairs:
+    print(f"{ylab:<26} vs {xlab:<20} r = {states[ycol].corr(states[xcol]):+.3f}")
+```
+
+::: {.charcoal}
+Same fifty states. Same source. Same download. The correlation went from
+**+0.30 to +0.71** because the units changed, and nothing else did.
+
+The unemployment rate is still flat against the new variable — r of about
+zero. That matters: it says the improvement is not an artefact of making
+everything correlate with everything. One pairing got much stronger and the
+other did not move.
+:::
+
+### And now be careful again
+
+A correlation of +0.71 is strong enough that people will start saying causal
+things about it. It still does not license them.
+
+```{python}
+#| label: scatter-fixed
+_ = scatter(states["gPOP"], states["gHPI"],
+            labels=states["Member"],
+            title="Ten-year house price growth and population growth, US states",
+            xlab="Population growth over the decade (%)",
+            ylab="House price growth over the decade (%)")
+```
+
+The scatter shows what the bar chart cannot: real spread, and obvious
+exceptions. Maine and New Hampshire grew slowly and appreciated enormously.
+North Dakota grew faster than average and appreciated less than almost anyone.
+Compare this with the binned bar chart above, where those states disappeared
+into an average.
+
+::: {.charcoal}
+**Binning averages away the disagreement.** Both charts are honest; the
+scatter is more informative about how much confidence the pattern deserves.
+
+And the strongest claim either one supports is still: *states with faster
+population growth tended to see faster house price growth over the same
+decade.* Not that population growth raised prices. People may be moving toward
+places where prices are rising, prices may be rising where people are moving,
+or a third factor — climate, taxes, industry, land-use rules — may drive both.
+**The chart cannot tell you which, and neither can r = 0.71.**
+:::
+
+### The window is a choice too
+
+One more thing to be suspicious of. Ten years was not handed to us; we picked
+it. Here is the same comparison over five years.
+
+```{python}
+#| label: window-choice
+print("Correlation of population growth with house price growth")
+for col, window in [("gHPI", "ten years"), ("gHPI5", "five years")]:
+    print(f"  measured over {window:<11} r = {states['gPOP'].corr(states[col]):+.3f}")
+
+print()
+print("Spread of house price growth across the fifty states:")
+for col, window in [("gHPI", "ten years"), ("gHPI5", "five years")]:
+    print(f"  over {window:<11} {states[col].min():6.1f}% to {states[col].max():6.1f}%   "
+          f"(standard deviation {states[col].std():.1f})")
+```
+
+Over five years the relationship all but disappears — and the second table
+says why. After 2021 essentially every state's prices rose, and they rose by
+similar amounts, so there is very little variation left across states for
+anything to explain.
+
+::: {.scarlet}
+A relationship that is strong over one window and absent over another has not
+been discovered. It has been *found in a particular window*, and the window
+belongs in the sentence: "over the decade to 2026." Anyone who reports the
+number without the window is reporting something they cannot support.
+:::
 
 ## Displaying quantitative data
 
@@ -379,18 +529,18 @@ A **contingency table** shows frequencies for two variables at once.
 
 ```{python}
 #| label: contingency
-table = contingency_table(states["gPOP"], states["HPI"],
+table = contingency_table(states["gPOP"], states["gHPI"],
                           x_bins=5, y_bins=5,
                           x_name="Population growth (%)",
-                          y_name="Housing price index")
+                          y_name="House price growth (%)")
 table
 ```
 
 ```{python}
 #| label: heatmap
-_ = heatmap(table, title="Housing prices and population growth, 50 states",
+_ = heatmap(table, title="House price growth and population growth, 50 states",
             xlab="Population growth over the decade (%)",
-            ylab="Housing price index")
+            ylab="House price growth over the decade (%)")
 ```
 
 Colour intensity shows where states concentrate. With 50 observations spread
@@ -571,20 +721,61 @@ print(f"Most recent:     {cci.cci.iloc[-1]:.2f} in "
 A **scatter plot** displays two variables with no summarising at all. Every
 observation is shown. Most analysts draw one first when meeting a new data set.
 
+### Which variable goes on which axis
+
+Before drawing one you have to decide which variable goes where, and the
+convention carries a claim.
+
+The **independent variable** goes on the horizontal axis. It is the one you
+are treating as given. The **dependent variable** goes on the vertical axis.
+It is the one you believe responds:
+
+$$\text{independent } (x) \;\longrightarrow\; \text{dependent } (y)$$
+
+The arrow only points one way. The textbook's example is television size and
+price: bigger televisions cost more, so size is $x$ and price is $y$ — and
+cutting the price of a television does not shrink it.
+
+::: {.charcoal}
+Notice what you have just done. Putting population growth on the horizontal
+axis and house price growth on the vertical is a *decision about which one you
+think responds to which*, and it is made before any statistics happen. Nothing
+in the data forces it. Someone who believes people move toward places where
+prices are already rising would draw the axes the other way round and get an
+identical-looking cloud with an identical correlation.
+
+The axis convention is where regression begins — Chapter 10 will ask you to
+defend the choice rather than assume it. For now: make the choice
+deliberately, and say out loud that you made it.
+:::
+
+### The same states, two variables, one substitution
+
 ```{python}
-#| label: scatter
-_ = scatter(states["gPOP"], states["HPI"],
-            labels=states["Member"],
-            title="Housing price index and population growth, US states",
-            xlab="Population growth over the decade (%)",
-            ylab="Housing price index")
+#| label: scatter-pair
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.6))
+for ax, (col, label) in zip(axes, [("HPI", "House price INDEX LEVEL"),
+                                   ("gHPI", "House price CHANGE over the decade (%)")]):
+    ax.scatter(states["gPOP"], states[col], color=UNLV_SCARLET, alpha=0.8)
+    ax.set_xlabel("Population growth over the decade (%)")
+    ax.set_ylabel(label)
+    ax.set_title(f"{label}\nr = {states[col].corr(states['gPOP']):+.3f}", fontsize=10)
+    ax.grid(color="#e6e6e6")
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
 ```
 
-Compare this with the binned bar chart from earlier. The bar chart showed a
-tidy upward pattern. The scatter shows the same data as a loose cloud with
-obvious exceptions. **Binning averages away the disagreement.** Both charts are
-honest; the scatter is more informative about how much confidence the pattern
-deserves.
+The left panel is a cloud. The right panel is a relationship. The horizontal
+axis is identical in both; only the vertical variable changed, and it changed
+from an index level to a percentage change of that same index.
+
+**A scatter plot cannot rescue a badly chosen variable — but it shows you
+faster than anything else that you have chosen one.** This is why analysts draw
+scatter plots first.
 
 ### Time series
 
@@ -619,16 +810,16 @@ failures to watch for — in other people's charts, and in your own.
 #| label: truncated-axis
 import matplotlib.pyplot as plt
 
-subset = states.nlargest(6, "HPI")
+subset = states.nlargest(6, "gHPI")
 fig, axes = plt.subplots(1, 2, figsize=(11, 4))
 
 for ax, (lo, hi), label in zip(
-        axes, [(0, None), (subset.HPI.min() - 20, None)],
+        axes, [(0, None), (subset.gHPI.min() - 5, None)],
         ["Axis starts at zero", "Axis starts near the minimum"]):
-    ax.bar(subset["Member"], subset["HPI"], color=UNLV_SCARLET, alpha=0.85)
+    ax.bar(subset["Member"], subset["gHPI"], color=UNLV_SCARLET, alpha=0.85)
     ax.set_ylim(lo, hi)
     ax.set_title(label)
-    ax.set_ylabel("Housing price index")
+    ax.set_ylabel("House price growth over the decade (%)")
     ax.grid(axis="y", color="#e6e6e6")
     ax.set_axisbelow(True)
     ax.spines[["top", "right"]].set_visible(False)
@@ -636,8 +827,10 @@ for ax, (lo, hi), label in zip(
 fig.tight_layout()
 plt.show()
 
-print(f"Highest: {subset.HPI.max():.0f}   Lowest of these six: {subset.HPI.min():.0f}")
-print(f"Actual difference: {100 * (subset.HPI.max() / subset.HPI.min() - 1):.0f}%")
+print(f"Highest: {subset.gHPI.max():.1f}%   "
+      f"Lowest of these six: {subset.gHPI.min():.1f}%")
+print(f"Actual gap between them: {subset.gHPI.max() - subset.gHPI.min():.1f} "
+      f"percentage points")
 ```
 
 Same six states, same six numbers. The right-hand chart makes the gap look
@@ -760,24 +953,176 @@ it is on, Claude cannot always retrieve a file by direct link. Use Path 1
 instead — it is the ordinary route, not a consolation prize.
 :::
 
-### Working in Excel
+## Building it in Excel, with Claude
 
-Many of you will present this material in Excel. You do not need to rebuild
-anything by hand — ask Claude to produce the spreadsheet:
+Roughly a third of the textbook chapter is Excel choreography. Activate the
+Data Analysis ToolPak. Array-enter `=FREQUENCY(A2:A51,C2:C7)` with
+Ctrl+Shift+Enter. Delete the "More" row Excel adds. Right-click a bar, open
+Format Data Series, drag Gap Width to 0%. Right-click the red bars, Change
+Series Chart Type to Line. Set the axis maximum from 1.2 to 1.0.
+
+That is about forty clicks per chart, and every one of them belongs to a
+version of Excel's user interface rather than to statistics. You will not be
+assessed on any of it.
+
+::: {.scarlet}
+**The clicks were never the skill. The specification is the skill, and the
+specification is statistics.**
+
+Every decision the textbook labours over — how many classes, where the
+boundaries fall, whether they are mutually exclusive, whether all $n$ values
+are accounted for, whether the bars touch, whether a pie chart is even the
+right chart — is exactly what you have to *tell* an assistant, and exactly
+what you have to *check* when it hands the workbook back.
+:::
+
+### A loose prompt and what it returns
+
+Start here, because you will be tempted to:
+
+> Make me a frequency distribution of this data in Excel.
+
+**[Download `ch02-frequency-BROKEN.xlsx`](../upload_packs/lab-2-chapter-02/ch02-frequency-BROKEN.xlsx)**
+and open it. That is what came back. It has a tidy table, a chart, and six
+classes. Everything in it is correct arithmetic.
+
+Open the **Checks** sheet before you look at anything else.
+
+Three things went wrong, and none of them is visible in the chart:
+
+1. **Nothing is a formula.** Click cell `D5`. It is the number `5`, typed in.
+   Change a class boundary in column B and watch the table not move.
+
+2. **The class boundaries were never rounded.** They came straight out of
+   $(\max - \min) / 6 = 4.5$ and read "−4.20 to 0.30". Donnelly p.34 is
+   explicit: round the estimate to a readable whole number. Nobody can hold
+   "−4.20 to 0.30" in their head.
+
+3. **The boundaries include both endpoints**, so a state sitting exactly on
+   one lands in two classes. South Carolina grew 13.8% — exactly the fourth
+   boundary — so it is counted twice. **Fifty states, fifty-one observations.**
+   That is the textbook's rule 2, broken.
+
+None of this required the assistant to make anything up. It answered the
+question it was asked. The question was underspecified.
+
+### A prompt that names every decision
 
 ::: {.prompt}
 Prompt
 
-> Using `data/state_hpi_ur_pop.csv` from
-> <https://github.com/jcrooker/mba775>, build an Excel workbook with two
-> sheets. The first sheet holds the raw state data. The second holds a
-> frequency distribution of the population growth column using 5-point bins
-> from -5 to 25, with columns for the bin, the count, the relative frequency,
-> and the cumulative relative frequency. Use real Excel formulas — FREQUENCY
-> or COUNTIFS — rather than pasting static values, so I can change the bins and
-> watch the table update. Give me the file to download.
+> Build me an Excel workbook from `state_hpi_ur_pop.csv`.
+>
+> **Sheet 1, `Data`:** the raw file, headers in row 1, nothing else.
+>
+> **Sheet 2, `Distribution`:** a frequency distribution of the `gPOP` column.
+> Use six classes of width 5 running from −5 to 25. Columns: class label,
+> lower bound, upper bound, frequency, relative frequency, cumulative relative
+> frequency, plus a total row.
+>
+> Classes must be **mutually exclusive**: half-open, "at least the lower bound
+> and strictly less than the upper", so no state can fall in two classes.
+>
+> Use **live Excel formulas** throughout — `COUNTIFS` referencing the bound
+> cells, `SUM` for the total. No pasted values anywhere: I want to change a
+> bound and watch the table and the charts update.
+>
+> **Sheet 3:** a histogram of that distribution with **no gaps between the
+> bars** — the data are continuous — with the axis starting at zero and both
+> axes labelled; and an ogive of the cumulative relative frequency.
+>
+> Finally, tell me which cells hold formulas and which hold constants.
 :::
 
-Once it is open in Excel, the frequency table drives a PivotChart the same way
-it always has. The difference is that you no longer transcribe anything by
-hand, so there is nothing to mistype.
+Read that back and notice what it is. It is not a description of a
+spreadsheet. It is the whole of section 2.2: the number of classes, the class
+width, the boundary rule, the gap convention. **You cannot write that prompt
+without knowing the statistics.** That is the point, and it is why the prompt
+is the assessed artefact rather than the workbook.
+
+**[Download `ch02-frequency-FIXED.xlsx`](../upload_packs/lab-2-chapter-02/ch02-frequency-FIXED.xlsx)**
+to see what comes back.
+
+### The ten-second demonstration
+
+Open the fixed workbook and change **one cell**: on the `Distribution` sheet,
+change `C10` — the top boundary — from 25 to 22.
+
+Idaho grew 22.8%, so Idaho now falls outside every class. The total drops to
+49. The last class empties. Both charts redraw. Checks 1 and 6 turn red.
+
+Then look at checks 2 and 3. **They still pass.** The relative frequencies are
+computed against the total of the classes, so they quietly renormalise to the
+49 states that survived and sum to exactly 1.000. Every percentage on the
+sheet is now internally consistent, and describes 49 states while claiming to
+describe 50.
+
+::: {.scarlet}
+That is the Valentine's Day pie chart again, in a spreadsheet: correct
+arithmetic on a base nobody stated.
+
+It is also why the first check compares against $n$ **from the source file**
+rather than against the column's own total. A checklist that only asks whether
+a sheet agrees with itself will pass this every single time.
+:::
+
+Set `C10` back to 25.
+
+### The checklist
+
+Every workbook in this course carries these six checks, as live formulas
+rather than as advice. Run them on anything an assistant builds you — and on
+anything you build yourself.
+
+| # | Check | Rule it enforces |
+|---|-------|------------------|
+| 1 | Frequencies sum to $n$, taken from the source file | Include all data values |
+| 2 | Relative frequencies sum to 1.00 | |
+| 3 | Cumulative column ends at 1.00 | |
+| 4 | Frequency cells hold **formulas**, not typed numbers | Change a bound, watch it move |
+| 5 | No value falls in two classes | Mutually exclusive classes |
+| 6 | No empty classes | |
+
+Six checks, under a minute, and they are all rules from this chapter rather
+than rules about software.
+
+### Your turn
+
+**[Download `ch02-frequency-STARTER.xlsx`](../upload_packs/lab-2-chapter-02/ch02-frequency-STARTER.xlsx)**.
+It has the data, the class boundaries, and the six checks already wired up.
+The frequency, relative frequency and cumulative columns are empty, and every
+check reads `-- not yet --` or `FAIL`.
+
+Build the table until all six read `PASS`. Do it by hand, or write the prompt
+and have Claude do it — either is fine, and the checks do not care which.
+What they care about is that you can tell the difference between a workbook
+that is right and a workbook that merely looks right.
+
+::: {.charcoal}
+**What to watch for.** These are the failures this particular task produces,
+in rough order of frequency:
+
+- Pasted values where you asked for formulas — by far the most common
+- Boundaries inclusive at both ends, so the frequencies sum to $n + 1$
+- The overflow class silently dropped, so they sum to less than $n$
+- Default bins chosen without reference to $2^k \ge n$
+- The "Other" slice quietly removed from a pie chart to make it tidier
+- A chart title that claims more than the chart shows
+
+Every one of these produces a workbook that opens cleanly and looks
+professional. The checklist is how you find out.
+:::
+
+### The rest of the chapter's Excel work
+
+The same pattern covers everything else the textbook demonstrates. Each is one
+specified prompt and one run of the checklist:
+
+- `COUNTIF` for a frequency distribution of **qualitative** data
+- A **PivotTable** as a contingency table — pivot tables are the one Excel
+  skill in this chapter you will use every week
+- **Clustered** bar charts to compare within a category, **stacked** to compare
+  totals across categories
+- A **Pareto** chart: sorted bars plus the cumulative line on a secondary axis
+- **Sparklines** — one-cell trend lines for a table of time series
+
