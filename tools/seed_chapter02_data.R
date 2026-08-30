@@ -126,6 +126,12 @@ for (abb in state_abb) {
   # can be strong over one window and absent over another, so the window
   # belongs in the sentence. Computed here so the note never asserts it.
   hpi_five <- value_near(hpi, last_date(hpi) - 1826)
+  # And a COUNT: quarters in the most recent forty in which the index fell.
+  # The note needs one genuinely discrete variable -- something counted, not
+  # measured -- so that the ungrouped frequency distribution, the gaps between
+  # histogram bars, and the empty class all have somewhere to live.
+  hpi_recent <- hpi[hpi$date >= last_date(hpi) - 3653, ]
+  hpi_down   <- sum(diff(hpi_recent$value) < 0)
 
   rows[[abb]] <- data.frame(
     Member = abb,
@@ -133,6 +139,7 @@ for (abb in state_abb) {
     HPIO   = hpi_then,
     gHPI   = round(100 * (hpi_now - hpi_then) / hpi_then, 1),
     gHPI5  = round(100 * (hpi_now - hpi_five) / hpi_five, 1),
+    nDOWN  = hpi_down,
     UR     = last_value(ur),
     POPN   = pop_now,
     POPO   = pop_then,
@@ -160,6 +167,9 @@ if (nrow(state_data)) {
               max(state_data$POP_date)))
   cat(sprintf("   House price growth measured over the ten years to %s\n",
               max(state_data$HPI_date)))
+  cat(sprintf("   nDOWN (quarters with a falling index, last ten years): %d to %d, median %g\n",
+              min(state_data$nDOWN), max(state_data$nDOWN),
+              median(state_data$nDOWN)))
   cat(sprintf("   r(house price growth, population growth) = %+.3f\n",
               cor(state_data$gHPI, state_data$gPOP)))
   cat(sprintf("   r(house price LEVEL,  population growth) = %+.3f  <- the index trap\n",

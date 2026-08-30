@@ -78,7 +78,18 @@ def frequency_table(x, bins=None, cumulative=False, pct=True, decimals=1):
     n_missing = int(s.isna().sum())
     s = s.dropna()
 
-    if pd.api.types.is_numeric_dtype(s):
+    if pd.api.types.is_numeric_dtype(s) and isinstance(bins, str):
+        # Ungrouped: one class per value, the way the textbook's first
+        # frequency distribution is built. Every whole number between the
+        # smallest and the largest gets a row EVEN IF NOTHING LANDS THERE --
+        # an empty class is a finding, and dropping it hides the finding.
+        if bins != "each":
+            raise ValueError('bins must be a number, a sequence, or "each"')
+        lo, hi = int(np.floor(s.min())), int(np.ceil(s.max()))
+        values = list(range(lo, hi + 1))
+        counts = pd.Series([int((s == v).sum()) for v in values], index=values)
+        labels = [str(v) for v in values]
+    elif pd.api.types.is_numeric_dtype(s):
         if bins is None:
             bins = _sturges_bins(s)
         cats = pd.cut(s, bins=bins, include_lowest=True)
@@ -164,6 +175,39 @@ def histogram(x, bins=None, title=None, xlab=None, ylab="Frequency",
         "upper": edges[1:].round(3),
         "count": counts.astype(int),
     })
+
+
+def discrete_histogram(x, title=None, xlab=None, ylab="Frequency",
+                       figsize=(9, 4.5)):
+    """Histogram for DISCRETE data: one bar per whole-number value, with gaps.
+
+    Two conventions are doing work here, and both are the textbook's:
+
+      * one class per value, not a range of values, because the values are
+        counts and there is nothing between 2 and 3 to put in a class;
+      * gaps between the bars, because the data are discrete. A histogram of
+        continuous data has bars that touch. The gap is not decoration -- it
+        is the chart telling the reader which kind of variable this is.
+
+    Values with a count of zero still get a position on the axis. A missing
+    class is information.
+    """
+    s = pd.Series(x).dropna()
+    lo, hi = int(np.floor(s.min())), int(np.ceil(s.max()))
+    values = list(range(lo, hi + 1))
+    counts = [int((s == v).sum()) for v in values]
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.bar(values, counts, width=0.55, color=UNLV_SCARLET, alpha=0.85)
+    ax.set_xticks(values)
+    for v, c in zip(values, counts):
+        if c == 0:
+            ax.text(v, 0.15, "none", ha="center", va="bottom", fontsize=7.5,
+                    color=UNLV_SCARLET, style="italic")
+    _finish(ax, title, xlab, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"value": values, "count": counts})
 
 
 def binned_bar(x, y, bins=6, title=None, xlab=None, ylab=None,

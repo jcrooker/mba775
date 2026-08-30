@@ -23,8 +23,8 @@ import numpy as np
 import pandas as pd
 
 from _charts import (frequency_table, contingency_table, histogram, binned_bar,
-                     bar_chart, pareto_chart, pie_chart, ogive, heatmap,
-                     stem_and_leaf, scatter, time_series,
+                     discrete_histogram, bar_chart, pareto_chart, pie_chart,
+                     ogive, heatmap, stem_and_leaf, scatter, time_series,
                      UNLV_SCARLET, UNLV_GRAY)
 
 warnings.filterwarnings("ignore")
@@ -40,7 +40,10 @@ cci_old = pd.read_csv("data/consumer_confidence_discontinued.csv", parse_dates=[
 ## Objectives
 
 + Read a chart and say what it does — and does not — support.
-+ Construct and interpret a *frequency distribution* and *histogram*.
++ Tell *discrete* data from *continuous* data, and say why it changes the
+  chart — and, later, the probability distribution.
++ Construct and interpret a *frequency distribution* and *histogram*,
+  grouped and ungrouped.
 + Construct and interpret *ogives* and *cumulative* frequencies.
 + Display qualitative data using *bar charts* and *pie charts*.
 + Display quality issues with a *Pareto chart*.
@@ -315,6 +318,207 @@ number without the window is reporting something they cannot support.
 
 ## Displaying quantitative data
 
+### Two kinds of number
+
+Before any of this, a distinction that decides how the rest of the chapter
+behaves — and which will still be deciding things in Chapter 5 and Chapter 6.
+
+**Discrete data** are values that have been *counted*. They are restricted to
+whole numbers. The number of quarters in which house prices fell, the number
+of employees who left last month, the number of defective units in a batch:
+you cannot have 3.4 of any of them.
+
+**Continuous data** are values that have been *measured*. They can take any
+real number within their range, limited only by the precision of the
+instrument. Population growth of 6.3%, a hold time of 4.82 minutes, a
+temperature of 76.4 degrees.
+
+::: {.charcoal}
+**The acid test.** Ask: *how many values are possible inside a given interval?*
+
+Between 0 and 3, a count can take four values — 0, 1, 2, 3. A measurement can
+take infinitely many: 2.0, 2.04, 2.046, and on forever.
+
+A finite answer means discrete. An infinite answer means continuous.
+:::
+
+Counted or measured is the question, and it is not always the same as "does
+the number happen to be a whole number today."
+
+```{python}
+#| label: discrete-or-continuous
+for label, kind, why in [
+        ("Quarters in which a state's house prices fell", "discrete",
+         "counted; there is no 3.4th quarter"),
+        ("Population growth over the decade (%)", "continuous",
+         "measured; 6.31 and 6.312 are both possible"),
+        ("Days the US spent in recession", "discrete", "counted"),
+        ("Consumer confidence index", "continuous", "measured on a scale"),
+        ("Respondents choosing each poll answer", "discrete", "counted"),
+        ("Unemployment rate (%)", "continuous", "a measured proportion")]:
+    print(f"{label:<46} {kind:<11} {why}")
+```
+
+::: {.scarlet}
+**The awkward middle.** Some variables are technically discrete and are
+displayed as though they were continuous, and this is normal practice rather
+than a mistake.
+
+A golf score is counted in strokes, so it is discrete. Annual income is
+counted in cents. Age is counted in years. But when the range is wide and the
+steps are tiny relative to it — scores from 279 to 308, incomes from \$40,000
+to \$88,000 — grouping them into classes and drawing them as continuous is
+both conventional and more readable.
+
+The test that matters in practice is not "is this technically discrete" but
+**"are there few enough distinct values that each one can be its own class?"**
+Six values, yes. Three hundred, no.
+:::
+
+### A frequency distribution with one class per value
+
+When the distinct values are few, each value gets its own class and nothing is
+grouped at all. Here is a genuine count, from the same fifty states.
+
+For each state, we took the last ten years of the quarterly house price index —
+forty quarterly changes — and counted how many of them were **negative**. How
+many times in a decade did that state's housing market go backwards?
+
+```{python}
+#| label: freq-discrete
+frequency_table(states["nDOWN"], bins="each", cumulative=True)
+```
+
+No bins were chosen, no width was decided, no boundary had to be argued over.
+The values *are* the classes. This is the simplest frequency distribution
+there is, and it is the one the textbook builds first.
+
+Read it straight off. **Thirty of the fifty states — 60% — had three or fewer
+falling quarters in a decade.**
+
+```{python}
+#| label: down-extremes
+v = states["nDOWN"]
+print(f"n = {len(v)} states, {int(v.min())} to {int(v.max())} falling quarters")
+print(f"mean {v.mean():.2f}   median {v.median():.0f}\n")
+print("Never fell:  " + ", ".join(states.loc[v == v.min(), "Member"]))
+print("Fell most:   " + ", ".join(states.loc[v == v.max(), "Member"])
+      + f" ({int(v.max())} of 40 quarters)")
+print("\nStates with exactly 6 falling quarters: "
+      + (", ".join(states.loc[v == 6, "Member"]) or "none"))
+```
+
+### The class that isn't there
+
+Look again at the row for **6**. Its frequency is zero.
+
+That row is easy to delete and tempting to delete, and deleting it would be
+wrong. A class with no observations in it is a *finding* — it says something
+about the shape of the distribution. Leave it in, and the reader can see that
+the distribution has a gap in it. Take it out, and the 5 and the 7 sit next to
+each other as though nothing were missing.
+
+::: {.charcoal}
+This is the same instinct as Tukey's rule for stem and leaf displays, later in
+this chapter: **don't cut your leafless stems.** An empty class and an empty
+stem are the same thing, and both should stay.
+
+It is also the fourth rule of building grouped classes — *avoid empty classes*
+— seen from the other side. That rule is about not choosing a class width so
+narrow that you manufacture empty classes. This one is about not hiding an
+empty class you did not manufacture.
+:::
+
+### Drawing it: the gap between the bars
+
+```{python}
+#| label: discrete-hist
+_ = discrete_histogram(states["nDOWN"],
+                       title="Quarters with falling house prices, last ten years",
+                       xlab="Number of falling quarters (out of 40)")
+```
+
+Notice the **gaps between the bars**. That is not a styling choice. It is a
+convention with a meaning:
+
+| Data | Bars | Because |
+|------|------|---------|
+| **Discrete** | separated | nothing exists between 2 and 3, so nothing is drawn there |
+| **Continuous** | touching | every value between 2 and 3 exists and belongs to some class |
+
+Here are both, side by side, from this same data set.
+
+```{python}
+#| label: gaps-convention
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
+
+vals = sorted(states["nDOWN"].unique())
+allv = list(range(int(min(vals)), int(max(vals)) + 1))
+axes[0].bar(allv, [int((states["nDOWN"] == v).sum()) for v in allv],
+            width=0.55, color=UNLV_SCARLET, alpha=0.85)
+axes[0].set_xticks(allv)
+axes[0].set_title("DISCRETE: falling quarters (a count)\nbars separated",
+                  fontsize=10)
+axes[0].set_xlabel("Number of falling quarters")
+
+axes[1].hist(states["gPOP"], bins=np.arange(-5, 30, 5), color=UNLV_SCARLET,
+             alpha=0.85, edgecolor="white")
+axes[1].set_title("CONTINUOUS: population growth (a measurement)\nbars touching",
+                  fontsize=10)
+axes[1].set_xlabel("Population growth over the decade (%)")
+
+for ax in axes:
+    ax.set_ylabel("Frequency")
+    ax.grid(axis="y", color="#e6e6e6")
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+A reader who knows the convention learns what kind of variable they are
+looking at before reading a single label. A reader who does not still gets the
+counts right. **You lose nothing by following it and you mislead people by
+breaking it** — Excel, left alone, will draw a continuous variable with gaps
+and a discrete one without, and it is on you to fix it.
+
+::: {.scarlet}
+**Why this outlives Chapter 2.** Counted-or-measured is not a charting detail.
+It is the fork the rest of the course runs on.
+
+**Chapter 5** builds probability distributions for *discrete* variables, where
+you can ask "what is the probability of exactly 3?" and get a real answer.
+**Chapter 6** builds them for *continuous* variables, where the probability of
+exactly any single value is zero and every question has to be asked about an
+*interval* instead.
+
+The same question — "what is the chance of getting 3?" — is sensible in one
+chapter and meaningless in the other. Which chapter you are in is decided by
+the distinction on this page.
+:::
+
+### When the values have to be grouped
+
+Fifty states produced counts spanning ten whole numbers, nine of which
+actually occurred — few enough that one class per value worked. Now take a
+*measured* variable from the same file.
+
+```{python}
+#| label: distinct-values
+for col, label in [("nDOWN", "Falling quarters (counted)"),
+                   ("gPOP", "Population growth % (measured)")]:
+    print(f"{label:<34} {states[col].nunique():>2} distinct values "
+          f"among {len(states)} states")
+```
+
+Population growth has almost as many distinct values as it has states. One
+class per value would give a table of forty-odd rows, most of them holding a
+single state, which is a list of the raw data with extra steps.
+
+So the values get **grouped**: several of them share a class.
+
 A **frequency distribution** counts how many values fall in each range, or
 *bin*. Here is population growth across the 50 states.
 
@@ -554,6 +758,11 @@ colours.
 [John Tukey](https://en.wikipedia.org/wiki/John_Tukey) originated the **stem
 and leaf display** in the 1970s, when it could be built by hand. Its virtue is
 that every individual observation stays visible, unlike a histogram.
+
+One rule carries over from the empty class earlier in this chapter: **do not
+cut your leafless stems.** If no observation falls on a stem, the stem still
+appears, empty. Removing it closes a gap that is really there and misstates
+the shape of the distribution.
 
 ```{python}
 #| label: cci-two-files
