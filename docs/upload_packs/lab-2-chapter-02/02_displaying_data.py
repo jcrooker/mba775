@@ -66,7 +66,7 @@ banner("2. The same ten rows, drawn")
 _ = connected_scatter(world["gdp_pc"], world["share_poor"],
                       labels=world["year"], logx=True,
                       title="Extreme poverty and income, the world 1820 to 2015",
-                      xlab="GDP per capita (international-$, 2011 prices, log scale)",
+                      xlab="Real GDP per capita (international-$, 2011 prices, log scale)",
                       ylab="Share living in extreme poverty (%)")
 
 print("Neither axis is time. Both are measured quantities, and the points are")
@@ -121,7 +121,13 @@ print("\nProvenance, before anyone quotes a number off this:")
 print("  Poverty : Ravallion (2016) updated with World Bank (2019), via OWID")
 print("  Line    : $1.90 per day, international-$ at 2011 prices")
 print("            -- since superseded by $2.15 (2017) and $3.00 (2021)")
-print("  Income  : Maddison Project Database 2023, constant 2011 int'l $")
+print("  Income  : Maddison Project Database 2023, constant international-$")
+print("            at 2011 prices. CONSTANT = adjusted across time, for")
+print("            inflation, so this is REAL GDP per capita. INTERNATIONAL")
+print("            = adjusted across countries, for purchasing power.")
+print("            2023 is the RELEASE year, not the price base.")
+print("            Both series share the 2011 base -- which is the thing")
+print("            to check before putting two variables on one chart.")
 print(f"  Coverage: {int(world.year.min())} to {int(world.year.max())}, "
       f"{len(world)} observations")
 print("\nThe pre-1950 figures are RECONSTRUCTIONS, not measurements -- nobody")

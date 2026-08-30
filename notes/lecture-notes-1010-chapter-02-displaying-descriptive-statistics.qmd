@@ -137,7 +137,7 @@ the facts. It is hiding the structure.**
 _ = connected_scatter(world["gdp_pc"], world["share_poor"],
                       labels=world["year"], logx=True,
                       title="Extreme poverty and income, the world 1820 to 2015",
-                      xlab="GDP per capita (international-$, 2011 prices, log scale)",
+                      xlab="Real GDP per capita (international-$, 2011 prices, log scale)",
                       ylab="Share living in extreme poverty (%)")
 ```
 
@@ -243,6 +243,35 @@ print("          constant international-$ at 2011 prices, via Our World in Data"
 print(f"Coverage: {int(world.year.min())} to {int(world.year.max())}, "
       f"{len(world)} observations")
 ```
+
+::: {.charcoal}
+**What "constant international-\$ at 2011 prices" actually says.** Two separate
+adjustments are buried in that phrase, and neither is the one most people
+assume.
+
++ **Constant** means adjusted across *time* — for inflation. So this is
+  **real** GDP per capita, not nominal.
++ **International-\$** means adjusted across *countries* — for purchasing
+  power parity, so that a dollar buys a comparable basket everywhere.
+
+The base is **2011**, which is not a recent year. Note the source: Maddison
+Project Database *2023*. That 2023 is the year the database was **released**,
+not the year its prices are measured in. Reading \$14,713 for 2015 as though it
+were in today's dollars would be off by a decade and a half of inflation.
+
+So the 1820 figure reads: *the average person's annual output that year, valued
+at what \$1,128 would have bought in the United States in 2011.* Not 1820
+dollars. Not today's dollars.
+
+**And here is why that matters for this particular chart.** The poverty line is
+*also* measured at 2011 prices. Both variables share a base year. Had the
+income series been in 2011 dollars and the poverty line in 2021 dollars,
+putting them on one chart would have been the same mistake you are about to
+watch a house price index make — two variables that look comparable and are
+not.
+
+That the bases match is not luck. It is the thing to check before drawing.
+:::
 
 1. **The poverty line here is superseded.** These figures use \$1.90 a day at
    2011 prices. The World Bank has since moved to \$2.15 at 2017 prices and
