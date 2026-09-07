@@ -42,6 +42,7 @@ every Claude account, including the free tier.
 | 16a | [Forecasting 1 pack](upload_packs/lab-16a-forecasting-1.zip) | 6 |
 | 16b | [Forecasting 2 pack](upload_packs/lab-16b-forecasting-2.zip) | 8 |
 | 16c | [Forecasting 3 pack](upload_packs/lab-16c-forecasting-3.zip) | 8 |
+| 16 data | [Data-tools pack](upload_packs/lab-16-data-tools.zip) | 4 |
 
 **Path 2 — let Claude fetch them.** If your account's web access is on, you can
 skip the downloading and name the repository instead:

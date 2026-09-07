@@ -123,6 +123,16 @@ LABS = {
                     "_charts.py"],
         "data": ["cpi.csv", "icsa.csv", "nvsthpi.csv"],
     },
+    # Data tools for the forecasting challenge. Nothing here runs unattended:
+    # lvcva_tools.py reads workbooks the student uploads, fred_download.py
+    # needs internet. So "run" is empty and --verify skips it.
+    "lab-16-data-tools": {
+        "chapter": "16",
+        "topic": "getting the forecasting-challenge data",
+        "run": {},
+        "scripts": ["lvcva_tools.py", "fred_download.py"],
+        "data": ["lv_visitors.csv"],
+    },
     "lab-16c-forecasting-3": {
         "chapter": "16c",
         "topic": "forecasting 3 - regression and seasonality",

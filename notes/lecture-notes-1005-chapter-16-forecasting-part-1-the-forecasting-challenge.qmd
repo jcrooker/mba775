@@ -609,23 +609,28 @@ wish.
 # Getting the Data
 
 The syllabus says you should not be transcribing numbers by hand, and it means
-it. There are three ways to get a FRED series, and they all produce the same
-CSV.
+it. But there is a constraint you need to know about first.
 
-## Route 1: the Download button
+::: {.scarlet}
+**Claude's code sandbox has no internet access.** Claude can run Python on
+files you upload; it cannot reach FRED, the LVCVA, or GitHub from inside the
+code it runs, whatever your account tier. So every route below ends the same
+way: *you* download a file with one click, and Claude reads it. A script that
+"downloads the data" is for your own laptop, not for Claude — and if Claude
+ever hands you a series it did not read from a file you gave it, it made the
+series up.
+:::
+
+## FRED: the Download button
 
 Open the series page — <https://fred.stlouisfed.org/series/CPIAUCSL> — click
-**Download**, choose **CSV**. You get a two-column file, `observation_date` and
-`CPIAUCSL`, with a `.` wherever a value is missing. Save it into a `data/`
-folder next to your script. This works on any computer with a browser and
-needs no key, no package, no permission. Do it once so you know what the
-file looks like.
+**Download**, choose **CSV**. You get a two-column file, `observation_date`
+and `CPIAUCSL`, with a `.` wherever a value is missing. Upload it to Claude
+alongside `_forecast.py` and the script you are working from. That is the
+whole procedure, for all four FRED series, every week.
 
-## Route 2: the course download script
-
-`scripts/fred_download.py` fetches the same CSV endpoint the button uses and
-writes a tidy `date,value` file plus a `provenance.txt` recording what was
-retrieved and when:
+If you have Python on your own computer, `scripts/fred_download.py` does the
+same thing from the command line and writes a provenance file next to the CSV:
 
 ```
 python fred_download.py CPIAUCSL ICSA HOUST NVSTHPI
@@ -633,50 +638,64 @@ python fred_download.py CPIAUCSL ICSA HOUST NVSTHPI
 
 If you have a free FRED API key, set it once as the environment variable
 `FRED_API_KEY` and the script will use the `fredapi` package as a fallback.
-**Never paste the key into a script, a notebook, or a chat.** The course's
-`AGENTS.md` says the same to Claude.
+**Never paste the key into a script, a notebook, or a chat.**
 
-## Route 3: ask Claude to fetch it
+## Las Vegas visitor volume: the LVCVA workbook
 
-With web access on, Claude can retrieve the CSV itself. It can also *fail* to,
-and the failure mode that matters is not an error message — it is a plausible
-made-up series. So the prompt must forbid that in so many words.
+Visitor volume is not on FRED. The LVCVA posts an Excel workbook for each
+year on its [research page](https://www.lvcva.com/research/): a
+**Year-to-Date Summary** for the current year and a **Year-End Summary** for
+each past year. Row 8 of the first sheet is Visitor Volume, one cell per
+month, with an `r` beside any month that has been revised.
+
+`scripts/lvcva_tools.py` — the Python version of the R utilities this course
+used before Fall 2026 — reads those workbooks and writes `lv_visitors.csv`.
+The procedure inside Claude:
+
+1. On the research page, download the Year-to-Date Summary and the Year-End
+   Summaries for 2022 through last year (four or five files, a click each).
+2. Start a Claude conversation. Upload the workbooks, `lvcva_tools.py`, and
+   `COURSE_CONTEXT.md`. All three are in the
+   **[data-tools pack](../upload_packs/lab-16-data-tools.zip)**, together
+   with a copy of `lv_visitors.csv` as of the day the note was built, in case
+   the LVCVA page is down.
+3. Paste this:
 
 ::: {.prompt}
-Prompt — fetch and check a FRED series
+Prompt — build the visitor-volume series from the LVCVA workbooks
 
-> Download the FRED series CPIAUCSL as CSV from
-> `https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL` and save it as
-> `data/raw/CPIAUCSL.csv`. Then load it with pandas, parse the dates, and show
-> me: the number of observations, the first and last dates, the data type of
-> the value column, and how many values are missing and on which dates. Print
-> the last twelve rows verbatim.
+> I have uploaded several LVCVA "Summary of Monthly Tourism Indicators"
+> workbooks and the course file `lvcva_tools.py`. Run
 >
-> If the download fails for any reason, show me the error and stop. Do not
-> construct, recall, or estimate the series from memory — a plausible-looking
-> substitute is worse than no file.
+> `python lvcva_tools.py <the workbook file names>`
+>
+> and show me its output verbatim. It should report the year and the number of
+> published months it found in each workbook, then write `lv_visitors.csv`.
+> Show me the last six rows of that file and the first three, and tell me
+> the date of the newest month.
+>
+> If the script errors on a workbook, show me the traceback and stop. Do not
+> type the numbers in from the workbook yourself, and do not fill in a month
+> that is not there.
 :::
 
-If Claude reports it cannot reach FRED, use Route 1 and upload the file. Then
-paste the second paragraph of the prompt above and continue.
+The newest month in the file is the one the LVCVA has published; the
+challenge asks you for the one after it. Keep the workbooks: when next month's
+summary appears, download the new Year-to-Date file, rerun the same command,
+and the series grows by one row — and possibly changes in the row before,
+because the LVCVA revises.
 
-## Las Vegas visitor volume
+On your own computer with Python and internet, `python lvcva_tools.py` with
+no arguments finds and downloads the workbooks itself. It pauses a few seconds
+between files so as not to hammer a public server; leave the pause in.
 
-The LVCVA publishes a Year-to-Date Summary workbook for the current year and a
-Year-End Summary for each past year on its
-[research page](https://www.lvcva.com/research/). Row 8 of the first sheet is
-Visitor Volume. `scripts/lvcva_tools.py` finds those workbooks, reads the row,
-and writes `data/lv_visitors.csv` — the Python version of the R utilities the
-course used before Fall 2026:
+## What is in the course packs
 
-```
-python lvcva_tools.py
-```
-
-It pauses a few seconds between workbooks so as not to hammer a public server.
-Leave the pause in. The course copy of `lv_visitors.csv` runs from January
-2019, and the note that comes after Exam 2 explains why we will not fit
-seasonal factors across 2020.
+Each lab pack ships the CSVs the note was built from. They are a snapshot:
+correct on the day they were made and one release behind by the time you read
+this. Use them to *learn the method*; use a fresh download to *submit a
+forecast*. The `data/README.md` in the repository records the retrieval date
+of every file.
 
 # Working with Claude
 

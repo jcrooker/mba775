@@ -76,7 +76,7 @@ the three scripts for Chapter 1.
 | `16b_exponential_smoothing.py` | `cpi.csv`, `icsa.csv`, `nvsthpi.csv` | After Exam 1: exponential smoothing with and without trend; tuning alpha and beta; over-fitting |
 | `16c_regression_seasonality.py` | `lv_visitors.csv`, `nvsthpi.csv`, `houst.csv` | After Exam 2: trend projection, Durbin–Watson, multiplicative decomposition, seasonal dummies |
 | `fred_download.py` | — | Download any FRED series to `data/raw/` with a provenance file (no key needed; uses `FRED_API_KEY` if set) |
-| `lvcva_tools.py` | — | Rebuild `lv_visitors.csv` from the LVCVA research page (Python port of `LIB_LVCVA_Utilities.R`) |
+| `lvcva_tools.py` | — | Build `lv_visitors.csv` from LVCVA workbooks — uploaded ones (offline, inside Claude) or fetched from the research page (own computer) |
 
 `scripts/_forecast.py` holds the Chapter 16 methods (every formula box in the
 chapter, plus backtesting). Upload it alongside any Chapter 16 script.

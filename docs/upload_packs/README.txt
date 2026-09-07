@@ -10,6 +10,7 @@ into a Claude conversation.
     lab-4-chapter-04/   Chapter 4 - probability
     lab-16a-forecasting-1/   Chapter 16a - forecasting 1 - naive, moving averages, MAD
     lab-16b-forecasting-2/   Chapter 16b - forecasting 2 - exponential smoothing
+    lab-16-data-tools/   Chapter 16 - getting the forecasting-challenge data
     lab-16c-forecasting-3/   Chapter 16c - forecasting 3 - regression and seasonality
 
 Open the folder for your lab and read its README.txt.
