@@ -1,0 +1,757 @@
+---
+title: "Forecasting, Part 3: Regression and Seasonality"
+subtitle: "Chapter 16, §16.3–16.4"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from _charts import time_series, UNLV_SCARLET, UNLV_GRAY
+from _forecast import (CAR_SALES, naive_forecast, sma_forecast, wma_forecast,
+                       exp_smooth, exp_smooth_trend, trend_projection,
+                       durbin_watson, dw_test, decompose,
+                       seasonal_dummy_regression, accuracy, backtest_summary,
+                       forecast_plot)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 70)
+pd.set_option("display.float_format", lambda v: f"{v:,.2f}")
+
+
+def num(x, d=1):
+    return f"{x:,.{d}f}"
+
+
+def show_math(latex):
+    print(f"$${latex}$$\n")
+
+
+lv = pd.read_csv("data/lv_visitors.csv", parse_dates=["date"]).set_index("date")["visitors"]
+lv.index = lv.index.to_period("M")
+hpi = pd.read_csv("data/nvsthpi.csv", parse_dates=["date"]).set_index("date")["nv_hpi"]
+hpi.index = hpi.index.to_period("Q")
+houst = pd.read_csv("data/houst.csv", parse_dates=["date"]).set_index("date")["housing_starts"]
+houst.index = houst.index.to_period("M")
+```
+
+## Objectives
+
++ Forecast with **trend projection** — a regression of the series on the
+  period number — and compute its MAD.
++ Test the residuals for **autocorrelation** with the **Durbin–Watson**
+  statistic, and say what a positive result does to your regression.
++ Forecast with **multiplicative decomposition**: seasonal factors, a
+  deseasonalised trend, and their product.
++ Represent seasonality with **dummy variables** in a multiple regression.
++ Choose among all of Chapter 16's methods for each challenge series, and
+  defend the choice with a backtest.
+
+::: {.charcoal}
+You now have Chapters 14 and 15. That changes what you can do with a time
+series: instead of averaging its past, you can *model* it — put the period
+number on the right-hand side and let regression find the trend; put the
+season on the right-hand side and let it find the calendar. The methods before
+Exam 1 assumed a level. The methods before Exam 2 added a drifting level. These
+add a trend and a season, which is everything in Donnelly's list of
+components except the cycle.
+
+The smoothing methods were atheoretic: they had nothing to say about *why* a
+series moves. Regression is at least a hypothesis — sales grow with time;
+March is bigger than February — and a hypothesis can be wrong in ways you can
+check. That is the point of the Durbin–Watson test below.
+:::
+
+# Trend Projection
+
+::: {.blue}
+**Trend projection** fits a straight line to the series against the period
+number and extends it into the future (Formula 16.6):
+
+$$\hat{y}_t = b_0 + b_1 t,$$
+
+with $b_1$ and $b_0$ the ordinary least-squares slope and intercept from
+Chapter 14 (Formulas 16.7 and 16.8), $t = 1, 2, \ldots, n$.
+:::
+
+For Brandywine Ford, $t$ runs 1 to 12 and the regression is simple enough to
+do by hand: $\sum t = 78$, $\sum y = 1{,}599$, $\sum ty = 10{,}783$,
+$\sum t^2 = 650$.
+
+```{python}
+#| label: trend-fit
+#| output: asis
+y = CAR_SALES
+tp = trend_projection(y, horizon=2)
+show_math(r"\hat{y}_t = %.4f + %.4f\,t \qquad \hat{y}_{13} = %.4f + %.4f\,(13) = %.2f \approx %d \text{ cars}"
+          % (tp["b0"], tp["b1"], tp["b0"], tp["b1"], tp["forecasts"].iloc[0],
+             round(tp["forecasts"].iloc[0])))
+```
+
+Sales grow by about `{python} num(tp["b1"], 2)` cars a quarter. The forecast
+for period 13 is `{python} num(tp["forecasts"].iloc[0], 0)`; for period 14 it
+would be `{python} num(tp["forecasts"].iloc[1], 0)`, and each period further
+out is a little less believable — a line extended is a line trusted.
+
+```{python}
+#| label: trend-table
+tp["table"].round(1)
+```
+
+The forecasting error of a regression is its **residual**, $e_t = y_t -
+\hat{y}_t$ (Formula 16.9), and the MAD is the mean absolute residual:
+`{python} num(tp["MAD"])` cars. Note that this MAD averages all twelve
+residuals — regression forecasts every period, including the first.
+
+```{python}
+#| label: trend-excel
+pd.DataFrame({"coef": [tp["b0"], tp["b1"]], "std error": tp["se"], "t": tp["t"],
+              "p-value": tp["p"]}, index=["Intercept", "Period"]).round(4)
+```
+
+```{python}
+#| label: trend-r2
+#| include: false
+r2, adj, se = tp["r2"], tp["adj_r2"], tp["std_error"]
+```
+
+This is what Excel's Regression tool prints (Figure 16.11C): $R^2 =$
+`{python} num(r2, 4)`, standard error `{python} num(se, 2)`, and a p-value
+of `{python} num(tp["p"][1], 4)` on the slope. At $\alpha = 0.05$ the trend
+is *not* statistically significant — and yet its MAD is among the best so
+far. Those are different questions. Significance asks whether the slope could
+be zero given twelve noisy quarters; the MAD asks how far off the forecasts
+were. A line can forecast usefully without proving anything.
+
+```{python}
+#| label: trend-plot
+fig, ax = plt.subplots(figsize=(9, 4.4))
+t = np.arange(1, 13)
+ax.scatter(t, y.values, color=UNLV_SCARLET, zorder=5, label="actual")
+ax.plot(t, tp["table"]["fitted"], color=UNLV_GRAY, linewidth=1.4, label="trend line")
+tf = np.array([13, 14])
+ax.plot(np.r_[12, tf], np.r_[tp["table"]["fitted"].iloc[-1], tp["forecasts"].values],
+        color=UNLV_GRAY, linestyle="--", linewidth=1.4, label="projection")
+ax.scatter(tf, tp["forecasts"].values, color=UNLV_GRAY, zorder=5)
+ax.set_xticks(np.arange(1, 15)); ax.set_xlabel("Period"); ax.set_ylabel("Cars sold")
+ax.set_title("Figure 16.9: forecasting with a trend projection", color=UNLV_SCARLET)
+ax.grid(axis="y", color="#e6e6e6"); ax.legend(frameon=False)
+for side in ("top", "right"):
+    ax.spines[side].set_visible(False)
+plt.show()
+```
+
+# Checking for Autocorrelation
+
+Regression assumes the residuals are independent of one another. In a time
+series that assumption fails more often than it holds, because whatever
+pushed this quarter's sales above the line is usually still pushing next
+quarter.
+
+::: {.blue}
+**Autocorrelation** is the condition in which the residuals of a regression
+are not independent of one another. The **Durbin–Watson statistic** tests for
+it (Formula 16.10):
+
+$$d = \frac{\sum_{t=2}^{n}(e_t - e_{t-1})^2}{\sum_{t=1}^{n} e_t^2}.$$
+
+$d$ ranges from 0 to 4. A value near 2 means no autocorrelation; near 0,
+perfect positive autocorrelation (residuals in long runs of the same sign);
+near 4, perfect negative autocorrelation (residuals that alternate).
+:::
+
+If consecutive residuals are close to each other, the numerator is small and
+$d$ falls toward zero. Donnelly's Table 16.10 makes the point with five
+residuals all equal to 20: every difference is zero, $d = 0$, and knowing
+one residual tells you the next exactly. Negative autocorrelation is rare in
+business data, so the test is one-tailed:
+
+$$H_0: \text{no positive autocorrelation} \qquad H_1: \text{positive autocorrelation is present}.$$
+
+The test needs at least 15 observations, so the book switches to a 16-year
+series of union membership as a share of the labour force (Table 16.12):
+
+```{python}
+#| label: union
+pd.set_option("display.float_format", lambda v: f"{v:,.4f}")
+union = pd.Series([13.0, 12.6, 12.5, 12.1, 12.2, 12.5, 12.4, 12.5,
+                   11.9, 11.8, 11.3, 11.3, 11.1, 11.1, 10.7, 10.7],
+                  index=range(2002, 2018), name="pct_union")
+u = trend_projection(union)
+res = u["table"]["residual"]
+pieces = pd.DataFrame({"residual": res, "prior": res.shift(1),
+                       "(e_t - e_t-1)^2": (res - res.shift(1)) ** 2, "e_t^2": res ** 2})
+pieces.round(4)
+```
+
+```{python}
+#| label: dw-math
+#| output: asis
+dwr = dw_test(res)
+show_math(r"\hat{y}_t = %.4f %+.4f\,t \qquad d = \frac{%.4f}{%.4f} = %.4f"
+          % (u["b0"], u["b1"], pieces["(e_t - e_t-1)^2"].sum(), pieces["e_t^2"].sum(), dwr["d"]))
+```
+
+The critical values come from the Durbin–Watson table (Appendix A, Table 9),
+indexed by $n$ and by $k$, the number of independent variables. For $n = 16$,
+$k = 1$, $\alpha = 0.05$: $d_L$ = `{python} str(dwr["d_L"])` and
+$d_U$ = `{python} str(dwr["d_U"])`. The decision rule has three regions:
+
+| Result | Conclusion |
+|---|---|
+| $d < d_L$ | Reject $H_0$: positive autocorrelation is present |
+| $d_L \le d \le d_U$ | Inconclusive |
+| $d > d_U$ | Fail to reject $H_0$: no evidence of positive autocorrelation |
+
+Here $d$ = `{python} num(dwr["d"], 3)` $< d_L$, so we **`{python} dwr["verdict"]`**.
+(The book gets 1.0085 from residuals rounded to three decimals; the
+difference is rounding, not disagreement.)
+
+::: {.charcoal}
+What does a positive result cost you? The point estimates $b_0$ and $b_1$ are
+still unbiased; the *standard errors* are wrong, usually too small, so the
+t-test on the slope claims more certainty than it has. The trend line may
+still forecast tolerably. But autocorrelated residuals are also a message:
+there is information in the residuals a better model could use. If the last
+three residuals were negative, the next one probably is too — and the trend
+projection ignores that, while the naive forecast, without knowing it, uses
+it. The fix Donnelly suggests is to add an explanatory variable. Another,
+which you will meet if you take a time-series course, is to model the
+residuals themselves.
+:::
+
+# Forecasting with Seasonality
+
+Look at the car sales again: quarters 2 and 4 spike, every year. Every method
+so far has treated that as noise. It is not noise; it is the calendar, and a
+calendar can be forecast.
+
+## Multiplicative Decomposition
+
+::: {.blue}
+The **multiplicative decomposition** model writes each observation as the
+product of its components (Formula 16.11):
+
+$$y_t = T_t \times S_t \times R_t,$$
+
+trend, seasonal and random. (The cycle is left out: three years of data are
+not enough to see one.) The forecast is $F_t = T_t \times S_t$ (Formula
+16.14) — the random component is, by definition, unforecastable.
+:::
+
+Four steps: identify the seasonal factors, deseasonalise the data, fit a trend
+to the deseasonalised data, and multiply.
+
+### Step 1: the centered moving average
+
+Average four consecutive quarters. Because four is even, the average of
+periods 1–4 belongs to period 2.5, halfway between 2 and 3; so average the
+period-2.5 and period-3.5 averages to get a value centred *on* period 3. That
+is the **centered moving average**, and it contains one of every season, so
+the seasonal component has been averaged out of it — and so, roughly, has the
+random component. What is left is the trend: $\text{CMA}_t \approx T_t$.
+
+### Step 2: the ratio to moving average
+
+Divide each actual by its CMA (Formula 16.12): $\text{RMA}_t = y_t /
+\text{CMA}_t = S_t \times R_t$. The ratio is what the season and the noise
+did to that period.
+
+```{python}
+#| label: decomp-steps
+pd.set_option("display.float_format", lambda v: f"{v:,.4f}")
+dec = decompose(y, season_length=4, horizon=4)
+dec["steps"].round(4)
+```
+
+Read period 3: CMA `{python} num(dec["steps"].loc["2016Q3", "CMA"], 3)`, actual
+108, ratio `{python} num(dec["steps"].loc["2016Q3", "RMA"], 4)` — the third
+quarter of 2016 ran about 12% below trend. The first two and last two periods
+have no CMA: a centred average needs data on both sides.
+
+### Step 3: seasonal factors, then normalise them
+
+Each quarter appears twice in the ratios. Average them, and the random
+component — which is what differs between the two years — cancels, leaving
+the seasonal factor. Then rescale so the four factors sum to exactly 4,
+because a "season" that averages more than 100% of an average quarter is not
+a season.
+
+```{python}
+#| label: decomp-factors
+dec["factors"].round(4)
+```
+
+The sum of the raw factors is `{python} num(dec["factors"].attrs["sum_SF"], 4)`;
+multiplying each by 4 / `{python} num(dec["factors"].attrs["sum_SF"], 4)`
+gives the normalised factors. Quarter 2 runs about
+`{python} num((dec["factors"].loc[2, "NSF"] - 1) * 100, 0)`% above an
+average quarter; quarters 1 and 3 run about 10% below.
+
+### Step 4: deseasonalise, fit the trend, multiply
+
+Divide each observation by its quarter's factor (Formula 16.13) and the
+seasonal spikes disappear. Regress what is left on the period number; that is
+the trend component. The forecast is the projected trend times the factor for
+the quarter being forecast.
+
+```{python}
+#| label: decomp-table
+pd.set_option("display.float_format", lambda v: f"{v:,.2f}")
+dec["table"].round(2)
+```
+
+```{python}
+#| label: decomp-math
+#| output: asis
+f13 = dec["future"].iloc[0]
+show_math(r"T_t = %.4f + %.4f\,t \qquad T_{13} = %.2f \qquad F_{13} = T_{13} \times S_1 = %.2f \times %.4f = %.1f \approx %d \text{ cars}"
+          % (dec["b0"], dec["b1"], f13["T"], f13["T"], f13["S"], f13["forecast"], round(f13["forecast"])))
+```
+
+```{python}
+#| label: decomp-future
+dec["future"].round(2)
+```
+
+The trend alone would have said `{python} num(f13["T"], 0)` cars; the first
+quarter's factor pulls it down to `{python} num(f13["forecast"], 0)`. And the
+MAD is `{python} num(dec["MAD"])` — less than half of any method before it.
+(The book's trend line, $116.85 + 2.52t$, was fitted to deseasonalised
+values rounded to one decimal; ours is fitted to the unrounded ones.)
+
+```{python}
+#| label: decomp-plot
+_ = forecast_plot(y, {"decomposition": dec["forecast"], "SMA p=4": sma_forecast(y, 4)},
+                  title="Multiplicative decomposition follows the season; the average smooths it away",
+                  ylab="Cars sold")
+```
+
+## Seasonality with Dummy Variables
+
+Chapter 15 gave you dummy variables. A season is a qualitative variable with
+four categories, so it needs three dummies (one category is the base):
+
+::: {.blue}
+$$F_t = b_0 + b_1 t + b_2\,\text{SD}_2 + b_3\,\text{SD}_3 + b_4\,\text{SD}_4,$$
+
+where $\text{SD}_q = 1$ in quarter $q$ and 0 otherwise, and the first quarter
+is the base. Each $b_q$ is how many more cars quarter $q$ sells than the
+first quarter *at the same point on the trend*.
+:::
+
+The book runs best-subsets regression and keeps the period and two of the
+three dummies — the third-quarter dummy is dropped, because the third quarter
+is not distinguishable from the first. Dummies are named here by quarter, so
+the book's SD$_1$ and SD$_3$ are our SD$_2$ and SD$_4$.
+
+```{python}
+#| label: dummies
+book = seasonal_dummy_regression(y, season_length=4, base_season=1, horizon=4, drop=[3])
+book["coef"].round(4)
+```
+
+```{python}
+#| label: dummies-stats
+#| include: false
+b = book["coef"]["coef"]
+```
+
+Adjusted $R^2$ is `{python} num(book["adj_r2"], 3)` and every coefficient has
+$p < 0.05$. The second quarter sells `{python} num(b["SD2"])` more cars than
+the first; the fourth, `{python} num(b["SD4"])` more. That is the
+decomposition's seasonal factor of `{python} num(dec["factors"].loc[2, "NSF"], 2)`
+said in cars rather than ratios.
+
+```{python}
+#| label: dummies-math
+#| output: asis
+show_math(r"F_{13} = %.4f + %.1f\,(13) + %.4f\,(0) + %.4f\,(0) = %.1f \approx %d \text{ cars}"
+          % (b["intercept"], b["t"], b["SD2"], b["SD4"], book["future"]["forecast"].iloc[0],
+             round(book["future"]["forecast"].iloc[0])))
+```
+
+```{python}
+#| label: dummies-future
+book["future"].round(1)
+```
+
+## Table 16.22: every method, one table
+
+```{python}
+#| label: everything
+pd.set_option("display.float_format", lambda v: f"{v:,.2f}")
+accuracy(y, {
+    "naive":                            naive_forecast(y),
+    "SMA p=3":                          sma_forecast(y, 3),
+    "SMA p=4":                          sma_forecast(y, 4),
+    "WMA 3-2-1":                        wma_forecast(y, [1, 2, 3]),
+    "Exp. smoothing 0.6":               exp_smooth(y, 0.6),
+    "Exp. smoothing w/ trend 0.3, 0.1": exp_smooth_trend(y, 0.3, 0.1),
+    "Trend projection":                 tp["forecast"],
+    "Multiplicative decomposition":     dec["forecast"],
+    "Seasonal dummies":                 book["forecast"],
+}).round(2)
+```
+
+::: {.charcoal}
+The two methods that model *both* trend and season win by a wide margin, and
+the four-period moving average — the only smoothing method whose window spans
+every season — is next. Complexity is not what wins. Matching the method to
+the components that are actually in the series is what wins, and a method
+that models a component the series does not have loses ground for it. The
+next section shows both halves of that.
+:::
+
+# The Challenge Series
+
+## Las Vegas visitor volume: twelve seasons
+
+Visitor volume is monthly, so there are twelve seasons, and the LVCVA does
+not seasonally adjust it. This is the challenge series with the strongest
+calendar in it.
+
+```{python}
+#| label: lv-plot
+_ = time_series(lv.index.to_timestamp(), lv.values,
+                title="Las Vegas visitor volume, monthly (LVCVA)", ylab="Visitors")
+```
+
+::: {.scarlet}
+2020 and 2021 are not a season; they are a pandemic. A seasonal factor for
+April averaged across a closed city and an open one describes neither. Every
+seasonal model below starts in January 2022. That is a judgment, and it is
+the kind of judgment the data cannot make for you.
+:::
+
+```{python}
+#| label: lv-decomp
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+post = lv.loc["2022-01":]
+month_of = post.index.month
+d12 = decompose(post, season_length=12, horizon=3, season_of=month_of)
+d12["factors"]["NSF"].round(3).to_frame("NSF").T
+```
+
+```{python}
+#| label: lv-facts
+#| include: false
+nsf = d12["factors"]["NSF"]
+hi_m, lo_m = int(nsf.idxmax()), int(nsf.idxmin())
+import calendar
+hi_name, lo_name = calendar.month_name[hi_m], calendar.month_name[lo_m]
+next_p = post.index[-1] + 1
+```
+
+The factors say `{python} hi_name` runs about
+`{python} num((nsf.max() - 1) * 100, 0)`% above an average month and
+`{python} lo_name` about `{python} num((1 - nsf.min()) * 100, 0)`% below.
+The deseasonalised trend is `{python} num(d12["b0"], 0)`
+`{python} "+" if d12["b1"] >= 0 else "−"` `{python} num(abs(d12["b1"]), 0)`
+visitors per month — read the sign; it is the post-2022 direction of the
+market, and it is what the seasonal factor gets multiplied by.
+
+```{python}
+#| label: lv-future
+fut = d12["future"].copy()
+fut["T"] = fut["T"].map(lambda v: f"{v:,.0f}")
+fut["forecast"] = fut["forecast"].map(lambda v: f"{v:,.0f}")
+fut
+```
+
+```{python}
+#| label: lv-dummies
+sd12 = seasonal_dummy_regression(post, season_length=12, base_season=1, horizon=3,
+                                 season_of=month_of)
+sd12["future"].assign(forecast=lambda d: d["forecast"].map(lambda v: f"{v:,.0f}"))
+```
+
+```{python}
+#| label: lv-accuracy
+pd.set_option("display.float_format", lambda v: f"{v:,.0f}")
+lv_methods = {
+    "naive":            naive_forecast(post),
+    "SMA p=3":          sma_forecast(post, 3),
+    "SMA p=12":         sma_forecast(post, 12),
+    "ES 0.3":           exp_smooth(post, 0.3),
+    "Trend projection": trend_projection(post)["forecast"],
+    "Decomposition":    d12["forecast"],
+    "Seasonal dummies": sd12["forecast"],
+}
+accuracy(post, lv_methods).round(0)
+```
+
+```{python}
+#| label: lv-backtest
+btl = backtest_summary(post, {
+    "naive":    (naive_forecast, {}),
+    "SMA p=12": (sma_forecast, {"p": 12}),
+    "ES 0.3":   (exp_smooth, {"alpha": 0.3}),
+    "Decomposition": (lambda s: decompose(s, 12, season_of=s.index.month)["forecast"], {}),
+    "Seasonal dummies": (lambda s: seasonal_dummy_regression(
+        s, 12, season_of=s.index.month)["forecast"], {}),
+}, last=12)
+btl.round(0)
+```
+
+```{python}
+#| label: lv-dw
+#| include: false
+dw_lv = dw_test(sd12["table"]["residual"])
+```
+
+Backtested over the last twelve months, the best method for
+`{python} str(next_p)` is **`{python} btl["MAD"].idxmin()`**, and the naive
+forecast — which knows nothing about calendars — is at
+`{python} num(btl.loc["naive", "MAD"], 0)`. The twelve-month moving average
+does respectably for the same reason the four-quarter average did on car
+sales: its window contains every season once.
+
+One more thing to check, now that you know how. The Durbin–Watson statistic
+on the dummy model's residuals is `{python} num(dw_lv["d"], 3)` against
+$d_L$ = `{python} str(dw_lv["d_L"])`: **`{python} dw_lv["verdict"]`**. The
+residuals run in streaks — a slow spring is followed by a slow summer — and
+the seasonal model cannot see that. That is exactly the situation in which a
+forecast that blends the model with the latest residual will beat the model
+alone, and it is the next thing you would learn in a forecasting course.
+
+```{python}
+#| label: lv-forecast-plot
+_ = forecast_plot(post, {"seasonal dummies": sd12["forecast"], "naive": naive_forecast(post)},
+                  title="Las Vegas visitor volume: actual vs. forecast", ylab="Visitors", last=30)
+```
+
+## Nevada house prices: a very significant line that keeps missing
+
+```{python}
+#| label: hpi-trend
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+recent = hpi.loc["2015Q1":]
+th = trend_projection(recent, horizon=2)
+dw_h = dw_test(th["table"]["residual"])
+th["table"]["residual"].tail(8).round(2).to_frame("residual").T
+```
+
+`{python} str(len(recent))` quarters from 2015, and the trend line is $T_t$ = `{python} num(th["b0"], 1)` + `{python} num(th["b1"], 2)` $t$
+with $R^2$ = `{python} num(th["r2"], 3)` and a slope p-value of `{python} f"{th['p'][1]:.1e}"`. The forecast for `{python} str(recent.index[-1] + 1)`
+is `{python} num(th["forecasts"].iloc[0])`; the naive forecast is
+`{python} num(recent.iloc[-1])`. The Durbin–Watson statistic is
+`{python} num(dw_h["d"], 3)`: **`{python} dw_h["verdict"]`**.
+
+Look at the last eight residuals in the table above: residuals that keep the
+same sign for quarters at a time are what a small $d$ looks like. The line is
+straight and the index is not: it rose fast, then slowed, and a line fitted
+through both halves misses the recent quarters in the same direction every
+time. A regression can be overwhelmingly significant and still be the wrong
+shape. The naive forecast, which knows only where the index *is*, has the
+last residual built in; the trend-adjusted smoothing from Part 2 tracks the
+slope as it changes. Check both against the line in your backtest before you
+submit a trend projection for this series.
+
+## Housing starts: read the units line first
+
+```{python}
+#| label: houst-factors
+h_recent = houst.loc["2019-01":]
+hd = decompose(h_recent, season_length=12, season_of=h_recent.index.month)
+hd["factors"]["NSF"].round(3).to_frame("NSF").T
+```
+
+FRED's units line for HOUST reads *Thousands of Units, Seasonally Adjusted
+Annual Rate*. The Census Bureau removed the season before FRED published the
+number, and the factors a decomposition finds anyway range only
+`{python} num(hd["factors"]["NSF"].min(), 3)` to
+`{python} num(hd["factors"]["NSF"].max(), 3)`. A seasonal model here is
+fitting noise, and it will cost you accuracy for the privilege. The same is
+true of the CPI and of initial claims (both SA); it is **not** true of the
+Nevada house price index (NSA) or of visitor volume.
+
+```{python}
+#| label: houst-backtest
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+backtest_summary(h_recent, {
+    "naive":   (naive_forecast, {}),
+    "SMA p=3": (sma_forecast, {"p": 3}),
+    "SMA p=6": (sma_forecast, {"p": 6}),
+    "ES 0.3":  (exp_smooth, {"alpha": 0.3}),
+    "Trend":   (lambda s: trend_projection(s)["forecast"], {}),
+}, last=12).round(1)
+```
+
+::: {.charcoal}
+**The map of the challenge, after three notes.** Each series has a method
+that suits it, and the reasons are the components in Donnelly's list. The CPI:
+trend, no season → trend-adjusted smoothing. Initial claims: noise around a
+level → a short moving average or exponential smoothing with a moderate
+$\alpha$. Housing starts: already seasonally adjusted, noisy → a short moving
+average. The Nevada HPI: a trend that bends → smoothing that tracks the slope,
+not a fixed line. Visitor volume: a strong calendar → decomposition or
+dummies, refit as the months arrive. Whether that map is still right next
+month is what the backtest is for.
+:::
+
+# Working with Claude
+
+## The lab prompt
+
+::: {.prompt}
+Run this with Claude
+
+> Get the MBA 775 course materials from <https://github.com/jcrooker/mba775>.
+> I need `scripts/16c_regression_seasonality.py`, `scripts/_course.py`,
+> `scripts/_forecast.py`, `scripts/_charts.py`, `data/lv_visitors.csv`,
+> `data/nvsthpi.csv` and `data/houst.csv`. Read `COURSE_CONTEXT.md` from the
+> same repository first — it explains how this course expects analytical work
+> to be done.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
+:::
+
+## Refresh the visitor data and refit
+
+::: {.prompt}
+Prompt — the LVCVA workbook
+
+> Run `lvcva_tools.py` to rebuild `data/lv_visitors.csv` from the LVCVA
+> research page. Show me the provenance lines it prints, the last six rows of
+> the file, and whether the newest month differs from the copy I uploaded
+> earlier (`lv_visitors_old.csv`) — including any *revised* earlier months,
+> which the LVCVA flags with an `r`. Then refit the seasonal-dummy model on
+> January 2022 onward and give me the next-month forecast and a 12-month
+> backtest. If the download fails, show the error and stop; do not fill in a
+> month from memory.
+:::
+
+## Explain a coefficient in English
+
+::: {.prompt}
+Prompt — a coefficient, not a formula
+
+> Here is the seasonal-dummy regression output for Las Vegas visitor volume
+> (paste the coefficient table). Explain the coefficient on `SD10` to a hotel
+> general manager in two sentences without using the words "dummy",
+> "regression", "coefficient" or "base". Then tell me what the intercept means
+> and why it is not the January forecast.
+:::
+
+## Make it argue
+
+::: {.prompt}
+Prompt — trend line versus naive on the Nevada HPI
+
+> Using `nvsthpi.csv` from 2015Q1 on, fit a trend projection and run the
+> Durbin–Watson test on its residuals with `dw_test`. Show the output. Then
+> make the case, using only the last eight residuals, that the naive forecast
+> will beat the trend projection next quarter — and the case that it will not.
+> End by saying which argument the Durbin–Watson result supports and why.
+:::
+
+## Verify
+
+| Check | What it catches |
+|---|---|
+| The seasonal factors sum to the number of seasons | Unnormalised factors, which bias every forecast the same direction |
+| The first and last CMA rows are blank | A "centred" average that is not centred |
+| The dummy for the base season is absent | A model with $k$ dummies for $k$ seasons, which will not estimate |
+| The forecast's season matches the calendar month being forecast | A factor applied to the wrong month — the commonest error in this section |
+| The units line was read before a seasonal model was fitted | A season fitted to a seasonally adjusted series |
+| $n \ge 15$ before a Durbin–Watson verdict is reported | A test the table cannot support |
+
+# Your Turn (from the textbook)
+
+Using the GPA series (three seasons a year: Fall, Spring, Summer): find the
+seasonal factors (Your Turn 7), forecast the next three semesters by
+multiplicative decomposition (Your Turn 8), and compute its MAD (Your Turn
+9). Three seasons is odd, so the moving average is already centred and there
+is no second averaging step — check that the code agrees.
+
+```{python}
+#| label: gpa-answer
+#| code-fold: true
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+gpa = pd.Series([2.5, 2.2, 2.7, 3.0, 2.6, 3.0, 3.2, 2.7, 3.3],
+                index=["Fr Fall", "Fr Spring", "Fr Summer", "So Fall", "So Spring",
+                       "So Summer", "Jr Fall", "Jr Spring", "Jr Summer"], name="GPA")
+g = decompose(gpa, season_length=3, horizon=3)
+print(g["factors"].round(4))
+print(g["future"].round(3))
+print(f"MAD: {g['MAD']:.3f}")
+```
+
+# Laboratory 16c
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 16c pack](../upload_packs/lab-16c-forecasting-3.zip)**
+— one file. Unzip it and you will have a folder holding 8 files. Drag all 8
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 8 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `16c_regression_seasonality.py` and show me its actual output,
+> verbatim. Walk me through what each section does and what the results mean.
+> Do not report any number you did not compute, and if anything fails, show me
+> the error rather than describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is
+> a plain page listing the files for each laboratory. Follow the links for
+> Laboratory 16c and read `COURSE_CONTEXT.md` first; it explains how this
+> course expects analytical work to be done.
+>
+> Then run `16c_regression_seasonality.py` and show me its actual output,
+> verbatim. Walk me through what each section does and what the results mean.
+> Do not report any number you did not compute, and if anything fails, show me
+> the error rather than describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Use Path 1.
+:::
+
+::: {.scarlet}
+**The last submissions.** For each of the five series, your final index card
+should now name a method, a window, the parameters, and the backtested MAD —
+and one sentence on which component of the series the method is built to
+capture. If you cannot name the component, you have picked the method by
+its MAD alone, and a method picked by its MAD alone is the one most likely
+to have been fitted to noise.
+:::

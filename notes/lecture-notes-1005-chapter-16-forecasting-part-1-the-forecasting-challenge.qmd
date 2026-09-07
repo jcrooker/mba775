@@ -1,0 +1,881 @@
+---
+title: "Forecasting, Part 1: The Forecasting Challenge"
+subtitle: "Chapter 16, §16.1–16.2 (through the weighted moving average)"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from _charts import time_series, scatter, UNLV_SCARLET, UNLV_GRAY
+from _forecast import (CAR_SALES, naive_forecast, sma_forecast, wma_forecast,
+                       error_table, mad, rmse, mape, accuracy, tune_sma,
+                       backtest, backtest_summary, fill_gaps, forecast_plot)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 60)
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+
+
+def num(x, d=1):
+    return f"{x:,.{d}f}"
+
+
+def show_math(latex):
+    print(f"$${latex}$$\n")
+
+
+cpi_raw = pd.read_csv("data/cpi.csv", parse_dates=["date"]).set_index("date")["cpi"]
+icsa = pd.read_csv("data/icsa.csv", parse_dates=["date"]).set_index("date")["initial_claims"]
+houst = pd.read_csv("data/houst.csv", parse_dates=["date"]).set_index("date")["housing_starts"]
+hpi = pd.read_csv("data/nvsthpi.csv", parse_dates=["date"]).set_index("date")["nv_hpi"]
+lv = pd.read_csv("data/lv_visitors.csv", parse_dates=["date"]).set_index("date")["visitors"]
+```
+
+## Objectives
+
++ Say what a forecast is, what a time series is, and name the four components a
+  time series can contain.
++ Produce a **naive** forecast, a **simple moving average** forecast, and a
+  **weighted moving average** forecast, by hand and in Python.
++ Measure forecast accuracy with the **mean absolute deviation** and choose
+  between methods on that basis.
++ Download a series from FRED, check it, and forecast its next value — the
+  workflow of the semester-long forecasting challenge.
++ Instruct Claude to do all of the above and verify that it did.
+
+::: {.charcoal}
+Donnelly puts forecasting in Chapter 16, the last chapter of the book. We are
+reading part of it in Week 3, and we will come back to it twice more. Two
+reasons. First, forecasting is the most immediately *useful* thing in the
+book, and it is the one you will be asked to do at work before anyone asks
+you for a hypothesis test. Second, it is a skill, not a fact — it needs
+practice, and one week in December is not practice. So for the rest of the
+semester you will be submitting real forecasts of real numbers, and finding out
+how you did when the number is published. That is the **forecasting
+challenge**, and this note is the equipment you need to start.
+
+The methods in this note need no probability, no regression, no distribution
+theory. They need arithmetic and honesty about how well the arithmetic did.
+:::
+
+# The Forecasting Challenge
+
+Throughout the semester you will enter forecasts in Canvas for five series.
+Four are on FRED, one is not.
+
+| Series | FRED ID | Frequency | Published by |
+|---|---|---|---|
+| Consumer Price Index, all urban consumers | [`CPIAUCSL`](https://fred.stlouisfed.org/series/CPIAUCSL) | Monthly | Bureau of Labor Statistics |
+| Initial claims for unemployment insurance | [`ICSA`](https://fred.stlouisfed.org/series/ICSA) | Weekly (Thursdays) | Department of Labor |
+| New privately-owned housing units started | [`HOUST`](https://fred.stlouisfed.org/series/HOUST) | Monthly | Census Bureau |
+| All-transactions house price index, Nevada | [`NVSTHPI`](https://fred.stlouisfed.org/series/NVSTHPI) | Quarterly | FHFA |
+| Las Vegas visitor volume | — | Monthly | [LVCVA](https://www.lvcva.com/research/) |
+
+The forecast period is always *the next value the data provider will release*.
+Every FRED series page shows its next release date; the LVCVA posts its monthly
+summary about four weeks after the month ends. Due dates are on the syllabus and
+in Canvas.
+
+::: {.scarlet}
+**The rule of the challenge is the rule of the course.** Your forecast comes
+from a script you can rerun next period, not from a number you eyeballed off a
+chart or a figure Claude stated in prose. When you are asked why you submitted
+the number you submitted, the answer is a method, a window of data, and a
+measured error — all three.
+:::
+
+Here are the five series as they stand today. Look at them before reading on.
+Which ones climb? Which ones jump around a level? Which one has a calendar in
+it?
+
+```{python}
+#| label: five-series
+#| fig-height: 9
+fig, axes = plt.subplots(3, 2, figsize=(11, 9))
+panels = [
+    (cpi_raw.loc["2015":], "CPI, all urban consumers (CPIAUCSL)", "Index, 1982–84 = 100"),
+    (icsa.loc["2022":], "Initial claims, weekly (ICSA)", "Claims"),
+    (houst.loc["2015":], "Housing starts (HOUST)", "Thousands, SAAR"),
+    (hpi.loc["2015":], "Nevada house price index (NVSTHPI)", "Index, 1980Q1 = 100"),
+    (lv, "Las Vegas visitor volume (LVCVA)", "Visitors per month"),
+]
+for ax, (s, title, ylab) in zip(axes.flat, panels):
+    ax.plot(s.index, s.values, color=UNLV_SCARLET, linewidth=1.3)
+    ax.set_title(title, color=UNLV_SCARLET, fontsize=11, fontweight="600")
+    ax.set_ylabel(ylab, fontsize=9)
+    ax.grid(axis="y", color="#e6e6e6")
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+axes.flat[-1].axis("off")
+fig.tight_layout()
+plt.show()
+```
+
+# What Forecasting Is
+
+::: {.blue}
+**Qualitative forecasting** relies primarily on a knowledgeable person's
+intuition and judgment to predict events. **Quantitative forecasting** uses
+historical data and mathematics.
+:::
+
+Every business decision that takes time to carry out — hiring, ordering
+inventory, building a plant, scheduling staff for a convention weekend — is a
+bet on a number nobody knows yet. A forecast is the number you bet on, and a
+forecasting *method* is a rule for producing it that you could apply again next
+period. The second half of that sentence is what separates a method from a
+guess.
+
+::: {.blue}
+A **time series** is a group of data values, each associated with a specific
+point in time.
+:::
+
+Donnelly's running example is Brandywine Ford, a dealership that wants to
+forecast next quarter's new-car sales from the last twelve quarters (Table
+16.1). We will use it throughout, because you can check every number against
+the book. Then we will do the same thing to the CPI.
+
+```{python}
+#| label: car-sales-table
+CAR_SALES.to_frame("sales").T
+```
+
+The first thing a forecaster does is *plot the series*. A table hides what a
+picture shows.
+
+```{python}
+#| label: car-sales-plot
+fig, ax = plt.subplots(figsize=(9, 4.2))
+x = np.arange(1, 13)
+ax.plot(x, CAR_SALES.values, color=UNLV_SCARLET, marker="o", linewidth=1.4)
+ax.set_xticks(x)
+ax.set_xlabel("Period (quarters, 2016Q1 = 1)")
+ax.set_ylabel("New cars sold")
+ax.set_title("Brandywine Ford new car sales (Donnelly Table 16.1)", color=UNLV_SCARLET)
+ax.grid(axis="y", color="#e6e6e6")
+for side in ("top", "right"):
+    ax.spines[side].set_visible(False)
+plt.show()
+```
+
+## The Components of a Time Series
+
+::: {.blue}
+A **trend component** is present if a general upward or downward movement can
+be seen in the data.
+
+A **seasonal component** is present if a consistent pattern can be associated
+with the calendar. Seasonal patterns repeat within a year, so you need data
+more often than annual to see them.
+
+A **cyclical component** is movement that results from swings in the economy
+over several years — longer than a season.
+
+The **random component** is whatever is left: movement that cannot be
+attributed to trend, season, or cycle. It is often called *noise*.
+:::
+
+Look back at the car sales. The line drifts upward (trend), and every second
+and fourth quarter spikes (seasonal). Now look at the five challenge series.
+The CPI is almost pure trend. Initial claims are almost pure noise around a
+level. Visitor volume has a calendar in it — you can see March and October. The
+Nevada house price index trends, but not in a straight line, and it has the
+2008 cycle in its long history.
+
+::: {.charcoal}
+Every method in Chapter 16 is a bet about which components are present. The
+methods in *this* note assume there is a level and some noise, and nothing
+else. When that is wrong — when there is a trend or a season — they fail in a
+predictable direction, and you will see it happen to the CPI below. Knowing
+*how* a method fails is most of knowing when to use it.
+:::
+
+# Smoothing Methods
+
+::: {.blue}
+The goal of a **smoothing method** is to average out the random movements in
+a time series, because they are unpredictable. If the forecast is an average
+of recent values, the ups and downs of the random component should cancel.
+:::
+
+Smoothing works best when the series is fairly consistent over time: no
+significant trend, seasonal, or cyclical component. Chapter 16 covers four
+smoothing methods. We take the first two now and add a fifth that the book
+skips, because it is the one every other method has to beat.
+
+## The Naive Forecast
+
+::: {.blue}
+The **naive forecast** for period $t$ is the actual value from period $t-1$:
+
+$$F_t = A_{t-1}.$$
+:::
+
+"Next quarter will be like this quarter." It sounds like an insult to
+forecasting, and for many series it is remarkably hard to beat — the CPI, as
+you are about to see, is one of them. A method that cannot outperform the naive
+forecast has not earned its complexity. Always compute it first.
+
+```{python}
+#| label: naive-cars
+nv = naive_forecast(CAR_SALES)
+error_table(CAR_SALES, nv).round(1)[["actual", "forecast", "error", "abs_error"]]
+```
+
+The naive forecast for 2019Q1 is `{python} num(nv.iloc[-1], 0)` cars — the
+2018Q4 figure. Notice the pattern in the error column: it alternates sign,
+because the series alternates high and low quarters and the naive forecast is
+always one step behind. That is the seasonal component punishing a method that
+does not know about seasons.
+
+## The Simple Moving Average
+
+::: {.blue}
+A **simple moving average** (SMA) forecast averages the most recent $p$ values
+of the series:
+
+$$\text{SMA}(p, t) = \frac{A_{t-1} + A_{t-2} + \cdots + A_{t-p}}{p}.$$
+:::
+
+Donnelly chooses $p = 3$ and forecasts the first quarter of 2019 from the last
+three quarters of 2018:
+
+```{python}
+#| label: sma3-math
+#| output: asis
+a = CAR_SALES.values
+show_math(r"\text{SMA}(p=3,\ 2019\text{Q1}) = \frac{%d + %d + %d}{3} = \frac{%d}{3} = %.1f \approx %d"
+          % (a[-3], a[-2], a[-1], a[-3:].sum(), a[-3:].mean(), round(a[-3:].mean())))
+```
+
+Now the question your boss asks: *how good is that number likely to be?* The
+only honest way to answer is to pretend you had used the method all along, and
+measure how it did. Apply the three-period average to the history: the first
+forecast it can make is for period 4 (it needs periods 1–3), and so on.
+
+```{python}
+#| label: sma3-table
+sma3 = sma_forecast(CAR_SALES, 3)
+error_table(CAR_SALES, sma3).round(1)[["actual", "forecast", "error", "abs_error"]]
+```
+
+::: {.scarlet}
+**The mistake students make most:** assigning the average of periods 1–3 to
+period 3. A forecast is for a period you do not yet know. The average of
+periods 1, 2 and 3 is the forecast *for period 4*. If you slide it back one row
+the method looks far better than it is, because it is being credited with
+knowing the value it was supposed to predict.
+:::
+
+## Measuring Accuracy: the Mean Absolute Deviation
+
+::: {.blue}
+The **mean absolute deviation** (MAD) is the average size of the forecasting
+error over the periods that have a forecast (Formula 16.1):
+
+$$\text{MAD} = \frac{\sum |A_t - F_t|}{n},$$
+
+where $A_t$ is the actual value in period $t$, $F_t$ the forecast for period
+$t$, and $n$ the number of forecasting errors.
+:::
+
+The absolute value matters. If the forecast is 10 too high one quarter and 10
+too low the next, the average *error* is zero — which would be a lie about a
+method that missed by 10 every time. The average *absolute* error is 10.
+
+```{python}
+#| label: sma3-mad
+#| output: asis
+t3 = error_table(CAR_SALES, sma3).dropna()
+show_math(r"\text{MAD}_{\text{SMA}(3)} = \frac{%s}{%d} = \frac{%.1f}{%d} = %.1f"
+          % (" + ".join(f"{v:.1f}" for v in t3["abs_error"]), len(t3),
+             t3["abs_error"].sum(), len(t3), t3["abs_error"].mean()))
+```
+
+A three-period moving average would have missed by about `{python} num(mad(CAR_SALES, sma3))`
+cars a quarter. Whether that is acceptable is a business question, not a
+statistical one. Whether it is *better than the alternatives* is a statistical
+one, and it is answered by computing the alternatives.
+
+### What if $p = 4$?
+
+```{python}
+#| label: sma4
+sma4 = sma_forecast(CAR_SALES, 4)
+error_table(CAR_SALES, sma4).round(1)[["actual", "forecast", "error", "abs_error"]]
+```
+
+The four-period forecast for 2019Q1 is `{python} num(sma4.iloc[-1])` with a MAD of
+`{python} num(mad(CAR_SALES, sma4))`, against `{python} num(mad(CAR_SALES, sma3))`
+for three periods.
+
+::: {.charcoal}
+**All else equal, choose the forecast with the lower MAD.** Increasing $p$
+always smooths *more* — the forecast moves less from period to period and
+responds less to the latest data. Whether that lowers the error depends
+entirely on the series. Here it helps a lot, and it is worth asking why: a
+four-quarter average contains one of every season, so the seasonal spikes
+cancel inside the average. A three-quarter average never does. That is not a
+coincidence you should count on for a different series.
+:::
+
+```{python}
+#| label: sma-curve
+tune_sma(CAR_SALES, max_p=6).round(2).T
+```
+
+The row for $p = 1$ is the naive forecast. Read across: the MAD does not fall
+smoothly as $p$ grows. It jumps around, and the even windows win — which is the
+seasonal pattern again. (The $p = 6$ MAD averages only six errors; do not read
+too much into it.)
+
+```{python}
+#| label: sma-plot
+_ = forecast_plot(CAR_SALES, {"SMA p=3": sma3, "SMA p=4": sma4},
+                  title="Brandywine Ford: actual vs. moving-average forecasts",
+                  ylab="Cars sold")
+```
+
+The dashed lines are smoother than the actual series: that is the point of
+the method, and also its weakness. Every peak is forecast late and low; every
+trough is forecast late and high. A moving average *lags*.
+
+## The Weighted Moving Average
+
+::: {.blue}
+A **weighted moving average** (WMA) applies weights to the $p$ most recent
+values, conventionally giving the most recent value the largest weight. The
+denominator is the sum of the weights:
+
+$$\text{WMA}(p=3, t) = \frac{3A_{t-1} + 2A_{t-2} + 1A_{t-3}}{3 + 2 + 1}.$$
+:::
+
+The reasoning is that last month probably tells you more about next month than
+the month before it did. For Brandywine Ford with weights 3, 2, 1:
+
+```{python}
+#| label: wma-math
+#| output: asis
+show_math(r"\text{WMA}(2019\text{Q1}) = \frac{(3)(%d) + (2)(%d) + (1)(%d)}{6} = \frac{%d}{6} = %.1f"
+          % (a[-1], a[-2], a[-3], 3*a[-1] + 2*a[-2] + a[-3], (3*a[-1] + 2*a[-2] + a[-3]) / 6))
+```
+
+```{python}
+#| label: wma-table
+wma = wma_forecast(CAR_SALES, [1, 2, 3])     # weights run oldest -> newest
+error_table(CAR_SALES, wma).round(1)[["actual", "forecast", "error", "abs_error"]]
+```
+
+MAD `{python} num(mad(CAR_SALES, wma))`: a little better than the three-period
+SMA (`{python} num(mad(CAR_SALES, sma3))`), not as good as the four-period SMA
+(`{python} num(mad(CAR_SALES, sma4))`). The SMA is a WMA with equal weights.
+The choice of weights is arbitrary and found by trial and error — which is a
+polite way of saying that if you try enough weights you will find some that fit
+the past well, and there is no guarantee they fit the future.
+
+## Two More Yardsticks
+
+MAD is the textbook's measure and the one you should be able to compute by
+hand. Two companions are worth knowing because the challenge is scored on more
+than one series, and they answer slightly different questions.
+
+::: {.blue}
+The **root mean squared error** squares the errors before averaging, so one
+large miss counts for more than several small ones:
+$\text{RMSE} = \sqrt{\sum (A_t - F_t)^2 / n}$.
+
+The **mean absolute percentage error** divides each error by the actual value,
+so it is unit-free: $\text{MAPE} = \frac{100}{n}\sum |A_t - F_t| / |A_t|$.
+A MAPE of 2% on the CPI and a MAPE of 4% on jobless claims can be compared; a
+MAD of 1.2 index points and a MAD of 8,000 claims cannot.
+:::
+
+```{python}
+#| label: summary-cars
+accuracy(CAR_SALES, {"naive": nv, "SMA p=3": sma3, "SMA p=4": sma4,
+                     "WMA 3-2-1": wma}).round(2)
+```
+
+The last column matters. Each method is judged on a different number of
+errors, because each needs a different number of periods to get started. With
+twelve observations that is a real limitation; with twelve *years* of monthly
+data it is not.
+
+# The Challenge Series: the CPI
+
+Now a series you will actually forecast. The Consumer Price Index measures the
+price of a fixed basket of goods relative to 1982–84 = 100. It is monthly,
+seasonally adjusted, and revised rarely.
+
+## Look before you forecast
+
+Chapter 1 taught you to check a data set before analysing it. That does not
+stop being true because the next step is a forecast.
+
+```{python}
+#| label: cpi-check
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+checks = pd.Series({
+    "observations": len(cpi_raw),
+    "first": str(cpi_raw.index.min().date()),
+    "last": str(cpi_raw.index.max().date()),
+    "type": str(cpi_raw.dtype),
+    "missing": int(cpi_raw.isna().sum()),
+    "missing at": ", ".join(str(d.date()) for d in cpi_raw.index[cpi_raw.isna()]) or "—",
+})
+checks.to_frame("CPIAUCSL")
+```
+
+There is a hole. The Bureau of Labor Statistics did not publish a CPI for
+October 2025, because the price survey was not conducted during the federal
+shutdown. FRED shows a `.`, and a `.` is not a zero. A moving average needs
+consecutive months, so we must decide what to do about it, and the decision is
+a modelling choice that belongs in your write-up, not a cleaning step that
+happens silently. Here we draw a straight line between September and November
+and say so.
+
+```{python}
+#| label: cpi-fill
+cpi = fill_gaps(cpi_raw, "interpolate")
+recent = cpi.loc["2022-01-01":]
+```
+
+The second decision is the window. The CPI runs back to 1947 on FRED (1970 in
+our file). The 1970s are real data, but they are not the regime you are
+forecasting. We use January 2022 onward — `{python} str(len(recent))` months.
+How far back to look is a choice; a different window gives a different
+forecast, and you should know by how much.
+
+```{python}
+#| label: cpi-plot
+_ = time_series(recent.index, recent.values,
+                title="CPI, all urban consumers, since 2022", ylab="Index, 1982–84 = 100")
+```
+
+## Forecast next month
+
+```{python}
+#| label: cpi-methods
+next_month = (recent.index[-1] + pd.offsets.MonthBegin(1)).strftime("%B %Y")
+cpi_methods = {
+    "naive":     naive_forecast(recent),
+    "SMA p=2":   sma_forecast(recent, 2),
+    "SMA p=3":   sma_forecast(recent, 3),
+    "SMA p=6":   sma_forecast(recent, 6),
+    "WMA 1-2-3": wma_forecast(recent, [1, 2, 3]),
+}
+cpi_summary = accuracy(recent, cpi_methods)
+cpi_summary.round(3)
+```
+
+```{python}
+#| label: cpi-best
+#| include: false
+cpi_best = cpi_summary["MAD"].idxmin()
+cpi_worst = cpi_summary["MAD"].idxmax()
+```
+
+Forecasts for `{python} next_month` in the first column; the methods are then
+judged on every month since 2022 that has a forecast. The smallest MAD belongs
+to **`{python} cpi_best`**, and the ranking runs almost exactly opposite to the
+car-sales ranking: the widest window is the worst.
+
+::: {.charcoal}
+Why? The CPI has a trend. It rises in most months, so *every average of past
+values sits below the current level*, and the wider the window, the further
+below. A six-month average is forecasting where the CPI was three months ago.
+Donnelly says it on p. 770: when a series has a trend or a season, smoothing
+methods "lag behind the data, resulting in increased forecasting errors." You
+have just watched it happen. The naive forecast lags by only one month, which
+is why it wins — for now. After Exam 1 we will meet methods that do not lag at
+all.
+:::
+
+```{python}
+#| label: cpi-forecast-plot
+_ = forecast_plot(recent, {"naive": cpi_methods["naive"], "SMA p=6": cpi_methods["SMA p=6"]},
+                  title="CPI: the six-month average lags a trending series",
+                  ylab="Index", last=24)
+```
+
+## Backtest: what the challenge will do to you
+
+The table above judges each method on the whole sample at once. The challenge
+does something harsher: every period it asks for one forecast, then reveals the
+answer. The fair test of a method is therefore to *replay* that — for each of
+the last 24 months, fit the method on the data available at the time, forecast
+one month ahead, and record the miss.
+
+```{python}
+#| label: cpi-backtest
+bt = backtest_summary(recent, {
+    "naive":     (naive_forecast, {}),
+    "SMA p=2":   (sma_forecast, {"p": 2}),
+    "SMA p=3":   (sma_forecast, {"p": 3}),
+    "SMA p=6":   (sma_forecast, {"p": 6}),
+    "WMA 1-2-3": (wma_forecast, {"weights": [1, 2, 3]}),
+}, last=24)
+bt.round(3)
+```
+
+Same verdict, and now it is a verdict you can defend: had you submitted the
+`{python} bt["MAD"].idxmin()` forecast every month for two years, you would
+have missed by `{python} num(bt["MAD"].min(), 2)` index points on average.
+
+```{python}
+#| label: cpi-backtest-detail
+backtest(recent, naive_forecast, last=6).round(3)
+```
+
+# A Second Series: Weekly Initial Claims
+
+Initial claims for unemployment insurance are released every Thursday for the
+week ending the previous Saturday. They are noisy, they have no trend to speak
+of in normal times, and they are the most frequently graded series in the
+challenge.
+
+```{python}
+#| label: claims-setup
+claims = icsa.loc["2023-01-01":]
+next_week = (claims.index[-1] + pd.Timedelta(days=7)).date()
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+_ = time_series(claims.index, claims.values,
+                title="Initial claims, weekly, since 2023", ylab="Claims")
+```
+
+```{python}
+#| label: claims-methods
+claims_methods = {
+    "naive":       naive_forecast(claims),
+    "SMA p=2":     sma_forecast(claims, 2),
+    "SMA p=4":     sma_forecast(claims, 4),
+    "SMA p=8":     sma_forecast(claims, 8),
+    "WMA 1-2-3-4": wma_forecast(claims, [1, 2, 3, 4]),
+}
+accuracy(claims, claims_methods).round(1)
+```
+
+```{python}
+#| label: claims-backtest
+btc = backtest_summary(claims, {
+    "naive":       (naive_forecast, {}),
+    "SMA p=2":     (sma_forecast, {"p": 2}),
+    "SMA p=4":     (sma_forecast, {"p": 4}),
+    "SMA p=8":     (sma_forecast, {"p": 8}),
+    "WMA 1-2-3-4": (wma_forecast, {"weights": [1, 2, 3, 4]}),
+}, last=26)
+btc.round(1)
+```
+
+```{python}
+#| label: claims-spread
+#| include: false
+spread = btc["MAD"].max() / btc["MAD"].min() - 1
+```
+
+Forecast for the week ending `{python} str(next_week)`. Over the last 26 weeks
+the best method is **`{python} btc["MAD"].idxmin()`**, and the worst is only
+`{python} f"{spread:.0%}"` behind it. Claims have no trend, so averaging costs
+almost nothing — unlike the CPI, where every average paid for its width. Same
+tools, different verdict, and the difference is in the *data*, not the method.
+
+::: {.scarlet}
+This is why the challenge makes you look every period rather than pick a method
+once in September. The MAPE column says a good week is a 3–4% miss on claims
+and a 0.3% miss on the CPI. When you report a forecast, report the error you
+expect alongside it. A number without its error is not a forecast; it is a
+wish.
+:::
+
+# Getting the Data
+
+The syllabus says you should not be transcribing numbers by hand, and it means
+it. There are three ways to get a FRED series, and they all produce the same
+CSV.
+
+## Route 1: the Download button
+
+Open the series page — <https://fred.stlouisfed.org/series/CPIAUCSL> — click
+**Download**, choose **CSV**. You get a two-column file, `observation_date` and
+`CPIAUCSL`, with a `.` wherever a value is missing. Save it into a `data/`
+folder next to your script. This works on any computer with a browser and
+needs no key, no package, no permission. Do it once so you know what the
+file looks like.
+
+## Route 2: the course download script
+
+`scripts/fred_download.py` fetches the same CSV endpoint the button uses and
+writes a tidy `date,value` file plus a `provenance.txt` recording what was
+retrieved and when:
+
+```
+python fred_download.py CPIAUCSL ICSA HOUST NVSTHPI
+```
+
+If you have a free FRED API key, set it once as the environment variable
+`FRED_API_KEY` and the script will use the `fredapi` package as a fallback.
+**Never paste the key into a script, a notebook, or a chat.** The course's
+`AGENTS.md` says the same to Claude.
+
+## Route 3: ask Claude to fetch it
+
+With web access on, Claude can retrieve the CSV itself. It can also *fail* to,
+and the failure mode that matters is not an error message — it is a plausible
+made-up series. So the prompt must forbid that in so many words.
+
+::: {.prompt}
+Prompt — fetch and check a FRED series
+
+> Download the FRED series CPIAUCSL as CSV from
+> `https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL` and save it as
+> `data/raw/CPIAUCSL.csv`. Then load it with pandas, parse the dates, and show
+> me: the number of observations, the first and last dates, the data type of
+> the value column, and how many values are missing and on which dates. Print
+> the last twelve rows verbatim.
+>
+> If the download fails for any reason, show me the error and stop. Do not
+> construct, recall, or estimate the series from memory — a plausible-looking
+> substitute is worse than no file.
+:::
+
+If Claude reports it cannot reach FRED, use Route 1 and upload the file. Then
+paste the second paragraph of the prompt above and continue.
+
+## Las Vegas visitor volume
+
+The LVCVA publishes a Year-to-Date Summary workbook for the current year and a
+Year-End Summary for each past year on its
+[research page](https://www.lvcva.com/research/). Row 8 of the first sheet is
+Visitor Volume. `scripts/lvcva_tools.py` finds those workbooks, reads the row,
+and writes `data/lv_visitors.csv` — the Python version of the R utilities the
+course used before Fall 2026:
+
+```
+python lvcva_tools.py
+```
+
+It pauses a few seconds between workbooks so as not to hammer a public server.
+Leave the pause in. The course copy of `lv_visitors.csv` runs from January
+2019, and the note that comes after Exam 2 explains why we will not fit
+seasonal factors across 2020.
+
+# Working with Claude
+
+The Rebel Spark initiative gives you Claude with the full tool suite. That
+changes what can be expected of you: the clicking is no longer the skill. The
+*specification* is the skill — which series, which window, which method, what
+to do about the hole in October 2025 — and so is the *verification*. Below are
+prompts that work, the reason they work, and the checks you owe before you
+believe the answer.
+
+## The lab prompt
+
+::: {.prompt}
+Run this with Claude
+
+> Get the MBA 775 course materials from <https://github.com/jcrooker/mba775>.
+> I need `scripts/16a_naive_sma_wma.py`, `scripts/_course.py`,
+> `scripts/_forecast.py`, `data/cpi.csv` and `data/icsa.csv`. Read
+> `COURSE_CONTEXT.md` from the same repository first — it explains how this
+> course expects analytical work to be done.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
+:::
+
+## A bad prompt and a good one
+
+Bad: *"Forecast the CPI for next month."* You will get a number. You will not
+know what data it came from, what method produced it, or whether Claude
+computed it or remembered a headline.
+
+Good — it names every decision this note asked you to make:
+
+::: {.prompt}
+Prompt — a forecast you can defend
+
+> I have uploaded `cpi.csv` (FRED CPIAUCSL, monthly) and `_forecast.py` from my
+> course. Using the data from January 2022 onward, and interpolating the single
+> missing month (October 2025) — say so in the output — produce a forecast for
+> the next month by each of: naive, simple moving averages with p = 2, 3 and 6,
+> and a weighted moving average with weights 1-2-3 (most recent weighted 3).
+>
+> For each method report the next-month forecast, the MAD, RMSE and MAPE over
+> the sample, and a rolling-origin backtest over the last 24 months using
+> `backtest_summary`. Show the code you ran and its output verbatim. Then tell
+> me which method has the lowest backtested MAD and why the wide-window moving
+> average does worse on this particular series.
+>
+> Every number must come from executed code. If a function is missing or
+> errors, show me the traceback.
+:::
+
+## Verify before you submit
+
+Six checks, each under a minute:
+
+| Check | What it catches |
+|---|---|
+| The last date printed is the month you think it is | A stale file, or a series that has not updated |
+| The forecast is for the *next* period, not the last one | The period-3/period-4 mistake, at scale |
+| The MAD was averaged over the right number of errors | A method credited with forecasts it never made |
+| Recompute one forecast by hand from the last three values | A method that is not the one you asked for |
+| The missing month was mentioned, not silently dropped | A moving average that skipped a month without saying |
+| The number in the prose matches the number in the output | The single most common failure: confident prose, different number |
+
+::: {.charcoal}
+**Show it fail first.** Try the bad prompt once, on purpose, and run the
+checklist against what comes back. The failures are predictable: a forecast for
+the wrong period, a figure quoted from memory, a moving average with a
+different window from the one you named, a missing month filled without
+comment. A student who has caught one of these will check for the rest of their
+career. A student handed a working answer has learned nothing.
+:::
+
+## Have Claude argue with you
+
+::: {.prompt}
+Prompt — a second opinion on your choice
+
+> Here is the backtest table my script produced for weekly initial claims
+> (paste it). I plan to submit the SMA p = 2 forecast. Give me the strongest
+> case *against* that choice using only the numbers in the table, then tell me
+> what I would need to see over the next four weeks to change my mind. Do not
+> compute new numbers; argue from these.
+:::
+
+## Excel, if you want it
+
+::: {.prompt}
+Prompt — a forecasting workbook
+
+> Build an Excel workbook from `cpi.csv`. Sheet `Data`: the raw file, headers in
+> row 1. Sheet `Forecast`: columns for date, actual, naive forecast, 3-month
+> SMA, 3-2-1 WMA, and the absolute error of each, using live formulas that
+> reference the `Data` sheet — no pasted values. The first SMA row must be the
+> fourth month, not the third. Put the MAD of each method in a labelled cell at
+> the top, computed with `AVERAGE` over the error column, and a line chart of
+> actual versus each forecast. Tell me which cells hold formulas and which hold
+> constants.
+:::
+
+When it opens, change one CPI value and watch which forecasts and MADs move.
+The ones that do not are pasted values, and the workbook is wrong.
+
+# Your Turn (from the textbook)
+
+A student wants to forecast her GPA for the fall of her senior year from nine
+semesters on a trimester schedule (Donnelly, Your Turn 1 and 2, p. 769–770):
+
+```{python}
+#| label: gpa
+pd.set_option("display.float_format", lambda v: f"{v:,.2f}")
+gpa = pd.Series([2.5, 2.2, 2.7, 3.0, 2.6, 3.0, 3.2, 2.7, 3.3],
+                index=["Fr Fall", "Fr Spring", "Fr Summer", "So Fall", "So Spring",
+                       "So Summer", "Jr Fall", "Jr Spring", "Jr Summer"], name="GPA")
+gpa.to_frame().T
+```
+
+(a) Calculate a two-period SMA forecast for the fall semester of her senior
+year and its MAD. (b) Do the same with a two-period WMA with weights 2 and 1.
+(c) Which is the better forecast? Do it by hand first; then run the code by
+unfolding the block below and check yourself.
+
+```{python}
+#| label: gpa-answer
+#| code-fold: true
+g2 = sma_forecast(gpa, 2)
+gw = wma_forecast(gpa, [1, 2])
+accuracy(gpa, {"SMA p=2": g2, "WMA 2-1": gw}).round(3)
+```
+
+# Laboratory 16a
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account and needs nothing turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 16a pack](../upload_packs/lab-16a-forecasting-1.zip)**
+— one file. Unzip it and you will have a folder holding 6 files. Drag all 6
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 6 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `16a_naive_sma_wma.py` and show me its actual output, verbatim. Walk
+> me through what each section does and what the results mean. Do not report
+> any number you did not compute, and if anything fails, show me the error
+> rather than describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is
+> a plain page listing the files for each laboratory. Follow the links for
+> Laboratory 16a and read `COURSE_CONTEXT.md` first; it explains how this
+> course expects analytical work to be done.
+>
+> Then run `16a_naive_sma_wma.py` and show me its actual output, verbatim. Walk
+> me through what each section does and what the results mean. Do not report
+> any number you did not compute, and if anything fails, show me the error
+> rather than describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Web access is a setting, and even when it is on
+Claude cannot always retrieve a file by direct link. Use Path 1.
+:::
+
+## Your first submission
+
+Once the script runs, you have everything you need for this week's challenge
+entries: a forecast, a method, a window, and a measured error. Submit the
+forecast in Canvas and keep the script. When the number is published, rerun it
+— the new observation goes on the end of the series, the backtest gets one
+row longer, and you find out whether your method is still the one you would
+choose.
+
+::: {.scarlet}
+**What to write down with every submission** (a sentence each): the series and
+its last observation date; the method and its parameters; the window of data;
+the backtested MAD; and the one thing you would want to know before trusting
+the forecast. That is the whole discipline of forecasting, and it fits on an
+index card.
+:::

@@ -198,3 +198,102 @@ it: the 2008–2010 housing collapse, which hit Nevada harder than any other
 state, and the April 2020 shutdown, when Nevada's unemployment rate reached
 roughly 30%. Fifteen years of data containing two once-in-a-generation shocks
 is not fifteen years of typical experience.
+
+
+# Chapter 16 files (the forecasting challenge)
+
+These five series are the ones students forecast all semester. Rebuild them
+with `python tools/seed_chapter16_data.py` (needs internet; FRED's CSV
+endpoint and the LVCVA research page). Unlike the earlier chapters, **missing
+values are kept as blanks** here, because deciding what to do about a hole in
+a series is part of forecasting it.
+
+## cpi.csv
+
+| | |
+|---|---|
+| Series | `CPIAUCSL` — Consumer Price Index for All Urban Consumers: All Items |
+| Source | <https://fred.stlouisfed.org/series/CPIAUCSL> |
+| Units | Index 1982-1984 = 100, seasonally adjusted |
+| Frequency | Monthly, from 1970-01 |
+| Date range | 1970-01-01 to 2026-07-01 |
+| Rows | 679 |
+| Missing values | **1** — 2025-10-01 |
+| Retrieved | 2026-09-07 |
+
+Columns: `date`, `cpi`. The October 2025 value is blank because the BLS did
+not conduct the price survey during the federal shutdown; FRED publishes a
+`.` for that month. The Chapter 3 file `cpi_inflation.csv` drops that row;
+this one keeps it, and the Chapter 16 scripts interpolate it *and say so*.
+
+## icsa.csv
+
+| | |
+|---|---|
+| Series | `ICSA` — Initial Claims, seasonally adjusted |
+| Source | <https://fred.stlouisfed.org/series/ICSA> |
+| Units | Number of claims |
+| Frequency | Weekly, ending Saturday; released the following Thursday |
+| Date range | 2010-01-02 to 2026-08-29 |
+| Rows | 870 |
+| Missing values | 0 |
+| Retrieved | 2026-09-07 |
+
+Columns: `date`, `initial_claims`. The full series starts in 1967; the file
+starts in 2010 to keep it small. The spring-2020 spike (6.1 million claims in
+the week of 2020-04-04) is real and is the reason every window in the notes
+starts after it.
+
+## houst.csv
+
+| | |
+|---|---|
+| Series | `HOUST` — New Privately-Owned Housing Units Started: Total Units |
+| Source | <https://fred.stlouisfed.org/series/HOUST> |
+| Units | **Thousands of units, seasonally adjusted annual rate** |
+| Frequency | Monthly |
+| Date range | 1990-01-01 to 2026-07-01 |
+| Rows | 439 |
+| Missing values | 0 |
+| Retrieved | 2026-09-07 |
+
+Columns: `date`, `housing_starts`. Read the units twice: the number is an
+annual rate, and it is already seasonally adjusted, so a seasonal model
+fitted to it is fitting noise. The Part 3 note makes this point with the
+file.
+
+## nvsthpi.csv
+
+| | |
+|---|---|
+| Series | `NVSTHPI` — All-Transactions House Price Index for Nevada |
+| Source | <https://fred.stlouisfed.org/series/NVSTHPI> (FHFA) |
+| Units | Index 1980Q1 = 100, **not** seasonally adjusted |
+| Frequency | Quarterly |
+| Date range | 1975-01-01 to 2026-04-01 (2026Q2) |
+| Rows | 206 |
+| Missing values | 0 |
+| Retrieved | 2026-09-07 |
+
+Columns: `date`, `nv_hpi`. Dates are the first day of the quarter. The next
+release date is on the FRED page; there are only two challenge forecasts of
+this series per semester.
+
+## lv_visitors.csv
+
+| | |
+|---|---|
+| Series | Las Vegas Visitor Volume (monthly), from the LVCVA's Year-End and Year-to-Date Summary workbooks |
+| Source | <https://www.lvcva.com/research/> — first sheet, row "Visitor Volume" |
+| Units | Visitors per month |
+| Frequency | Monthly |
+| Date range | 2019-01-01 to 2026-07-01 |
+| Rows | 91 |
+| Missing values | 0 |
+| Retrieved | 2026-09-07 (Year-to-Date workbook dated "As of August 27, 2026") |
+
+Columns: `date`, `visitors`. Built by `scripts/lvcva_tools.py`, the Python
+version of the course's old `LIB_LVCVA_Utilities.R`. Recent months are
+revised by the LVCVA (the workbook flags them with an `r`); re-run the tool
+before relying on the newest observation. April 2020 is 106,900 visitors.
+That is not a typo.

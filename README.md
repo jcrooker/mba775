@@ -68,6 +68,19 @@ the three scripts for Chapter 1.
 |---|---|---|
 | `02_displaying_data.py` | `state_hpi_ur_pop.csv` | Frequency distributions, histograms, ogives, binned bars vs scatter, contingency heatmaps, and how bin width decides the story |
 
+### Chapter 16 — Forecasting (taught in three parts across the semester)
+
+| Script | Data file(s) | What it covers |
+|---|---|---|
+| `16a_naive_sma_wma.py` | `cpi.csv`, `icsa.csv` | Week 3: the forecasting challenge; naive, simple and weighted moving averages; MAD, RMSE, MAPE; rolling backtests |
+| `16b_exponential_smoothing.py` | `cpi.csv`, `icsa.csv`, `nvsthpi.csv` | After Exam 1: exponential smoothing with and without trend; tuning alpha and beta; over-fitting |
+| `16c_regression_seasonality.py` | `lv_visitors.csv`, `nvsthpi.csv`, `houst.csv` | After Exam 2: trend projection, Durbin–Watson, multiplicative decomposition, seasonal dummies |
+| `fred_download.py` | — | Download any FRED series to `data/raw/` with a provenance file (no key needed; uses `FRED_API_KEY` if set) |
+| `lvcva_tools.py` | — | Rebuild `lv_visitors.csv` from the LVCVA research page (Python port of `LIB_LVCVA_Utilities.R`) |
+
+`scripts/_forecast.py` holds the Chapter 16 methods (every formula box in the
+chapter, plus backtesting). Upload it alongside any Chapter 16 script.
+
 `scripts/_course.py` holds small shared helpers for loading data.
 `scripts/_charts.py` holds the chart functions. Upload it
 alongside any script that imports it.

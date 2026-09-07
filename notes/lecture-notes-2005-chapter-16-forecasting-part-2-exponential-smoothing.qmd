@@ -1,0 +1,569 @@
+---
+title: "Forecasting, Part 2: Exponential Smoothing"
+subtitle: "Chapter 16, §16.2 (exponential smoothing, with and without trend)"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from _charts import time_series, UNLV_SCARLET, UNLV_GRAY
+from _forecast import (CAR_SALES, naive_forecast, sma_forecast, wma_forecast,
+                       exp_smooth, exp_smooth_trend, error_table, mad, accuracy,
+                       tune_alpha, tune_alpha_beta, backtest_summary, fill_gaps,
+                       forecast_plot)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 60)
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+
+
+def num(x, d=1):
+    return f"{x:,.{d}f}"
+
+
+def show_math(latex):
+    print(f"$${latex}$$\n")
+
+
+cpi_raw = pd.read_csv("data/cpi.csv", parse_dates=["date"]).set_index("date")["cpi"]
+cpi = fill_gaps(cpi_raw, "interpolate").loc["2022-01-01":]
+icsa = pd.read_csv("data/icsa.csv", parse_dates=["date"]).set_index("date")["initial_claims"]
+claims = icsa.loc["2023-01-01":]
+hpi = pd.read_csv("data/nvsthpi.csv", parse_dates=["date"]).set_index("date")["nv_hpi"]
+hpi.index = hpi.index.to_period("Q")
+```
+
+## Objectives
+
++ Produce an **exponential smoothing** forecast and explain what the smoothing
+  factor $\alpha$ does.
++ Produce an **exponential smoothing with trend adjustment** forecast and
+  explain what $\beta$ does.
++ **Tune** $\alpha$ and $\beta$ on the data, and say why a parameter tuned on
+  the whole sample is not the same as one that would have worked in real time.
++ Recognise when a smoothing method is being beaten by a trend, and fix it.
+
+::: {.charcoal}
+Before Exam 1 you built forecasts by averaging the last few values. Two things
+were wrong with that, and you saw both on the CPI. A moving average forgets
+everything older than its window, and it remembers everything inside the
+window equally. Exponential smoothing fixes both with one parameter: it
+remembers *everything*, but with weights that shrink geometrically into the
+past. Then the trend-adjusted version fixes the lag you watched every average
+suffer on a rising series.
+
+You have been submitting challenge forecasts for six weeks now. Bring your
+backtest tables. By the end of this note you should know whether to switch
+methods, and be able to say why in two sentences.
+:::
+
+# Exponential Smoothing
+
+::: {.blue}
+**Exponential smoothing** adjusts the previous forecast by a fraction of the
+previous period's forecasting error (Formula 16.2):
+
+$$F_t = F_{t-1} + \alpha\,(A_{t-1} - F_{t-1}),$$
+
+where $F_t$ is the forecast for period $t$, $A_{t-1}$ the actual value in
+period $t-1$, and $\alpha$ the **smoothing factor**, $0 \le \alpha \le 1$.
+:::
+
+Read the formula as a sentence: *next forecast = last forecast, corrected by
+a share of how wrong it was.* If last quarter's forecast was too low (positive
+error), the new forecast goes up; too high, it comes down. Donnelly calls it
+"self-correcting". The size of the correction is $\alpha$.
+
+::: {.charcoal}
+Do not confuse this $\alpha$ with the $\alpha$ of a hypothesis test. Same
+letter, no relation. Forecasters and hypothesis testers both got there first.
+:::
+
+## Priming the pump
+
+To forecast period 13 you need the forecast for period 12, which needs the
+forecast for period 11, and so on back to period 1 — which has no earlier
+period. The convention is to set $F_1 = A_1$ and start. That first "forecast"
+was assigned, not calculated, so it gets no forecasting error and it is left
+*out* of the MAD. Leaving it in would hand the method a free zero and make
+the comparison with the moving averages unfair.
+
+With Brandywine Ford's sales and $\alpha = 0.6$:
+
+```{python}
+#| label: es-math
+#| output: asis
+a = CAR_SALES.values
+F2 = a[0] + 0.6 * (a[0] - a[0])
+F3 = F2 + 0.6 * (a[1] - F2)
+F4 = F3 + 0.6 * (a[2] - F3)
+show_math(r"\begin{aligned} F_1 &= A_1 = %d \\ F_2 &= F_1 + 0.6\,(A_1 - F_1) = %d + 0.6\,(%d - %d) = %.1f \\ F_3 &= F_2 + 0.6\,(A_2 - F_2) = %.1f + 0.6\,(%d - %.1f) = %.1f \\ F_4 &= F_3 + 0.6\,(A_3 - F_3) = %.1f + 0.6\,(%d - %.1f) = %.1f \end{aligned}"
+          % (a[0], a[0], a[0], a[0], F2, F2, a[1], F2, F3, F3, a[2], F3, F4))
+```
+
+Notice $F_4$: the period-3 error was $108 - 124 = -16$, so the forecast came
+*down* by $0.6 \times 16 = 9.6$. That is the self-correction.
+
+```{python}
+#| label: es-table
+es6 = exp_smooth(CAR_SALES, alpha=0.6)
+error_table(CAR_SALES, es6).round(1)[["actual", "forecast", "error", "abs_error"]]
+```
+
+The forecast for 2019Q1 is `{python} num(es6.iloc[-1])` cars and the MAD is
+`{python} num(mad(CAR_SALES, es6))` — averaged over eleven errors, periods 2
+through 12. That is *worse* than every moving average from Part 1. Donnelly's
+point, and it bears repeating: no method wins on every series. With this
+$\alpha$ on this series, exponential smoothing loses.
+
+## What $\alpha$ does
+
+A large $\alpha$ carries most of the last error forward: the forecast chases
+the data and jumps around. A small $\alpha$ barely reacts: the forecast is
+smooth and slow. The role is the same as the window length $p$ in a moving
+average, and the right value depends on the data in the same way.
+
+```{python}
+#| label: es-alpha-plot
+_ = forecast_plot(CAR_SALES, {"alpha = 0.2": exp_smooth(CAR_SALES, 0.2),
+                              "alpha = 0.8": exp_smooth(CAR_SALES, 0.8)},
+                  title="Figure 16.6: the effect of alpha on the forecast", ylab="Cars sold")
+```
+
+Why "exponential"? Unwind the formula once: $F_t = \alpha A_{t-1} + (1-\alpha) F_{t-1}$.
+Unwind it again and $F_{t-1}$ contains $\alpha A_{t-2}$ weighted by
+$(1-\alpha)$; unwind again and $A_{t-3}$ carries $(1-\alpha)^2$. Every past
+value is in the forecast, with weights $\alpha, \alpha(1-\alpha),
+\alpha(1-\alpha)^2, \ldots$ — a weighted moving average over the *whole*
+history, with weights that decay exponentially. With $\alpha = 0.6$ the value
+from four periods ago has weight `{python} num(0.6 * 0.4**3, 3)`. With
+$\alpha = 0.1$ it still has weight `{python} num(0.1 * 0.9**3, 3)`.
+
+## Tuning $\alpha$
+
+Since $\alpha$ is a choice, choose it the way you chose $p$: compute the MAD
+for a range of values and look.
+
+```{python}
+#| label: es-curve
+curve = tune_alpha(CAR_SALES, grid=np.round(np.arange(0.05, 1.0, 0.05), 2))
+fig, ax = plt.subplots(figsize=(9, 4.2))
+ax.plot(curve.index, curve["MAD"], color=UNLV_SCARLET, marker="o", linewidth=1.4)
+ax.set_xlabel("alpha"); ax.set_ylabel("MAD")
+ax.set_title("Figure 16.5: the MAD is U-shaped in alpha", color=UNLV_SCARLET)
+ax.grid(axis="y", color="#e6e6e6")
+for side in ("top", "right"):
+    ax.spines[side].set_visible(False)
+plt.show()
+```
+
+The MAD is smallest at $\alpha$ = `{python} num(curve["MAD"].idxmin(), 2)`,
+where it is `{python} num(curve["MAD"].min())` — the book eyeballs "around
+0.35". Even at its best, exponential smoothing does not catch the four-period
+moving average on this series (`{python} num(mad(CAR_SALES, sma_forecast(CAR_SALES, 4)))`).
+The seasonal pattern is the reason, and nothing in this note fixes it; that
+is Part 3.
+
+::: {.scarlet}
+A tuned parameter is a *description of the past*. The $\alpha$ that minimises
+the MAD over 2022–2026 is the one that would have done best *if you had known
+it in 2022*, which you did not. Below we check whether a tuned $\alpha$ still
+wins when it is chosen only from data available at the time. When it does not,
+the tuning has fitted noise. This is the single most useful habit you can take
+from this course into any job that involves a model.
+:::
+
+## Excel, for the record
+
+Excel's Data Analysis tool asks for a **damping factor**, not $\alpha$. The
+damping factor is $1 - \alpha$: enter 0.4 to get $\alpha = 0.6$. The output
+column is offset by one row and begins with `#N/A` — that is period 1 having
+no forecast, which is correct. If you ask Claude to build the workbook, say
+"damping factor 0.4" and check that the first numeric cell is 97.
+
+# Exponential Smoothing with Trend Adjustment
+
+Every method so far lags a trending series, because every one of them
+forecasts from a level and a trend keeps moving the level. The fix is to
+smooth two things: the level, and the *change* in the level.
+
+::: {.blue}
+**Exponential smoothing with trend adjustment** (Formulas 16.3–16.5):
+
+$$\begin{aligned}
+F_t &= \text{FIT}_{t-1} + \alpha\,(A_{t-1} - \text{FIT}_{t-1}) && \text{the smoothed level} \\
+T_t &= \beta\,(F_t - F_{t-1}) + (1-\beta)\,T_{t-1} && \text{the smoothed trend} \\
+\text{FIT}_t &= F_t + T_t && \text{the forecast including trend}
+\end{aligned}$$
+
+with $\beta$, the trend smoothing factor, also between 0 and 1. Start with
+$F_1 = A_1$, $T_1 = 0$.
+:::
+
+$T_t$ is a weighted average of the *most recent* change in the level
+($F_t - F_{t-1}$, weighted $\beta$) and the *accumulated* trend so far
+($T_{t-1}$, weighted $1-\beta$). A large $\beta$ believes the latest change; a
+small $\beta$ believes the long-run drift. Then the forecast is the level plus
+one period's worth of trend.
+
+With $\alpha = 0.3$ and $\beta = 0.1$ (Table 16.6):
+
+```{python}
+#| label: est-table
+est = exp_smooth_trend(CAR_SALES, alpha=0.3, beta=0.1)
+tbl = est.round(1)
+tbl.insert(0, "actual", list(CAR_SALES.values) + [np.nan])
+tbl["abs_error"] = error_table(CAR_SALES, est)["abs_error"].round(1).reindex(tbl.index)
+tbl
+```
+
+Follow one row. For period 3: the level $F_3 = 97.0 + 0.3(142 - 97.0) = 110.5$;
+the trend $T_3 = 0.1(110.5 - 97.0) + 0.9(0) = 1.4$; the forecast
+$\text{FIT}_3 = 111.9$. The last row is the forecast for 2019Q1:
+`{python} num(est["FIT"].iloc[-1])` cars, MAD `{python} num(mad(CAR_SALES, est))`.
+Better than plain exponential smoothing at $\alpha = 0.6$, still not better
+than the four-period average. The trend is real but small (about 2.5 cars a
+quarter), and the seasonal swings are ten times larger.
+
+```{python}
+#| label: summary-cars
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+accuracy(CAR_SALES, {
+    "naive": naive_forecast(CAR_SALES),
+    "SMA p=3": sma_forecast(CAR_SALES, 3),
+    "SMA p=4": sma_forecast(CAR_SALES, 4),
+    "WMA 3-2-1": wma_forecast(CAR_SALES, [1, 2, 3]),
+    "ES alpha=0.6": es6,
+    "ES+trend 0.3, 0.1": est,
+}).round(1)
+```
+
+This is Donnelly's Table 16.7, with the naive row added and two extra
+yardsticks. Read it as the book does: choose the four-period SMA, and do not
+conclude that simple always beats sophisticated. It depends on the series, and
+now we go to the series that matter.
+
+# The Challenge Series
+
+## The CPI: tune, then check the tuning
+
+```{python}
+#| label: cpi-curves
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+cpi_curve = tune_alpha(cpi)
+cl_curve = tune_alpha(claims)
+a_cpi, a_cl = cpi_curve["MAD"].idxmin(), cl_curve["MAD"].idxmin()
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+for ax, (c, title) in zip(axes, [(cpi_curve, "CPI"), (cl_curve, "Weekly claims")]):
+    ax.plot(c.index, c["MAD"], color=UNLV_SCARLET, marker="o", linewidth=1.3)
+    ax.set_title(f"{title}: MAD by alpha", color=UNLV_SCARLET)
+    ax.set_xlabel("alpha"); ax.grid(axis="y", color="#e6e6e6")
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+fig.tight_layout(); plt.show()
+```
+
+Two very different curves. The CPI wants the largest $\alpha$ we tried
+(`{python} num(a_cpi, 2)`): a trending series wants to chase the level, and
+the more it chases, the closer it gets to the naive forecast. Claims settle at
+$\alpha$ = `{python} num(a_cl, 2)`: noisy and flat, so some averaging helps,
+but not much. The parameter is describing the series.
+
+Now the trend component. A grid over $\alpha$ and $\beta$ for the CPI:
+
+```{python}
+#| label: cpi-grid
+grid = tune_alpha_beta(cpi, alphas=np.round(np.arange(0.1, 1.0, 0.2), 1),
+                       betas=np.round(np.arange(0.1, 1.0, 0.2), 1))
+best = grid.stack().idxmin()
+grid.round(3)
+```
+
+Smallest MAD at $\alpha$ = `{python} str(best[0])`, $\beta$ = `{python} str(best[1])`:
+`{python} num(grid.loc[best], 3)`, against `{python} num(mad(cpi, naive_forecast(cpi)), 3)`
+for the naive forecast that won Part 1. A method knows, for the first time,
+that the CPI drifts upward, and that is what "same as last month" could never
+know.
+
+```{python}
+#| label: cpi-summary
+next_month = (cpi.index[-1] + pd.offsets.MonthBegin(1)).strftime("%B %Y")
+cpi_methods = {
+    "naive":                              naive_forecast(cpi),
+    "SMA p=3":                            sma_forecast(cpi, 3),
+    f"ES alpha={a_cpi:.2f}":              exp_smooth(cpi, a_cpi),
+    f"ES+trend {best[0]}, {best[1]}":     exp_smooth_trend(cpi, best[0], best[1]),
+}
+accuracy(cpi, cpi_methods).round(3)
+```
+
+That is the whole-sample verdict for `{python} next_month`. Here is the one
+that counts — the last 24 months replayed one at a time, each forecast made
+with only the data that existed then:
+
+```{python}
+#| label: cpi-backtest
+bt = backtest_summary(cpi, {
+    "naive":            (naive_forecast, {}),
+    "SMA p=3":          (sma_forecast, {"p": 3}),
+    "ES 0.5":           (exp_smooth, {"alpha": 0.5}),
+    f"ES {a_cpi:.2f}":  (exp_smooth, {"alpha": a_cpi}),
+    "ES+trend 0.5, 0.3": (exp_smooth_trend, {"alpha": 0.5, "beta": 0.3}),
+    f"ES+trend {best[0]}, {best[1]}": (exp_smooth_trend, {"alpha": best[0], "beta": best[1]}),
+}, last=24)
+bt.round(3)
+```
+
+Winner: **`{python} bt["MAD"].idxmin()`**, with a backtested MAD of
+`{python} num(bt["MAD"].min(), 3)` index points against
+`{python} num(bt.loc["naive", "MAD"], 3)` for naive. The tuned parameters
+survived the backtest, which is the evidence you need before submitting them.
+Notice also that an *untuned* trend-adjusted model ($0.5, 0.3$) beats naive
+too: the gain is from modelling the trend at all, not from the fine tuning.
+
+```{python}
+#| label: cpi-plot
+_ = forecast_plot(cpi, {"naive": cpi_methods["naive"],
+                        f"ES+trend {best[0]}, {best[1]}": cpi_methods[f"ES+trend {best[0]}, {best[1]}"]},
+                  title="CPI: the trend-adjusted forecast stops lagging", ylab="Index", last=24)
+```
+
+## Weekly claims: no trend to adjust
+
+```{python}
+#| label: claims-backtest
+pd.set_option("display.float_format", lambda v: f"{v:,.1f}")
+btc = backtest_summary(claims, {
+    "naive":            (naive_forecast, {}),
+    "SMA p=2":          (sma_forecast, {"p": 2}),
+    "SMA p=4":          (sma_forecast, {"p": 4}),
+    f"ES {a_cl:.2f}":   (exp_smooth, {"alpha": a_cl}),
+    "ES+trend 0.3, 0.1": (exp_smooth_trend, {"alpha": 0.3, "beta": 0.1}),
+}, last=26)
+btc.round(1)
+```
+
+Over the last 26 weeks the best is **`{python} btc["MAD"].idxmin()`**. The
+trend-adjusted model, which rescued the CPI, sits at
+`{python} num(btc.loc["ES+trend 0.3, 0.1", "MAD"], 0)` here — it is
+estimating a trend that does not exist and paying for the noise it picks up
+doing so. A component you model that is not there costs accuracy, exactly as
+one you fail to model does.
+
+## Nevada house prices: quarterly, trending, and turning
+
+```{python}
+#| label: hpi-setup
+pd.set_option("display.float_format", lambda v: f"{v:,.2f}")
+recent = hpi.loc["2015Q1":]
+hc = tune_alpha(recent)
+a_h = hc["MAD"].idxmin()
+hpi_methods = {
+    "naive":               naive_forecast(recent),
+    "SMA p=2":             sma_forecast(recent, 2),
+    f"ES {a_h:.2f}":       exp_smooth(recent, a_h),
+    "ES+trend 0.5, 0.3":   exp_smooth_trend(recent, 0.5, 0.3),
+    "ES+trend 0.9, 0.1":   exp_smooth_trend(recent, 0.9, 0.1),
+}
+accuracy(recent, hpi_methods).round(2)
+```
+
+```{python}
+#| label: hpi-backtest
+bth = backtest_summary(recent, {
+    "naive":             (naive_forecast, {}),
+    "SMA p=2":           (sma_forecast, {"p": 2}),
+    f"ES {a_h:.2f}":     (exp_smooth, {"alpha": a_h}),
+    "ES+trend 0.5, 0.3": (exp_smooth_trend, {"alpha": 0.5, "beta": 0.3}),
+    "ES+trend 0.9, 0.1": (exp_smooth_trend, {"alpha": 0.9, "beta": 0.1}),
+}, last=8)
+bth.round(2)
+```
+
+```{python}
+#| label: hpi-plot
+_ = forecast_plot(recent, {"naive": hpi_methods["naive"],
+                           "ES+trend 0.9, 0.1": hpi_methods["ES+trend 0.9, 0.1"]},
+                  title="Nevada house price index: actual vs. forecast",
+                  ylab="Index, 1980Q1 = 100", last=24)
+```
+
+```{python}
+#| label: hpi-winners
+#| include: false
+ws_win = accuracy(recent, hpi_methods)["MAD"].idxmin()
+bt_win = bth["MAD"].idxmin()
+```
+
+The whole-sample winner is **`{python} ws_win`**; the backtest winner is
+**`{python} bt_win`**. When those two differ, the disagreement is
+information: the index rose steeply through 2022 and has flattened since, so
+a model tuned on eleven years has learned the steep part while a model judged
+on the last eight quarters is being asked about the flat part. A series that
+has changed character rewards the method closest to now, and the backtest is
+the one to believe.
+
+::: {.charcoal}
+This is the quarterly series in the challenge. You get two forecasts of it
+all semester, so there is no learning from mistakes in real time. Everything
+you know has to come from the backtest.
+:::
+
+# Working with Claude
+
+## The lab prompt
+
+::: {.prompt}
+Run this with Claude
+
+> Get the MBA 775 course materials from <https://github.com/jcrooker/mba775>.
+> I need `scripts/16b_exponential_smoothing.py`, `scripts/_course.py`,
+> `scripts/_forecast.py`, `scripts/_charts.py`, `data/cpi.csv`, `data/icsa.csv`
+> and `data/nvsthpi.csv`. Read `COURSE_CONTEXT.md` from the same repository
+> first — it explains how this course expects analytical work to be done.
+>
+> Run the script and show me its actual output, verbatim. Then walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot reach GitHub, tell me plainly and I will upload the files
+> instead.
+:::
+
+## Update your challenge forecast
+
+By now you have a script from Part 1 and several weeks of published values.
+This prompt adds the new methods without throwing away the old comparison:
+
+::: {.prompt}
+Prompt — add smoothing to an existing forecast script
+
+> I have uploaded my forecast script for FRED series ICSA, `_forecast.py`, and
+> a fresh `icsa.csv` downloaded today. First, confirm the last observation date
+> in the new file and tell me how many weeks were added since the file I used
+> before (its last date was <date>).
+>
+> Then extend the script: keep the naive and moving-average methods as they
+> are, and add exponential smoothing with alpha tuned over 0.05–0.95 using
+> `tune_alpha`, and trend-adjusted smoothing with alpha = 0.3, beta = 0.1.
+> Report the next-week forecast for every method and a `backtest_summary` over
+> the last 26 weeks. Show the code and its verbatim output.
+>
+> Finally, answer one question from the numbers only: did the tuned alpha do
+> better in the backtest than alpha = 0.3 would have? If it did not, say that I
+> have over-fit and explain what that means in one paragraph.
+:::
+
+## Explain a formula by tracing it
+
+::: {.prompt}
+Prompt — trace Formula 16.5
+
+> Using the car-sales data in `_forecast.CAR_SALES` and `exp_smooth_trend`
+> with alpha = 0.3 and beta = 0.1, print the F, T and FIT columns for periods
+> 1–5. Then, for period 4 only, show me the three arithmetic steps by hand —
+> the numbers substituted into Formulas 16.4, 16.5 and 16.3 in that order —
+> and confirm each matches the table to one decimal. Do not explain what
+> exponential smoothing is; I know. Show me the arithmetic.
+:::
+
+## Verify
+
+| Check | What it catches |
+|---|---|
+| The first forecast equals the first actual ($F_1 = A_1$) | A different priming rule, which changes every number after it |
+| The MAD counts $n-1$ errors, not $n$ | Period 1's free zero being counted |
+| Excel's damping factor is $1-\alpha$, not $\alpha$ | The single most common Excel mistake in this chapter |
+| The tuned $\alpha$ was chosen on a stated grid | "Optimal" from a tool you cannot see |
+| The backtest winner is the one you are submitting | A whole-sample winner that fell apart in real time |
+| A tiny $\beta$ with a large $\alpha$ is nearly naive — say so if that is what won | Sophistication that is doing no work |
+
+# Your Turn (from the textbook)
+
+Using the GPA series from Part 1 (Donnelly, Your Turn 3 and 4): (a) forecast
+the senior-fall GPA with exponential smoothing, $\alpha = 0.4$, and its MAD;
+(b) repeat with trend adjustment, $\alpha = 0.5$, $\beta = 0.7$. By hand first.
+
+```{python}
+#| label: gpa-answer
+#| code-fold: true
+pd.set_option("display.float_format", lambda v: f"{v:,.3f}")
+gpa = pd.Series([2.5, 2.2, 2.7, 3.0, 2.6, 3.0, 3.2, 2.7, 3.3],
+                index=["Fr Fall", "Fr Spring", "Fr Summer", "So Fall", "So Spring",
+                       "So Summer", "Jr Fall", "Jr Spring", "Jr Summer"], name="GPA")
+accuracy(gpa, {"ES 0.4": exp_smooth(gpa, 0.4),
+               "ES+trend 0.5, 0.7": exp_smooth_trend(gpa, 0.5, 0.7)}).round(3)
+```
+
+# Laboratory 16b
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 16b pack](../upload_packs/lab-16b-forecasting-2.zip)**
+— one file. Unzip it and you will have a folder holding 8 files. Drag all 8
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 8 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `16b_exponential_smoothing.py` and show me its actual output,
+> verbatim. Walk me through what each section does and what the results mean.
+> Do not report any number you did not compute, and if anything fails, show me
+> the error rather than describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is
+> a plain page listing the files for each laboratory. Follow the links for
+> Laboratory 16b and read `COURSE_CONTEXT.md` first; it explains how this
+> course expects analytical work to be done.
+>
+> Then run `16b_exponential_smoothing.py` and show me its actual output,
+> verbatim. Walk me through what each section does and what the results mean.
+> Do not report any number you did not compute, and if anything fails, show me
+> the error rather than describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach GitHub, **nothing is wrong with your
+work or with the repository.** Use Path 1.
+:::
+
+::: {.scarlet}
+**Before your next submission**, add one line to your index card: the
+backtested MAD of the method you *stopped* using. If you switched from a
+moving average to trend-adjusted smoothing this week, you should be able to
+say by how much, over how many periods, and on which series it would have
+been a mistake.
+:::

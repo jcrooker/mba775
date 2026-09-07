@@ -101,6 +101,39 @@ LABS = {
         "scripts": ["04_probability.py", "_course.py", "_stats.py", "_prob.py"],
         "data": ["nevada_economy.csv"],
     },
+    # Chapter 16 is taught in three parts across the semester (Week 3, after
+    # Exam 1, after Exam 2), so it has three packs. The chapter label is a
+    # string on purpose; it appears in the README as "Laboratory 16a".
+    "lab-16a-forecasting-1": {
+        "chapter": "16a",
+        "topic": "forecasting 1 - naive, moving averages, MAD",
+        "run": {"16a_naive_sma_wma.py":
+                "the forecasting challenge: naive, simple and weighted moving "
+                "averages, MAD/RMSE/MAPE, backtesting, on the CPI and weekly claims"},
+        "scripts": ["16a_naive_sma_wma.py", "_course.py", "_forecast.py"],
+        "data": ["cpi.csv", "icsa.csv"],
+    },
+    "lab-16b-forecasting-2": {
+        "chapter": "16b",
+        "topic": "forecasting 2 - exponential smoothing",
+        "run": {"16b_exponential_smoothing.py":
+                "exponential smoothing with and without trend, tuning alpha and "
+                "beta, backtests on the CPI, weekly claims and the Nevada HPI"},
+        "scripts": ["16b_exponential_smoothing.py", "_course.py", "_forecast.py",
+                    "_charts.py"],
+        "data": ["cpi.csv", "icsa.csv", "nvsthpi.csv"],
+    },
+    "lab-16c-forecasting-3": {
+        "chapter": "16c",
+        "topic": "forecasting 3 - regression and seasonality",
+        "run": {"16c_regression_seasonality.py":
+                "trend projection, the Durbin-Watson test, multiplicative "
+                "decomposition, seasonal dummies; Las Vegas visitors, Nevada HPI, "
+                "housing starts"},
+        "scripts": ["16c_regression_seasonality.py", "_course.py", "_forecast.py",
+                    "_charts.py"],
+        "data": ["lv_visitors.csv", "nvsthpi.csv", "houst.csv"],
+    },
 }
 
 PACK_README = """LABORATORY {n} - UPLOAD PACK
