@@ -23,7 +23,7 @@ __all__ = [
     "histogram", "binned_bar", "bar_chart", "pareto_chart", "pie_chart",
     "ogive", "heatmap", "stem_and_leaf", "scatter", "time_series",
     "box_plot", "normal_curve", "returns_bar",
-    "probability_tree", "convergence_plot",
+    "probability_tree", "convergence_plot", "venn",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -703,3 +703,72 @@ def convergence_plot(outcomes, target=None, title=None, xlab="Number of rolls",
         "empirical_probability": [running[min(k, n) - 1]
                                   for k in [10, 100, 1_000, 10_000, 100_000, n]],
     })
+
+
+def venn(a="A", b="B", shade="intersection", disjoint=False, title=None,
+         figsize=(5.2, 3.6), single=False):
+    """Two-event Venn diagram: a box for the sample space, a circle per event.
+
+    `shade` picks the region drawn in scarlet:
+        "intersection"  A and B          "union"       A or B (or both)
+        "a"             just A           "complement"  everything outside A
+        "none"          no shading
+    `disjoint=True` draws the circles apart — mutually exclusive events.
+    `single=True` draws only event A (for the complement rule).
+
+    The picture is schematic, not area-proportional. It exists to make the
+    words "and", "or", "not" and "cannot both happen" visible, which is what
+    Venn diagrams are for.
+    """
+    from matplotlib.patches import Circle, Rectangle
+
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, 7)
+    ax.set_aspect("equal")
+    ax.set_axis_off()
+
+    box = Rectangle((0.3, 0.3), 9.4, 6.4, fill=False, linewidth=1.2,
+                    edgecolor=UNLV_GRAY)
+    ax.add_patch(box)
+    ax.text(0.55, 6.35, "sample space", fontsize=8.5, color=UNLV_GRAY)
+
+    r = 2.0
+    ca, cb = ((2.7, 3.4), (7.3, 3.4)) if disjoint else ((3.9, 3.4), (6.1, 3.4))
+    if single:
+        ca, cb = (5.0, 3.4), None
+
+    # Shading is done by rasterising a fine grid: it is the simplest way to
+    # get "union minus intersection" style regions right without a
+    # geometry library.
+    if shade != "none":
+        xs, ys = np.meshgrid(np.linspace(0.3, 9.7, 700),
+                             np.linspace(0.3, 6.7, 500))
+        in_a = (xs - ca[0]) ** 2 + (ys - ca[1]) ** 2 <= r ** 2
+        in_b = (np.zeros_like(in_a, dtype=bool) if cb is None
+                else (xs - cb[0]) ** 2 + (ys - cb[1]) ** 2 <= r ** 2)
+        region = {"intersection": in_a & in_b, "union": in_a | in_b,
+                  "a": in_a, "complement": ~in_a}[shade]
+        ax.contourf(xs, ys, region.astype(float), levels=[0.5, 1.5],
+                    colors=[UNLV_SCARLET], alpha=0.35)
+
+    for c in (ca, cb):
+        if c is not None:
+            ax.add_patch(Circle(c, r, fill=False, linewidth=1.8,
+                                edgecolor="#333333"))
+    if single:
+        ax.text(ca[0], ca[1], a, ha="center", va="center", fontsize=12,
+                fontweight="600", color="#333333")
+        ax.text(8.6, 1.0, b, ha="center", va="center", fontsize=12,
+                fontweight="600", color="#333333")
+    else:
+        ax.text(ca[0] - (1.1 if not disjoint else 0), ca[1] + r + 0.25, a,
+                ha="center", fontsize=11, fontweight="600", color="#333333")
+        ax.text(cb[0] + (1.1 if not disjoint else 0), cb[1] + r + 0.25, b,
+                ha="center", fontsize=11, fontweight="600", color="#333333")
+
+    if title:
+        ax.set_title(title, color=UNLV_SCARLET, fontsize=11, fontweight="600")
+    fig.tight_layout()
+    plt.show()
+    return {"a": a, "b": b, "shade": shade, "disjoint": disjoint}

@@ -11,10 +11,14 @@ What it does, in order:
     3. The law of large numbers   a million simulated rolls
     4. Two events at once         contingency and joint probability tables
     5. Conditional probability    and why P(A|B) is not P(B|A)
-    6. Independence               dice memory, and Nevada's
+    6. Independence               dice memory, Nevada's, and why mutually
+                                  exclusive is not the same thing
+    6b. The multiplication rule   with and without replacement
     7. Bayes' Theorem             the four-column table, checked two ways
-    8. Counting                   permutations and combinations
-    9. Applications               the drug trial, the promotion, Madison
+    8. Counting                   permutations, combinations, and back to
+                                  probability
+    9. Applications               the drug trial, the screening test, the
+                                  promotion, Madison
 
 Data file it reads:
 
@@ -39,8 +43,11 @@ from _prob import (two_dice_sample_space, roll_two_dice,             # noqa: E40
                    empirical_probability, joint_probability_table,
                    marginal, joint, conditional, addition_rule,
                    multiplication_rule, independence_report,
-                   bayes_table, expected_value, fundamental_counting,
+                   bayes_table, natural_frequency_table, expected_value,
+                   sequential_draws, replacement_comparison,
+                   classical_probability, fundamental_counting,
                    permutations, combinations, counting_comparison)
+from math import factorial                                           # noqa: E402
 
 pd.set_option("display.width", 110)
 pd.set_option("display.max_columns", 20)
@@ -222,6 +229,20 @@ print("""
   everyone, a false independence assumption is the usual culprit.
 """)
 
+print("  Mutually exclusive is NOT the same as independent.")
+p_a_today = (states["today"] == TODAY).mean()
+p_c_today = (states["today"] == FUTURE).mean()
+print(f"    A = today is '{TODAY}':   P(A) = {p_a_today:.4f}")
+print(f"    C = today is '{FUTURE}':  P(C) = {p_c_today:.4f}")
+print(f"    A quarter cannot be both, so P(A and C) = 0 and P(A|C) = 0.")
+print(f"    P(A|C) = 0 is not P(A) = {p_a_today:.4f}, so A and C are DEPENDENT.")
+print("""
+  Mutually exclusive is about outcomes (cannot both happen). Independent is
+  about information (one tells you nothing about the other). Two events with
+  positive probability cannot be both: if they cannot both happen, then
+  learning one happened rules the other out, and that is information.
+""")
+
 banner("6b. The multiplication rule")
 
 print(pd.DataFrame({
@@ -233,6 +254,25 @@ print(pd.DataFrame({
 }).round(6).to_string(index=False))
 print("\n  The first two agree by construction. The gap to the third measures")
 print("  how dependent these events actually are.")
+
+print("\n  Drawing WITHOUT replacement: an auditor pulls 2 of 32 invoices, 9 bad.")
+print(sequential_draws(9, 32, 2, replace=False).round(4).to_string())
+print()
+print(replacement_comparison(9, 32, 2).round(4).to_string(index=False))
+p_neither = (23 / 32) * (22 / 31)
+print(f"""
+  Without replacement the second draw depends on the first (8/31, not 9/32).
+  With replacement the draws are independent and P = (9/32)^2. The gap
+  shrinks as the pool grows -- which is why sampling a few hundred from
+  millions is treated as independent (Chapter 5), and Chapter 7 says when
+  that is safe. And by Rule 5, P(at least one bad) = 1 - P(neither)
+  = 1 - (23/32)(22/31) = {1 - p_neither:.4f}.
+
+  Because P(B|A) <= 1, P(A and B) = P(A)P(B|A) can never exceed P(A). A
+  statement with "and" in it is never more likely than either half alone --
+  the conjunction fallacy, and the reason detailed forecasts feel more
+  credible while being less probable.
+""")
 
 
 # ===========================================================================
@@ -271,6 +311,8 @@ banner("8. COUNTING")
 
 print(f"  Four regions send one manager each, from 12, 6, 8 and 7 managers:")
 print(f"    12 x 6 x 8 x 7 = {fundamental_counting(12, 6, 8, 7):,}")
+print(f"\n  Eight finalists interviewed in sequence (every order of ALL of them):")
+print(f"    8! = {factorial(8):,}")
 print(f"\n  Twelve managers elect a Senior and an Associate (order MATTERS):")
 print(f"    12P2 = 12!/10! = {permutations(12, 2)}")
 print(f"\n  Seven managers send two to Hawaii (order does NOT matter):")
@@ -282,6 +324,23 @@ print("""
   different outcome? Senior and Associate, yes -- permutation. Two people on
   the same flight to Hawaii, no -- combination. The permutation is always
   larger, by exactly x!.
+""")
+
+print("  From counting back to probability -- the reason we count at all:")
+pairs = combinations(7, 2)
+print(f"    A particular pair goes to Hawaii:  1/{pairs} = "
+      f"{classical_probability(1, pairs):.4f}")
+hands, flushes = combinations(52, 5), 4 * combinations(13, 5)
+print(f"    Five-card hands 52C5 = {hands:,};  flushes 4 x 13C5 = {flushes:,}")
+print(f"    P(flush) = {classical_probability(flushes, hands):.5f}")
+picks = combinations(49, 6)
+print(f"    6/49 lottery: P(your ticket) = 1/{picks:,} = "
+      f"{classical_probability(1, picks):.9f}")
+print("""
+  Hold on to that pattern. Chapter 5's binomial formula is nCx times the
+  probability of one specific arrangement of x successes -- the nCx is there
+  for the same reason the 4 x 13C5 is here: it counts the ways the event
+  can happen.
 """)
 
 
@@ -306,7 +365,25 @@ print(f"""
   is likely to fire under the right one.
 """)
 
-print("9b. The sportsbook promotion\n")
+print("9b. The screening test\n")
+screen = bayes_table(priors={"Condition": 0.01, "No condition": 0.99},
+                     likelihoods={"Condition": 0.95, "No condition": 0.05},
+                     evidence_name="Positive")
+print(screen.round(4).to_string())
+s_post = [c for c in screen.columns if c.startswith("posterior")][0]
+print(f"\n  P(Condition | Positive) = {float(screen.loc['Condition', s_post]):.4f}")
+print("\n  The same thing as a head count of 10,000 people:")
+freq = natural_frequency_table(0.01, 0.95, 0.05, n=10_000)
+print(freq.round(0).astype(int).to_string())
+print(f"""
+  {freq.loc['Condition', 'Positive']:.0f} true positives against {freq.loc['No condition', 'Positive']:.0f} false positives -- because 5% of a
+  large group outnumbers 95% of a small one. That is the base-rate fallacy.
+  Chapter 9 will call the false positive rate P(Positive|No condition)
+  "alpha", and will spend a lot of effort keeping you from reading it as
+  P(No condition|Positive).
+""")
+
+print("9c. The sportsbook promotion\n")
 promo = bayes_table(priors={"Promotion": 0.1, "No promotion": 0.9},
                     likelihoods={"Promotion": 0.08, "No promotion": 0.05},
                     evidence_name="Adoption")
@@ -339,7 +416,7 @@ print(f"""
   still account for very little of the total.
 """)
 
-print("9c. Madison's breakfast menu\n")
+print("9d. Madison's breakfast menu\n")
 PRIORS = {"HS": 0.10, "MS": 0.20, "BE": 0.40, "MU": 0.20, "HU": 0.10}
 LIKELIHOODS = {"HS": 0.95, "MS": 0.60, "BE": 0.30, "MU": 0.20, "HU": 0.10}
 madison = bayes_table(PRIORS, LIKELIHOODS, evidence_name="FR")

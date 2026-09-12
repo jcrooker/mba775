@@ -25,7 +25,9 @@ __all__ = [
     "two_dice_sample_space", "roll_two_dice",
     "joint_probability_table", "marginal", "joint", "conditional",
     "addition_rule", "multiplication_rule",
-    "independence_report", "bayes_table", "expected_value",
+    "independence_report", "bayes_table", "natural_frequency_table",
+    "expected_value",
+    "sequential_draws", "replacement_comparison",
     "fundamental_counting", "permutations", "combinations",
     "counting_comparison",
 ]
@@ -171,6 +173,62 @@ def multiplication_rule(p_b: float, p_a_given_b: float) -> float:
     return p_b * p_a_given_b
 
 
+def sequential_draws(successes: int, total: int, draws: int = 2,
+                     replace: bool = False) -> pd.DataFrame:
+    """The probability that every one of `draws` items drawn from a group of
+    `total`, of which `successes` have the property, has the property.
+
+    Shown one draw at a time, because that is where the with/without
+    replacement distinction lives. Without replacement, each draw shrinks the
+    group by one and (if the last draw was a success) the successes by one, so
+    the conditional probability changes at every step. With replacement, the
+    group is restored each time, so every draw is the same independent event.
+
+    Returns one row per draw with the pool it was drawn from, the conditional
+    probability of a success at that draw, and the running product — which is
+    the multiplication rule applied step by step.
+    """
+    if not 0 <= successes <= total:
+        raise ValueError(f"{successes} successes out of {total} is not possible.")
+    if draws < 1:
+        raise ValueError("Draw at least once.")
+    if not replace and draws > successes:
+        # The probability is zero, but the table still shows why.
+        pass
+    rows, running = [], 1.0
+    s, n = successes, total
+    for k in range(1, draws + 1):
+        p = s / n if n > 0 else 0.0
+        running *= p
+        rows.append({"draw": k, "pool": n, "successes in pool": s,
+                     "P(success | earlier draws)": p,
+                     "running product": running})
+        if not replace:
+            s, n = max(s - 1, 0), n - 1
+    return pd.DataFrame(rows).set_index("draw")
+
+
+def replacement_comparison(successes: int, total: int,
+                           draws: int = 2) -> pd.DataFrame:
+    """P(all draws are successes), with and without replacement, side by side.
+
+    With replacement is the independent case, P(A)^draws. Without replacement
+    is the dependent case. The gap between them shrinks as `total` grows
+    relative to `draws`, which is why sampling a few hundred customers from
+    a population of millions can be treated as independent draws — the
+    idea behind the "5% rule" in Chapter 7.
+    """
+    with_r = sequential_draws(successes, total, draws, replace=True)
+    without = sequential_draws(successes, total, draws, replace=False)
+    return pd.DataFrame({
+        "sampling": ["With replacement (independent draws)",
+                     "Without replacement (dependent draws)"],
+        f"P(all {draws} have the property)": [
+            float(with_r["running product"].iloc[-1]),
+            float(without["running product"].iloc[-1])],
+    })
+
+
 def independence_report(prior: float, posterior: float,
                         label_event="A", label_given="B") -> str:
     """Compare P(A) against P(A|B) and say what the comparison implies.
@@ -250,6 +308,35 @@ def bayes_table(priors: dict, likelihoods: dict,
     }, index=pd.Index(["TOTAL"], name="state"))
 
     return pd.concat([table, total])
+
+
+def natural_frequency_table(prior: float, sensitivity: float,
+                            false_positive_rate: float, n: int = 10_000,
+                            condition="Condition", evidence="Positive") -> pd.DataFrame:
+    """Bayes for a two-state problem, as a head count instead of a formula.
+
+    Start with `n` people (or emails, or loans). `prior` of them have the
+    condition. The test fires on `sensitivity` of those and, wrongly, on
+    `false_positive_rate` of the rest. The posterior P(condition | positive)
+    is then just: positives with the condition, over all positives.
+
+    Counts are left unrounded so the table agrees exactly with `bayes_table`;
+    round them for display if you want whole people.
+    """
+    for name, v in [("prior", prior), ("sensitivity", sensitivity),
+                    ("false_positive_rate", false_positive_rate)]:
+        if not 0 <= v <= 1:
+            raise ValueError(f"{name} must be between 0 and 1.")
+    with_c = n * prior
+    without = n - with_c
+    pos_with, pos_without = with_c * sensitivity, without * false_positive_rate
+    table = pd.DataFrame({
+        evidence: [pos_with, pos_without],
+        f"Not {evidence.lower()}": [with_c - pos_with, without - pos_without],
+    }, index=pd.Index([condition, f"No {condition.lower()}"], name=f"of {n:,}"))
+    table["Total"] = table.sum(axis=1)
+    table.loc["Total"] = table.sum()
+    return table
 
 
 def expected_value(values: dict) -> float:

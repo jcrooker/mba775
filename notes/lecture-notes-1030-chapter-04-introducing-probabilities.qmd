@@ -23,13 +23,16 @@ import numpy as np
 import pandas as pd
 
 from _charts import (bar_chart, heatmap, probability_tree, convergence_plot,
-                     time_series, UNLV_SCARLET, UNLV_GRAY)
+                     time_series, venn, UNLV_SCARLET, UNLV_GRAY)
 from _prob import (classical_probability, empirical_probability,
                    two_dice_sample_space, roll_two_dice,
                    joint_probability_table, marginal, joint, conditional,
                    addition_rule, multiplication_rule, independence_report,
-                   bayes_table, expected_value, fundamental_counting,
-                   permutations, combinations, counting_comparison)
+                   bayes_table, natural_frequency_table, expected_value,
+                   sequential_draws, replacement_comparison,
+                   fundamental_counting, permutations, combinations,
+                   counting_comparison)
+from math import factorial
 from _stats import percentile
 
 warnings.filterwarnings("ignore")
@@ -352,6 +355,51 @@ want to say how likely Nevada is to be in a bad state six months from now,
 history will not answer the question, but it will frame it. The rest of this
 chapter is largely about how to do that framing properly.
 
+## Which kind is it?
+
+The three kinds are not interchangeable, and the first thing to do with any
+probability someone hands you is work out which kind it is — because that
+tells you how much it can be trusted and what would change it.
+
+::: {.brown}
+For each of the following, say whether the probability is classical,
+empirical, or subjective.
+
+**(a)** A randomly chosen quarter from our Nevada data has High unemployment.
+
+**(b)** A card drawn from a shuffled deck is a heart.
+
+**(c)** The Raiders make the playoffs this season.
+
+**(d)** A room booked at a Strip hotel tonight is cancelled, based on last
+year's cancellation records.
+
+**(e)** Your particular six numbers win a 6/49 lottery.
+
+**(f)** The Federal Reserve cuts rates at its next meeting.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Empirical — a count from observed quarters. (And, because we *defined*
+High as the top quartile, we already know the answer is about 25%.)
+
+**(b)** Classical — 13 of 52 equally likely cards.
+
+**(c)** Subjective — there is no sample space of seasons to count and no
+identical past season to observe. Someone's judgment, informed by evidence.
+
+**(d)** Empirical — a relative frequency from records.
+
+**(e)** Classical — every combination is equally likely, and we will count
+them in the last section of this note.
+
+**(f)** Subjective — though notice that a market-implied probability (from
+futures prices) is a *collective* subjective probability, and often a good
+one. Judgment is not the same as guessing.
+:::
+
 # The Basic Rules
 
 ::: {.blue}
@@ -370,12 +418,25 @@ $A'$, is every outcome in the sample space that is not in $A$. Therefore
 $$P(A)+P(A')=1 \qquad\text{or}\qquad P(A)=1-P(A').$$
 :::
 
+```{python}
+#| label: venn-complement
+#| echo: false
+_ = venn("A", "A′", shade="complement", single=True,
+         title="Rule 5: the complement A′ is everything in the box outside A")
+```
+
 ::: {.brown}
 Rule 5 does more work than its length suggests. "At least one" problems are
 almost always easier as one minus the probability of none — and Rule 4 is the
 check to run on any table of probabilities you build or are handed. If the
 column does not sum to 1, stop and find out why before interpreting anything
 in it.
+
+Rules 1 and 2 are also why you will almost never see a competent forecaster
+say 100% or 0%. A weather app showing "90% chance of rain" while it is
+already raining is not being coy; it is refusing to claim certainty about
+something it has not observed. Chapter 8 (confidence intervals) is where we
+learn to make that reticence precise.
 :::
 
 # Two Events at Once
@@ -392,6 +453,22 @@ Its probability is called a **joint probability**.
 
 The **union** of events $A$ and $B$ is the outcomes where $A$ occurs, or $B$
 occurs, or both.
+:::
+
+```{python}
+#| label: venn-and-or
+#| echo: false
+#| layout-ncol: 2
+_ = venn("A", "B", shade="intersection", title="A and B — the intersection")
+_ = venn("A", "B", shade="union", title="A or B — the union")
+```
+
+::: {.scarlet}
+Read the question. **And** means intersection; **or** means union, and in
+probability "or" always includes "both." The intersection sits inside the
+union, so $P(A\text{ and }B)$ can never exceed $P(A\text{ or }B)$ — if your
+"and" answer is the larger of the two, the two words have been swapped
+somewhere.
 :::
 
 We now pair each Nevada quarter with the state of the economy two quarters —
@@ -447,8 +524,20 @@ If they are not,
 $$P(A\text{ or }B)=P(A)+P(B)-P(A\text{ and }B).$$
 :::
 
+```{python}
+#| label: venn-exclusive
+#| echo: false
+#| layout-ncol: 2
+_ = venn("A", "B", shade="none", disjoint=True,
+         title="Mutually exclusive: no overlap to subtract")
+_ = venn("A", "B", shade="intersection",
+         title="Not mutually exclusive: the overlap is counted twice")
+```
+
 The subtraction is there because outcomes in both events would otherwise be
-counted twice.
+counted twice. Mutually exclusive events have no overlap, so there is nothing
+to subtract — the first formula is just the second with
+$P(A\text{ and }B)=0$.
 
 ```{python}
 #| label: nv-focus
@@ -498,6 +587,9 @@ that event $B$ has occurred:
 
 $$P(A|B)=\frac{P(A\text{ and }B)}{P(B)}, \qquad
   P(B|A)=\frac{P(A\text{ and }B)}{P(A)}.$$
+
+(The first requires $P(B)>0$ and the second $P(A)>0$. You cannot condition
+on something that cannot happen.)
 
 A conditional probability is also called a **posterior probability** — a
 revision of the prior in light of additional information.
@@ -635,6 +727,51 @@ shared power supply they are not. When a risk model surprises everyone, a
 false independence assumption is the usual culprit.
 :::
 
+## Mutually exclusive is not the same as independent
+
+These two terms get confused constantly, partly because both describe "events
+that have nothing to do with each other" in casual English. In probability
+they are nearly opposites.
+
+- **Mutually exclusive** is about *outcomes*: the events cannot both happen.
+- **Independent** is about *information*: knowing one happened tells you
+  nothing about the other.
+
+Take two states of today's Nevada economy — $A$: `{python} TODAY` and
+$C$: `{python} FUTURE`. A quarter cannot be in both at once, so they are
+mutually exclusive. Are they independent?
+
+```{python}
+#| label: me-vs-indep
+STATE_C = FUTURE   # "Low,High" — used here as a state *today*, not in six months
+p_a = (states["today"] == TODAY).mean()
+p_c = (states["today"] == STATE_C).mean()
+p_a_and_c = ((states["today"] == TODAY) & (states["today"] == STATE_C)).mean()
+p_a_given_c = p_a_and_c / p_c
+
+pd.DataFrame({
+    "quantity": [f"P(A = {TODAY})", f"P(C = {STATE_C})",
+                 "P(A and C)", "P(A | C)"],
+    "probability": [p_a, p_c, p_a_and_c, p_a_given_c],
+}).round(4)
+```
+
+$P(A|C)=0$, but $P(A)=$ `{python} pct(p_a)`. They are not equal, so the
+events are **dependent** — in fact as dependent as two events can be. Learning
+that $C$ happened tells you with certainty that $A$ did not.
+
+::: {.scarlet}
+**Two events with positive probability cannot be both mutually exclusive and
+independent.** If they cannot both happen, then knowing one happened rules
+the other out, and that is information.
+
+The converse does not hold either: dependent events are not necessarily
+mutually exclusive (Nevada today and Nevada in six months are dependent and
+overlap all the time). When a problem asks "are these mutually exclusive?"
+and then "are they independent?", it is asking two different questions, and
+"yes" to the first forces "no" to the second.
+:::
+
 # The Multiplication Rule
 
 ::: {.blue}
@@ -669,6 +806,99 @@ pd.DataFrame({
 The first two agree, because the multiplication rule is just the conditional
 probability formula rearranged. The third does not, and the size of that gap
 is a measure of how dependent these events are.
+
+## Drawing without replacement
+
+Nevada's dependence comes from a mechanism we cannot see. There is a second,
+much simpler source of dependence that every audit, quality check, and
+survey runs into: **the act of sampling changes what is left to sample**.
+
+::: {.brown}
+An auditor is reviewing a batch of 32 vendor invoices. Unknown to her, 9 of
+them contain a pricing error. She pulls two invoices at random to check.
+What is the probability that *both* contain an error?
+:::
+
+Once the first invoice is pulled, it is not put back. So the second draw is
+from 31 invoices, and — *if the first one had an error* — only 8 of them are
+bad. The second draw's probability depends on the first: the events are
+dependent, and the multiplication rule for dependent events applies.
+
+```{python}
+#| label: draws-without
+sequential_draws(successes=9, total=32, draws=2, replace=False).round(4)
+```
+
+```{python}
+#| label: draws-stats
+#| include: false
+wo = sequential_draws(9, 32, 2, replace=False)
+wr = sequential_draws(9, 32, 2, replace=True)
+p_both_wo = float(wo["running product"].iloc[-1])
+p_both_wr = float(wr["running product"].iloc[-1])
+p_none_wo = (23 / 32) * (22 / 31)
+```
+
+```{python}
+#| label: draws-math
+#| echo: false
+#| output: asis
+show_math(r"P(\text{both bad})=P(A)\,P(B|A)"
+          rf"=\frac{{9}}{{32}}\times\frac{{8}}{{31}}={p_both_wo:.4f}")
+```
+
+Had she put the first invoice back and reshuffled — sampling **with**
+replacement — the second draw would be from the same 32 invoices with the
+same 9 errors, the draws would be independent, and the answer would be
+$(9/32)^2$:
+
+```{python}
+#| label: draws-compare
+replacement_comparison(successes=9, total=32, draws=2).round(4)
+```
+
+::: {.charcoal}
+The gap is small here — `{python} f"{p_both_wr:.4f}"` against
+`{python} f"{p_both_wo:.4f}"` — and it gets smaller as the batch gets bigger.
+Pull 2 from 32 and the pool changes by 3% per draw; pull 200 customers from
+2 million and it changes by nothing anyone can measure. That is why a survey
+of a large population can be treated as independent draws even though,
+strictly, it is not. Chapter 5 will assume independence outright (the
+binomial), and Chapter 7 will tell you exactly when that assumption is safe
+(the "5% rule").
+
+And note Rule 5 at work: the probability that *at least one* of the two
+invoices has an error is not a new calculation. It is
+$1-P(\text{neither})=1-\frac{23}{32}\times\frac{22}{31}=$
+`{python} f"{1 - p_none_wo:.4f}"`.
+:::
+
+## A statement with "and" in it is never more likely
+
+The multiplication rule has a consequence that human intuition gets wrong
+reliably enough that there is a name for it. Because $P(B|A)\le 1$,
+
+$$P(A\text{ and }B)=P(A)\,P(B|A)\le P(A).$$
+
+Adding a condition can only remove outcomes. It can never add them.
+
+::: {.brown}
+Which is more likely?
+
+1. Your team hits every one of its targets this year.
+2. Your team hits every one of its targets this year **and** the division's
+   budget is increased as a result.
+
+Most people pick the second — the added detail makes the story feel more
+plausible. But statement 2 is $A\text{ and }B$ and statement 1 is $A$ alone.
+The second cannot be more probable than the first; it can only be equal
+(if the budget increase is certain given the targets) or smaller.
+
+This is the **conjunction fallacy**, and it is why a detailed forecast,
+a detailed business plan, or a detailed explanation of last quarter *feels*
+more credible as detail is added, while actually becoming less likely with
+every "and."
+:::
 
 # Probability Trees
 
@@ -819,18 +1049,44 @@ print(f"12 x 6 x 8 x 7 = {meetings:,}")
 ```
 
 ::: {.blue}
-**Permutations** count arrangements where **order matters**:
+The number of ways to arrange **all** $n$ distinct objects in order is
+$n$ **factorial**:
 
-$$_nP_x=\frac{n!}{(n-x)!}.$$
+$$n!=n(n-1)(n-2)\cdots(2)(1).$$
 
-**Combinations** count selections where **order does not matter**:
+**Permutations** count arrangements of $x$ objects chosen from $n$ where
+**order matters**:
 
-$$_nC_x=\frac{n!}{(n-x)!\,x!}.$$
+$$_nP_x=\frac{n!}{(n-x)!}=n(n-1)\cdots(n-x+1).$$
+
+**Combinations** count selections of $x$ from $n$ where **order does not
+matter**:
+
+$$_nC_x=\frac{n!}{(n-x)!\,x!}=\frac{n(n-1)\cdots(n-x+1)}{x!}.$$
 :::
 
 ::: {.brown}
-By definition, $0!=1$.
+By definition, $0!=1$, so $_nP_n=n!$ and $_nC_n=1$: there is exactly one
+way to choose everything.
+
+The right-hand forms are how you actually compute these. $_{12}P_2$ is
+$12\times 11$; you never need to write out $12!$ and $10!$ and cancel. In
+Excel the functions are `=PERMUT(n, x)` and `=COMBIN(n, x)`; in Python,
+`math.perm` and `math.comb`.
 :::
+
+## Example: interview order
+
+Eight finalists for a position will each be interviewed once, in sequence.
+How many possible interview schedules are there?
+
+Every finalist appears exactly once and order is the whole question, so this
+is $8!$.
+
+```{python}
+#| label: counting-0
+print(f"8! = {factorial(8):,}")
+```
 
 ## Example: election
 
@@ -870,6 +1126,70 @@ is a permutation. If no — they both go to Hawaii — it is a combination.
 
 The permutation is always the larger number, by exactly $x!$, because it
 counts every ordering of the same group separately.
+:::
+
+## From counting back to probability
+
+Counting is not an end in itself. We count because classical probability
+needs the size of the sample space, and once we have it the probability is
+one division.
+
+Return to the Hawaii trip. If Region 4 picks its pair *at random*, what is
+the chance that a particular pair — say, the two managers who most want to
+go — is the one chosen?
+
+```{python}
+#| label: counting-prob-1
+pairs = combinations(7, 2)
+p_pair = classical_probability(1, pairs)
+print(f"1 favourable pair out of {pairs} equally likely pairs: "
+      f"P = 1/{pairs} = {p_pair:.4f}")
+```
+
+The same move handles sample spaces far too large to list. A five-card poker
+hand is a combination of 5 cards from 52 — order does not matter, you hold
+the same hand either way. A **flush** is five cards of one suit. There are
+$_{13}C_5$ ways to choose five from the 13 cards of a given suit, and four
+suits:
+
+```{python}
+#| label: counting-prob-2
+hands = combinations(52, 5)
+flushes = 4 * combinations(13, 5)
+p_flush = classical_probability(flushes, hands)
+
+pd.DataFrame({
+    "quantity": ["Five-card hands, 52C5", "Flushes, 4 x 13C5",
+                 "P(flush)", "Roughly one flush in every ... hands"],
+    "value": [f"{hands:,}", f"{flushes:,}", f"{p_flush:.5f}",
+              f"{1 / p_flush:,.0f}"],
+})
+```
+
+```{python}
+#| label: counting-prob-3
+picks = combinations(49, 6)
+p_lottery = classical_probability(1, picks)
+print(f"6/49 lottery: 1 winning combination out of {picks:,}")
+print(f"P(your ticket wins) = {p_lottery:.9f}  "
+      f"(about 1 in {1 / p_lottery / 1e6:.1f} million)")
+```
+
+::: {.brown}
+That lottery number is the reason "my numbers are due" is not a strategy.
+Last week's draw and this week's are independent; the combination that won
+last week has exactly the same $1/_{49}C_6$ chance this week as every other.
+Probability has no memory — we established that with a million dice rolls,
+and it is no less true for a lottery machine.
+:::
+
+::: {.charcoal}
+**Hold on to this pattern — it is the whole of Chapter 5's headline
+formula.** When we ask "what is the probability of exactly $x$ successes in
+$n$ tries," the answer will be $_nC_x$ multiplied by the probability of any
+one specific arrangement of $x$ successes. The $_nC_x$ is there for the same
+reason the 4 and the $_{13}C_5$ are here: it counts the number of ways the
+event can happen.
 :::
 
 # Contingency Tables in Excel
@@ -1250,6 +1570,123 @@ work here, not the 0.9.
 That is the general lesson about evidence. A test is informative when it is
 unlikely to fire under the wrong hypothesis, not merely when it is likely to
 fire under the right one.
+:::
+:::
+
+## The screening test
+
+The drug trial moved a belief *up*, from 80% to over 99%, because the prior
+was already high. Here is the same table with a low prior, and it is the
+single most misread calculation in applied probability.
+
+::: {.brown}
+A screening test for a condition that affects 1% of the population has
+**sensitivity** 0.95 — it returns positive for 95% of people who have the
+condition — and a **false positive rate** of 0.05 — it also returns positive
+for 5% of people who do not.
+
+**(a)** A person selected at random tests positive. What is the probability
+they have the condition?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+Two states of the world (condition, no condition), one piece of evidence
+(a positive test). It is the drug-trial table with different numbers.
+
+```{python}
+#| label: screen-a
+PREV, SENS, FPR = 0.01, 0.95, 0.05
+screen = bayes_table(priors={"Condition": PREV, "No condition": 1 - PREV},
+                     likelihoods={"Condition": SENS, "No condition": FPR},
+                     evidence_name="Positive")
+screen.round(4)
+```
+
+```{python}
+#| label: screen-a-stats
+#| include: false
+s_joint = [c for c in screen.columns if c.startswith("joint")][0]
+s_post = [c for c in screen.columns if c.startswith("posterior")][0]
+p_pos = float(screen.loc["TOTAL", s_joint])
+p_cond_given_pos = float(screen.loc["Condition", s_post])
+```
+
+```{python}
+#| label: screen-a-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}\Pr(\text{Condition}|\text{Positive})&=\frac{"
+          r"\Pr(\text{Condition})\Pr(\text{Positive}|\text{Condition})}"
+          r"{\Pr(\text{Positive})}\\"
+          rf"&=\frac{{{PREV}({SENS})}}{{{PREV}({SENS})+{1-PREV:.2f}({FPR})}}"
+          rf"=\frac{{{PREV*SENS:.4f}}}{{{p_pos:.4f}}}={p_cond_given_pos:.4f}"
+          r"\end{split}")
+```
+
+A positive result from a "95% accurate" test means a
+`{python} pct(p_cond_given_pos, 1)` chance of having the condition. Most
+people — including, in published studies, most physicians — guess something
+near 95%.
+:::
+
+::: {.brown}
+**(b)** Explain the answer to (a) without a formula, using a population of
+10,000 people.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+Count people instead of multiplying probabilities. Of 10,000, 1% — 100
+people — have the condition; 9,900 do not.
+
+```{python}
+#| label: screen-b
+freq = natural_frequency_table(PREV, SENS, FPR, n=10_000)
+freq.round(0).astype(int)
+```
+
+```{python}
+#| label: screen-b-stats
+#| include: false
+pos_with = float(freq.loc["Condition", "Positive"])
+pos_all = float(freq.loc["Total", "Positive"])
+pos_without = float(freq.loc["No condition", "Positive"])
+```
+
+The test correctly flags `{python} f"{pos_with:.0f}"` of the 100 who have the
+condition. But 5% of the 9,900 who do not is `{python} f"{pos_without:.0f}"`
+people — false positives — and they outnumber the true positives five to one.
+Among all `{python} f"{pos_all:.0f}"` positives, only
+`{python} f"{pos_with:.0f}"` have the condition:
+`{python} f"{pos_with:.0f}"`/`{python} f"{pos_all:.0f}"` =
+`{python} f"{pos_with / pos_all:.4f}"`, the same answer as (a).
+
+::: {.charcoal}
+This is the **base-rate fallacy**, and it is the sportsbook lesson again in
+sharper form: a small false-positive *rate* applied to a large group produces
+more false positives than a high hit *rate* applied to a small one. Any time
+a screening tool — a fraud flag, a résumé filter, a credit-risk score, a
+quality-control alarm — is applied to a population where the thing being
+screened for is rare, most of what it flags will be wrong, *no matter how
+good the test is*. The fix is not a better test; it is knowing the base rate
+before you read the result.
+:::
+
+::: {.brown}
+**Two names to carry into Chapter 9.** The false positive rate,
+$P(\text{Positive}|\text{No condition})$, is the probability the test fires
+when it should not. In hypothesis testing that same quantity is called
+$\alpha$, the Type I error rate, and "5%" will turn out to be the
+conventional choice for it. The sensitivity,
+$P(\text{Positive}|\text{Condition})$, will be called *power*. And the
+mistake of reading $P(\text{Positive}|\text{No condition})$ as
+$P(\text{No condition}|\text{Positive})$ — the two conditionals this chapter
+keeps insisting are different — is exactly the mistake of reading a p-value
+as "the probability the null hypothesis is true." Same error, new
+vocabulary.
 :::
 :::
 
@@ -1636,3 +2073,18 @@ Prompt
 That workbook solves every Bayes problem in this chapter and most of the ones
 you will meet later. Change the priors and watch the posteriors move; that is
 the intuition the formula is trying to give you.
+
+Then try this with the same workbook, and answer the question in one
+paragraph:
+
+::: {.prompt}
+Prompt
+
+> Put the screening test from my notes into the Bayes workbook: prevalence
+> 1%, sensitivity 95%, false positive rate 5%. Now build a small table that
+> recomputes the posterior P(condition | positive) for prevalence values of
+> 0.1%, 1%, 5%, 20% and 50%, holding the test fixed. Then do the same holding
+> prevalence at 1% and varying the false positive rate from 0.5% up to 10%.
+> Which of the two — the base rate or the false positive rate — does the
+> posterior respond to more, and why?
+:::
