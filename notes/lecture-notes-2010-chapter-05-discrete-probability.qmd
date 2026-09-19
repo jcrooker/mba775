@@ -1,0 +1,1670 @@
+---
+title: "Discrete Probability Distributions"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import comb, sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (pmf_chart, bar_chart, convergence_plot,
+                     UNLV_SCARLET, UNLV_GRAY)
+from _dist import (check_distribution, distribution_from_counts,
+                   moments_table, dist_mean, dist_variance, dist_sd,
+                   simulate_distribution, emv_table, stocking_payoffs,
+                   binomial_pmf, binomial_table, binomial_mean, binomial_sd,
+                   binomial_arrangements, poisson_pmf, poisson_table,
+                   rescale_rate, hypergeometric_pmf, hypergeometric_table,
+                   hypergeometric_mean, hypergeometric_sd,
+                   probability_of, phrase_guide, poisson_vs_binomial,
+                   binomial_vs_hypergeometric, window_counts,
+                   dispersion_check)
+from _stats import percentile
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def money(x, decimals=0):
+    """Dollars for prose. Quarto escapes the dollar sign in inline output
+    itself, so it must not be escaped here."""
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x):,.{decimals}f}"
+
+
+def mnum(x, decimals=0):
+    """A number with thousands separators that LaTeX will not mangle."""
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+def one_in(p):
+    """'1 in N' for prose, with N rounded to two significant figures once it
+    is large, because 1 in 373,897 claims a precision nobody needs."""
+    n = 1 / p
+    if n >= 100:
+        n = float(f"{n:.2g}")
+    return f"{n:,.0f}"
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`, so that
+    computed values reach LaTeX without being escaped on the way."""
+    print(f"$${latex}$$\n")
+
+
+nv = pd.read_csv("data/nevada_economy.csv", parse_dates=["date"])
+```
+
+## Objectives
+
++ Identify the rules of a discrete probability distribution.
++ Calculate and interpret the mean and standard deviation of a discrete
+  distribution.
++ Use expected monetary value to compare alternatives, and say what it leaves
+  out.
++ Understand the characteristics of a binomial experiment, and recognize when
+  data violate them.
++ Calculate binomial probabilities, and interpret the mean and standard
+  deviation of a binomial distribution.
++ Understand the characteristics of a Poisson process, and calculate Poisson
+  probabilities over any interval.
++ Approximate binomial probabilities using the Poisson distribution.
++ Calculate hypergeometric probabilities.
++ Translate a question asked in English ("fewer than," "at least") into the
+  right cell of a probability table.
++ Use a probability to judge whether a claim is believable.
+
+::: {.charcoal}
+In Chapters 2 and 3 we described a sample we already had. In Chapter 4 we put
+a probability on a single event. This chapter puts a probability on *every*
+value a count can take, all at once. That complete list is a **probability
+distribution**, and it is what I have been calling a **data generating
+mechanism**: the rules that determine the characteristics we find in any
+sample drawn from it.
+
+The reason to care is that a manager almost never gets to see the mechanism.
+She sees one sample: five big spenders out of fifty customers, four defects in
+a shipment of twenty. The question she needs answered is whether that sample is
+the kind of thing the mechanism she *believes in* would produce. This chapter
+is where we first learn to answer it, and Chapter 9 is where we make the
+answer formal.
+
+You will not be asked to grind through these formulas by hand on an exam. You
+will be handed output like the tables in this note and asked which number
+answers the question, and what a manager should conclude from it. So read the
+tables closely. They are the skill.
+:::
+
+# Random Variables
+
+::: {.blue}
+A **random variable** is a numerical outcome of an experiment. Its value
+cannot be known with certainty before the experiment is run, and is known
+exactly afterwards. By convention we write it $x$.
+
+**Discrete random variables** have outcomes that typically take on whole
+numbers as a result of conducting an experiment. They are usually *counted*.
+
+**Continuous random variables** have outcomes that can take on any numerical
+value as a result of conducting an experiment. They are usually *measured*.
+:::
+
+#### Application: a discrete random variable
+
+If we draw $n$ units at random from a production line at our manufacturing
+facility, how many of them will be defective? The answer is a whole number.
+The count of defective units must be in the set $\{0,1,2,\ldots,n\}$.
+
+#### Application: a continuous random variable
+
+How much time elapses before a product made at our facility fails? We can
+measure time in increments as small as we like, so the answer may be any real
+number in $(0,\infty)$. It may be 300.12311 hours.
+
+::: {.brown}
+**The acid test** is to ask how many values are possible inside an interval.
+A customer rating from 1 to 5 has five. A waiting time between 0 and 5
+minutes has infinitely many, limited only by the precision of the clock.
+
+There is a practical exception you met in Chapter 2. Income is technically
+discrete, since we count dollars and cents, but it has so many possible values
+that treating it as continuous is the sensible choice. Continuous random
+variables are Chapter 6.
+:::
+
+# Discrete Probability Distributions
+
+::: {.blue}
+A listing of all the possible outcomes of an experiment for a discrete random
+variable, along with the probability of each outcome, is called a **discrete
+probability distribution**.
+
+A discrete probability distribution meets three conditions:
+
+1. The outcomes are **mutually exclusive**. The value of the random variable
+   cannot fall into more than one row of the table.
+2. Every probability lies between 0 and 1: $0\le P(x)\le 1$ for every $x$.
+3. The probabilities sum to 1: $\sum_{i=1}^{n}P(x_i)=1$, where $n$ is the
+   number of possible outcomes.
+:::
+
+These are Rules 3 and 4 from Chapter 4, applied to a whole table at once.
+
+## Where a distribution comes from
+
+The three kinds of probability from Chapter 4 give three kinds of
+distribution, and it is worth knowing which one you have been handed.
+
+- **Empirical.** Take a frequency table from Chapter 2, divide each count by
+  the total, and the relative frequency column *is* a probability
+  distribution. It is as good as the data behind it.
+- **Classical, from a model.** If you can describe the mechanism (fifty
+  independent customers, each with the same chance of spending \$100), the
+  distribution follows from a formula. The binomial, Poisson, and
+  hypergeometric distributions later in this note are all of this kind.
+- **Subjective.** A project manager's judgment that a bridge will finish
+  early, on time, or late with probabilities 25%, 60%, and 15% is a
+  distribution too.
+
+## Application: defective units
+
+Given the design specifications for our production lines, the number of
+defective units in a random sample of 1,000 from the line follows the
+distribution below.
+
+```{python}
+#| label: defects-dist
+DEFECTS = [0, 1, 2, 3, 4, 5]
+P_DEFECTS = [0.02, 0.24, 0.36, 0.15, 0.13, 0.10]
+
+defects = pd.DataFrame({"P(x)": P_DEFECTS},
+                       index=pd.Index(DEFECTS, name="defective units"))
+defects
+```
+
+```{python}
+#| label: defects-check
+check_distribution(P_DEFECTS)
+```
+
+```{python}
+#| label: defects-chart
+_ = pmf_chart(DEFECTS, P_DEFECTS,
+              title="Defective units in a sample of 1,000",
+              xlab="Defective units", mean=dist_mean(DEFECTS, P_DEFECTS))
+```
+
+Six or more defective units has probability zero under these specifications,
+so those rows are left off the table.
+
+## Is it a distribution?
+
+::: {.brown}
+A bakery's analyst offers five candidate distributions, A through E, for the
+daily demand for a specialty loaf. Which are valid discrete probability
+distributions? For each that is not, say which rule it breaks.
+:::
+
+```{python}
+#| label: candidates
+candidates = pd.DataFrame({
+    "A": [0.10, 0.20, 0.40, 0.20, 0.10],
+    "B": [0.10, 0.20, 0.40, 0.20, 0.20],
+    "C": [0.30, 0.30, 0.50, -0.10, 0.00],
+    "D": [0.15, 0.25, 0.30, 0.20, 0.05],
+    "E": [0.00, 0.00, 1.00, 0.00, 0.00],
+}, index=pd.Index(range(5), name="daily demand"))
+candidates
+```
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: candidates-solve
+pd.DataFrame({c: check_distribution(candidates[c]) for c in candidates}).T
+```
+
+A and E are valid. B sums to more than 1 and D to less than 1. C sums to 1,
+which is why it is the trap: one of its entries is negative, and no
+probability can be.
+
+E looks odd but breaks no rule. It says demand is 2 loaves every day with
+certainty. Hold on to it. It is the distribution with no variability at all,
+and we will use it to check that the variance formula behaves.
+:::
+
+## The mean of a discrete probability distribution
+
+::: {.blue}
+The **mean** of a discrete probability distribution is
+
+$$\mu=\sum_{i=1}^{n}x_i\,P(x_i),$$
+
+where $x_i$ is the value of the random variable for the $i$th outcome,
+$P(x_i)$ is the probability that the $i$th outcome occurs, and $n$ is the
+number of outcomes in the distribution.
+
+**Expected value** is another term for the mean of a probability
+distribution, written $E(x)=\mu$.
+:::
+
+The mean is a weighted average of the outcomes, with the probabilities as the
+weights. The table below works it out in columns, the way you would on paper.
+The `x P(x)` column sums to the mean.
+
+```{python}
+#| label: defects-moments
+defect_table = moments_table(DEFECTS, P_DEFECTS, name="defective units")
+defect_table.round(4).fillna("")
+```
+
+```{python}
+#| label: defects-stats
+#| include: false
+mu_d = dist_mean(DEFECTS, P_DEFECTS)
+var_d = dist_variance(DEFECTS, P_DEFECTS)
+sd_d = dist_sd(DEFECTS, P_DEFECTS)
+sum_x2p = float(defect_table.loc["TOTAL", "x^2 P(x)"])
+```
+
+```{python}
+#| label: defects-mean-math
+#| echo: false
+#| output: asis
+terms = "+".join(f"{x}({p:.2f})" for x, p in zip(DEFECTS, P_DEFECTS))
+prods = "+".join(f"{x * p:.2f}" for x, p in zip(DEFECTS, P_DEFECTS))
+show_math(r"\begin{split}\mu&=" + terms + r"\\&=" + prods
+          + rf"\\&={mu_d:.2f}\end{{split}}")
+```
+
+::: {.charcoal}
+No sample will ever contain `{python} f"{mu_d:.2f}"` defective units. The mean
+of a distribution does not have to be one of its possible outcomes, and here
+it is not.
+
+What the number describes is the long run. If we drew sample after sample from
+this line, the *average* number of defective units per sample would settle on
+`{python} f"{mu_d:.2f}"`. That is the law of large numbers from Chapter 4,
+applied to an average instead of a proportion, and we can watch it happen.
+:::
+
+```{python}
+#| label: defects-lln
+draws = simulate_distribution(DEFECTS, P_DEFECTS, draws=100_000)
+_ = convergence_plot(draws, target=mu_d,
+                     title="Running average of defective units per sample",
+                     xlab="Number of samples drawn",
+                     ylab="Running sample mean",
+                     target_label="expected value")
+```
+
+```{python}
+#| label: defects-lln-stats
+#| include: false
+mean_10 = float(draws.iloc[:10].mean())
+mean_all = float(draws.mean())
+```
+
+After ten samples the running average is `{python} f"{mean_10:.2f}"`. After
+`{python} f"{len(draws):,}"` it is `{python} f"{mean_all:.4f}"`, against an
+expected value of `{python} f"{mu_d:.2f}"`. The distribution is the mechanism;
+the samples are what it generates.
+
+## The variance and standard deviation
+
+::: {.blue}
+The **variance** of a discrete probability distribution is
+
+$$\sigma^2=\sum_{i=1}^{n}(x_i-\mu)^2\,P(x_i),$$
+
+and the **standard deviation** is its square root, $\sigma=\sqrt{\sigma^2}$.
+
+A shortcut that gives the identical answer with less arithmetic:
+
+$$\sigma^2=\left(\sum_{i=1}^{n}x_i^2\,P(x_i)\right)-\mu^2.$$
+:::
+
+Both routes are in the table above. The `(x - mu)^2 P(x)` column sums to the
+variance directly, and the `x^2 P(x)` column is the first term of the shortcut.
+
+```{python}
+#| label: defects-var-math
+#| echo: false
+#| output: asis
+show_math(rf"\sigma^2={sum_x2p:.4f}-({mu_d:.2f})^2={sum_x2p:.4f}-{mu_d**2:.4f}"
+          rf"={var_d:.4f}\qquad\sigma=\sqrt{{{var_d:.4f}}}={sd_d:.4f}")
+```
+
+The variance is `{python} f"{var_d:.4f}"` *units squared*, which nobody can
+picture. The standard deviation, `{python} f"{sd_d:.2f}"` defective units, is
+in the units of the data, and it is the one to report. It says a typical
+sample lands roughly `{python} f"{sd_d:.1f}"` units away from the mean of
+`{python} f"{mu_d:.2f}"`.
+
+::: {.brown}
+Recall candidate E from the exercise above, where demand is 2 with certainty.
+Its mean is 2, every deviation $(x-\mu)$ that has any probability is zero, and
+so its variance is `{python} f"{dist_variance(range(5), candidates['E']):.1f}"`.
+A distribution with no spread has no variance. The formula is measuring what
+we want it to measure.
+
+In Excel, with outcomes in `A2:A7` and probabilities in `B2:B7`, the mean is
+`=SUMPRODUCT(A2:A7, B2:B7)`. With the mean in cell `D1`, the variance is
+`=SUMPRODUCT((A2:A7-D1)^2, B2:B7)`.
+:::
+
+## Comparing two distributions
+
+::: {.brown}
+A retailer collects one-to-five-star ratings from 100 customers at each of two
+stores, Henderson and Summerlin.
+
+**(a)** Convert each store's frequencies into a probability distribution.
+
+**(b)** Calculate the mean and standard deviation of each.
+
+**(c)** Regional management ranks stores by mean rating. What does that
+ranking miss here?
+:::
+
+```{python}
+#| label: ratings-data
+STARS = [1, 2, 3, 4, 5]
+HENDERSON = [4, 6, 10, 40, 40]
+SUMMERLIN = [20, 5, 5, 10, 60]
+pd.DataFrame({"Henderson": HENDERSON, "Summerlin": SUMMERLIN},
+             index=pd.Index(STARS, name="stars"))
+```
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: ratings-solve
+hend = distribution_from_counts(STARS, HENDERSON, name="stars")
+summ = distribution_from_counts(STARS, SUMMERLIN, name="stars")
+
+ratings = pd.DataFrame({
+    "Henderson P(x)": hend["P(x)"], "Summerlin P(x)": summ["P(x)"]})
+ratings
+```
+
+```{python}
+#| label: ratings-summary
+rating_summary = pd.DataFrame({
+    "mean": [dist_mean(STARS, hend["P(x)"]), dist_mean(STARS, summ["P(x)"])],
+    "standard deviation": [dist_sd(STARS, hend["P(x)"]),
+                           dist_sd(STARS, summ["P(x)"])],
+}, index=["Henderson", "Summerlin"])
+rating_summary.round(3)
+```
+
+```{python}
+#| label: ratings-charts
+#| layout-ncol: 2
+_ = pmf_chart(STARS, hend["P(x)"], title="Henderson", xlab="Stars",
+              ymax=0.65, figsize=(5.5, 3.8))
+_ = pmf_chart(STARS, summ["P(x)"], title="Summerlin", xlab="Stars",
+              ymax=0.65, figsize=(5.5, 3.8))
+```
+
+```{python}
+#| label: ratings-stats
+#| include: false
+m_h, m_s = rating_summary["mean"]
+s_h, s_s = rating_summary["standard deviation"]
+```
+
+The means are `{python} f"{m_h:.2f}"` and `{python} f"{m_s:.2f}"`, close
+enough that a ranking by mean would call the stores similar. The standard
+deviations, `{python} f"{s_h:.2f}"` and `{python} f"{s_s:.2f}"`, say they are
+not. Summerlin has *more* five-star customers than Henderson and five times as
+many one-star customers. It is a store people either love or leave, and a mean
+cannot show that.
+:::
+
+::: {.scarlet}
+A word of caution about that example. Star ratings and Likert scales
+("strongly disagree" to "strongly agree") are **ordinal** data, in the
+vocabulary of Chapter 1. Nothing guarantees that the distance from two stars
+to three is the same as from four to five, and a mean quietly assumes it is.
+
+Averaging ratings is nearly universal practice, and we will not pretend
+otherwise. Just know that when you report a mean rating you have treated
+ordinal data as interval data, and that some of your audience will notice.
+:::
+
+# The Expected Monetary Value
+
+::: {.brown}
+The **expected monetary value (EMV)** is the mean of a discrete probability
+distribution when the random variable is expressed in dollars.
+:::
+
+## Application: RAD Construction
+
+The RAD Construction Company has been awarded a contract with the State of
+California to replace a bridge on Pike Creek Road. If the project is completed
+on time, defined as during the month of September, RAD expects to earn
+\$100,000 in profit. If it is completed before September, the contract pays a
+\$20,000 bonus. If it is completed after September, there is a \$10,000
+penalty. RAD estimates the probabilities of finishing early, on time, and late
+at 25%, 60%, and 15%. What is the EMV of the project?
+
+```{python}
+#| label: rad-original
+RAD_PROBS = {"early": 0.25, "on time": 0.60, "late": 0.15}
+ORIGINAL = {"early": 120_000, "on time": 100_000, "late": 90_000}
+
+rad = emv_table({"original contract": ORIGINAL}, RAD_PROBS)
+rad.style.format({c: "${:,.0f}" for c in rad.columns if c != "CV"}
+                 | {"CV": "{:.4f}"})
+```
+
+```{python}
+#| label: rad-stats
+#| include: false
+emv_orig = float(rad.loc["original contract", "EMV"])
+sd_orig = float(rad.loc["original contract", "SD"])
+cv_orig = float(rad.loc["original contract", "CV"])
+```
+
+```{python}
+#| label: rad-math
+#| echo: false
+#| output: asis
+terms = "+".join(rf"{RAD_PROBS[s]:.2f}(\${mnum(ORIGINAL[s])})" for s in RAD_PROBS)
+prods = "+".join(rf"\${mnum(RAD_PROBS[s] * ORIGINAL[s])}" for s in RAD_PROBS)
+show_math(r"\begin{split}EMV&=" + terms + r"\\&=" + prods
+          + rf"\\&=\${mnum(emv_orig)}\end{{split}}")
+```
+
+::: {.charcoal}
+RAD will earn \$90,000, \$100,000, or \$120,000. It will never earn
+`{python} money(emv_orig)`. So what is that number?
+
+It is the long-run average profit *if this same project were undertaken over
+and over*. The bridge will be built once. The EMV is still the right summary
+for a firm that bids on many projects, because across a portfolio of them the
+averages are what show up in the annual results. For a firm betting everything
+on one project, the EMV is a much weaker guide, and the spread around it
+matters more.
+:::
+
+So we measure the spread. The standard deviation of the payoff is
+`{python} money(sd_orig, 2)`, and the coefficient of variation from Chapter 3,
+$CV=\sigma/\mu$, is `{python} f"{cv_orig:.4f}"`.
+
+## What if the contract changes?
+
+Suppose the state offers a modified contract: a \$23,000 bonus for finishing
+early, a \$15,000 penalty for finishing late, and RAD's probabilities
+unchanged. Is the modified contract preferred to the original?
+
+```{python}
+#| label: rad-compare
+MODIFIED = {"early": 123_000, "on time": 100_000, "late": 85_000}
+rad2 = emv_table({"original contract": ORIGINAL,
+                  "modified contract": MODIFIED}, RAD_PROBS)
+rad2.style.format({c: "${:,.0f}" for c in rad2.columns if c != "CV"}
+                  | {"CV": "{:.4f}"})
+```
+
+```{python}
+#| label: rad-compare-stats
+#| include: false
+emv_mod = float(rad2.loc["modified contract", "EMV"])
+sd_mod = float(rad2.loc["modified contract", "SD"])
+cv_mod = float(rad2.loc["modified contract", "CV"])
+```
+
+Both contracts have an EMV of `{python} money(emv_mod)`. On EMV alone RAD is
+indifferent. But the modified contract has a standard deviation of
+`{python} money(sd_mod, 2)` against `{python} money(sd_orig, 2)`, and a
+coefficient of variation of `{python} f"{cv_mod:.4f}"` against
+`{python} f"{cv_orig:.4f}"`. The same expected money with less risk is the
+better deal. We would prefer the original contract.
+
+## Choosing among alternatives
+
+The most common business use of EMV is choosing how much of something to
+commit to before you know the demand.
+
+::: {.brown}
+A campus coffee cart buys croissants each morning for \$1.50 and sells them
+for \$4.00. Whatever is left at closing is sold to the staff for \$0.50 each.
+From its records, daily demand is 40, 60, 80, or 100 croissants with
+probabilities 20%, 40%, 30%, and 10%. How many should it buy?
+:::
+
+```{python}
+#| label: stocking
+DEMAND_PROBS = {"demand 40": 0.20, "demand 60": 0.40,
+                "demand 80": 0.30, "demand 100": 0.10}
+payoffs = stocking_payoffs(order_quantities=[40, 60, 80, 100],
+                           demand_levels=[40, 60, 80, 100],
+                           price=4.00, cost=1.50, salvage=0.50)
+stock = emv_table(payoffs, DEMAND_PROBS)
+stock.style.format({c: "${:,.2f}" for c in stock.columns if c != "CV"}
+                   | {"CV": "{:.3f}"})
+```
+
+```{python}
+#| label: stocking-stats
+#| include: false
+best = stock["EMV"].idxmax()
+best_emv = float(stock.loc[best, "EMV"])
+best_sd = float(stock.loc[best, "SD"])
+safe_emv = float(stock.loc["stock 40", "EMV"])
+safe_sd = float(stock.loc["stock 40", "SD"])
+```
+
+Each row is an alternative and each payoff column is a state of the world.
+Stocking 40 earns the same \$100 no matter what, because the cart sells out in
+every state. The highest EMV belongs to **`{python} best`**, at
+`{python} money(best_emv, 2)` a day.
+
+::: {.scarlet}
+EMV picks the alternative with the best long-run average. It says nothing
+about how rough the ride is. Read the SD column: `{python} best` averages
+`{python} money(best_emv - safe_emv, 2)` a day more than stocking 40, and in
+exchange its daily profit swings with a standard deviation of
+`{python} money(best_sd, 2)` where the cautious choice has none.
+
+For a decision repeated every morning, take the higher EMV. The swings wash
+out, which is exactly what "long-run average" means. For a decision made once,
+with a downside you could not absorb, EMV alone is not enough.
+
+Insurance is the clean example. A firm can insure a \$250,000 piece of
+equipment against a 2% chance of loss for a \$6,000 premium. Going without has
+an EMV of `{python} money(-0.02 * 250_000)`; buying has an EMV of
+`{python} money(-6_000)`. Insurance has the *worse* EMV, which is how insurers
+stay in business, and buying it can still be the right decision.
+:::
+
+# The Binomial Distribution
+
+## The characteristics of a binomial experiment
+
+::: {.blue}
+A **binomial experiment** has the following characteristics:
+
+1. The experiment consists of a fixed number of trials, denoted by $n$.
+2. Each trial has only two possible outcomes, a **success** or a **failure**.
+3. The probability of a success, $p$, and of a failure, $q=1-p$, are constant
+   throughout the experiment.
+4. Each trial is independent of the other trials in the experiment.
+
+The random variable $x$ is the number of successes in the $n$ trials. It can
+be any whole number from 0 to $n$, and never more than $n$.
+:::
+
+::: {.brown}
+"Success" is a label, not a compliment. If you are counting defective parts,
+loan defaults, or customers who walk out, then a defect, a default, or a
+walkout is the success. Assign the label to whichever outcome you are
+counting, and keep $p$ attached to it.
+:::
+
+## Building the formula from Chapter 4
+
+Corporate Headquarters believes that a customer who enters the store has a
+probability of 0.4 of spending \$100 or more. Three customers walk in. What is
+the probability that **exactly one** of them spends \$100 or more?
+
+Start with one specific way it could happen: the first customer spends and the
+other two do not. The customers are independent, so the multiplication rule
+for independent events gives $pqq=(0.4)(0.6)(0.6)$. But the big spender could
+just as well be the second customer, or the third.
+
+```{python}
+#| label: arrangements
+P_SPEND = 0.4
+ways = binomial_arrangements(n=3, x=1, p=P_SPEND)
+ways
+```
+
+```{python}
+#| label: arrangements-stats
+#| include: false
+each_way = float(ways["probability"].iloc[0])
+n_ways = len(ways)
+p_one_of_three = binomial_pmf(1, 3, P_SPEND)
+```
+
+Every arrangement has the same probability, `{python} f"{each_way:.3f}"`. The
+arrangements are mutually exclusive, so the addition rule says to add them:
+
+```{python}
+#| label: arrangements-math
+#| echo: false
+#| output: asis
+show_math(rf"P(x=1)={n_ways}\times{each_way:.3f}={p_one_of_three:.3f}")
+```
+
+That `{python} str(n_ways)` is the number of ways to choose which one of three
+customers is the spender, $_3C_1$, and it is the pattern the end of the
+Chapter 4 note told you to hold on to. The binomial formula is nothing more
+than this: **the number of arrangements, times the probability of any one of
+them.**
+
+::: {.blue}
+The **binomial probability distribution** gives the probability of exactly
+$x$ successes in $n$ trials:
+
+$$P(x,n)=\underbrace{\frac{n!}{(n-x)!\,x!}}_{\text{arrangements}}\;
+\underbrace{p^x q^{\,n-x}}_{\text{probability of each}},$$
+
+where $p$ is the probability of a success and $q=1-p$ is the probability of a
+failure.
+:::
+
+```{python}
+#| label: binom-three
+three = binomial_table(3, P_SPEND)
+three.round(4)
+```
+
+```{python}
+#| label: binom-three-chart
+_ = pmf_chart(three.index, three["P(X = x)"],
+              title="Customers out of 3 who spend $100 or more (p = 0.4)",
+              xlab="Number of customers", mean=binomial_mean(3, P_SPEND))
+```
+
+The `P(X = x)` column sums to 1, as the rules for a distribution require. The
+other two columns are running totals: the probability of $x$ *or fewer*, and
+of $x$ *or more*. Most of this chapter's questions are answered from one of
+those two columns, not from the first.
+
+## The mean and standard deviation of a binomial distribution
+
+::: {.brown}
+For a binomial distribution the general formulas collapse to
+
+$$\mu=np \qquad\text{and}\qquad \sigma=\sqrt{npq}.$$
+:::
+
+The mean is the long-run average number of successes in $n$ trials. The
+standard deviation is how much that count varies from one set of $n$ trials to
+the next, assuming the chance of success really is $p$.
+
+## Application: Corporate Headquarters
+
+::: {.brown}
+Corporate Headquarters believes $p=0.4$. Yesterday 50 customers entered the
+store and exactly 5 spent \$100 or more. According to the binomial
+distribution, how likely is it that 5 or fewer would?
+:::
+
+```{python}
+#| label: hq-table
+N_HQ, X_HQ = 50, 5
+hq = binomial_table(N_HQ, P_SPEND)
+hq.loc[:8].style.format("{:.10f}")
+```
+
+```{python}
+#| label: hq-stats
+#| include: false
+p_hq_exact = probability_of(hq, "exactly", X_HQ)
+p_hq_le = probability_of(hq, "at most", X_HQ)
+mu_hq = binomial_mean(N_HQ, P_SPEND)
+sd_hq = binomial_sd(N_HQ, P_SPEND)
+z_hq = (X_HQ - mu_hq) / sd_hq
+```
+
+```{python}
+#| label: hq-math
+#| echo: false
+#| output: asis
+show_math(rf"P(x=5,n=50)=\frac{{50!}}{{45!\,5!}}(0.4)^5(0.6)^{{45}}"
+          rf"={mnum(comb(50, 5))}\,(0.4)^5(0.6)^{{45}}={p_hq_exact:.9f}")
+show_math(rf"P(x\le 5)=\sum_{{i=0}}^{{5}}\frac{{50!}}{{(50-i)!\,i!}}"
+          rf"(0.4)^i(0.6)^{{50-i}}={p_hq_le:.9f}")
+```
+
+The probability of exactly 5 is `{python} f"{p_hq_exact:.7f}"`, and of 5 or
+fewer is `{python} f"{p_hq_le:.7f}"`, or about 1 in
+`{python} one_in(p_hq_le)`.
+
+```{python}
+#| label: hq-chart
+_ = pmf_chart(hq.index, hq["P(X = x)"], highlight=range(0, X_HQ + 1),
+              title="Big spenders out of 50 customers, if p = 0.4",
+              xlab="Number of customers spending $100 or more",
+              mean=mu_hq, figsize=(10, 4.5))
+```
+
+The event we observed is in that chart. It is the scarlet sliver at the far
+left that you cannot see.
+
+::: {.charcoal}
+Now interpret it. If $p$ really is 0.4, we expect $\mu=np=$
+`{python} f"{mu_hq:.0f}"` big spenders out of 50, give or take
+$\sigma=\sqrt{npq}=$ `{python} f"{sd_hq:.2f}"`. We saw 5. In the z-score
+language of Chapter 3 that is `{python} f"{abs(z_hq):.1f}"` standard
+deviations below the mean.
+
+There are two explanations. Either yesterday was a one-in-`{python} one_in(p_hq_le)`
+day, or Headquarters is wrong about this store and $p$ is not 0.4. A sensible
+manager does not believe in one-in-`{python} one_in(p_hq_le)` days. She
+concludes the claim is wrong.
+
+That argument, *assume the claim, compute how surprising the data would be,
+and reject the claim if the answer is "very"*, is a hypothesis test. We have
+just done one. Chapter 9 adds the vocabulary and a rule for how surprising is
+surprising enough.
+:::
+
+::: {.scarlet}
+Notice which probability we used. Not the probability of *exactly* 5, but of
+*5 or fewer*: the result we saw, together with everything even more damaging
+to the claim. With 50 trials, every individual outcome is fairly improbable,
+including the most likely one: P(exactly 20) is only
+`{python} pct(probability_of(hq, "exactly", 20), 1)`. An exact probability
+being small proves nothing. A *tail* probability being small does.
+:::
+
+## Translating the question
+
+Most errors in this chapter are made before any calculation, in turning the
+English into an inequality. A discrete count moves in whole steps, so "fewer
+than 4" and "4 or fewer" are different events with different probabilities.
+
+```{python}
+#| label: phrase-guide
+phrase_guide(4).style.hide(axis="index")
+```
+
+Software gives you two things: the probability of exactly $x$, and the
+cumulative probability of $x$ or fewer. Everything else is built from the
+cumulative one and the complement rule, $P(A)=1-P(A')$.
+
+Twelve customers enter the store, still with $p=0.4$:
+
+```{python}
+#| label: translate
+twelve = binomial_table(12, P_SPEND)
+for phrase in ["exactly", "at most", "fewer than", "at least", "more than"]:
+    print(probability_of(twelve, phrase, 4, explain=True))
+```
+
+::: {.scarlet}
+"At least 4" is **one minus the cumulative probability at 3**, not at 4. The
+complement of "4 or more" is "3 or fewer." Getting this off by one is the
+single most common mistake in the chapter, and the answer it produces looks
+perfectly reasonable.
+
+A check that catches it: "at least 4" and "fewer than 4" are complements, so
+the two must sum to 1. Above, `{python} f"{probability_of(twelve, 'at least', 4):.6f}"`
+$+$ `{python} f"{probability_of(twelve, 'fewer than', 4):.6f}"` $=1$.
+:::
+
+## Reading the output
+
+::: {.brown}
+A bank mails a credit-line increase offer to 15 customers. Historically 30% of
+customers accept. An analyst asks Claude for the binomial distribution with
+$n=15$ and $p=0.30$ and receives the table below. Using only the table, find
+the probability that:
+
+**(a)** exactly 5 customers accept
+
+**(b)** at most 5 accept
+
+**(c)** fewer than 5 accept
+
+**(d)** at least 5 accept
+
+**(e)** more than 5 accept
+
+**(f)** between 3 and 6 accept, inclusive
+:::
+
+```{python}
+#| label: offers-table
+offers = binomial_table(15, 0.30)
+offers.loc[:9, ["P(X = x)", "P(X <= x)"]].round(4)
+```
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: offers-solve
+cum = offers["P(X <= x)"]
+answers = pd.DataFrame({
+    "means": ["X = 5", "X <= 5", "X <= 4", "X >= 5", "X > 5", "3 <= X <= 6"],
+    "read from the table as": [
+        "P(X = 5)", "P(X <= 5)", "P(X <= 4)", "1 - P(X <= 4)",
+        "1 - P(X <= 5)", "P(X <= 6) - P(X <= 2)"],
+    "probability": [
+        probability_of(offers, "exactly", 5),
+        probability_of(offers, "at most", 5),
+        probability_of(offers, "fewer than", 5),
+        probability_of(offers, "at least", 5),
+        probability_of(offers, "more than", 5),
+        cum.loc[6] - cum.loc[2]],
+}, index=pd.Index(list("abcdef"), name="part"))
+answers.round(4)
+```
+
+Part (f) is the one to study. "Between 3 and 6 inclusive" keeps 3, so you
+subtract the cumulative probability at **2**, the last value you do *not*
+want. Subtracting the value at 3 would throw away P(X = 3).
+
+Parts (c) and (d) sum to 1, and so do (b) and (e). Run that check every time.
+:::
+
+## The shape of a binomial distribution
+
+```{python}
+#| label: binom-shapes
+#| layout-ncol: 3
+for p_shape in (0.1, 0.5, 0.9):
+    t = binomial_table(10, p_shape)
+    _ = pmf_chart(t.index, t["P(X = x)"], title=f"n = 10, p = {p_shape}",
+                  xlab="Successes", ymax=0.42, figsize=(4.2, 3.4))
+```
+
+With $p$ below 0.5 the distribution is skewed right, with $p$ above 0.5 it is
+skewed left, and at $p=0.5$ it is symmetric. Look back at the chart for 50
+customers: even with $p=0.4$ it is close to symmetric and bell-shaped. As $n$
+grows, the binomial approaches the normal curve of Chapter 3, and Chapter 6
+puts that to work.
+
+## Does the binomial describe Nevada?
+
+The four characteristics of a binomial experiment are assumptions, and
+assumptions can be checked. In Chapter 4 we classified each quarter of
+Nevada's economy as Low, Middle, or High growth, with Low defined as the
+bottom 25% of quarters. So for any one quarter, $p=P(\text{Low})=0.25$.
+
+A year is four quarters. Is the number of low-growth quarters in a year a
+binomial random variable with $n=4$ and $p=0.25$? There is a fixed number of
+trials, two outcomes per trial, and a constant $p$. Three of the four
+characteristics hold by construction. The fourth is independence.
+
+```{python}
+#| label: nv-windows
+nv_ok = nv.dropna(subset=["gdp_growth"]).copy()
+low_cut = percentile(nv_ok["gdp_growth"], 0.25)
+nv_ok["low"] = nv_ok["gdp_growth"] < low_cut
+p_low = float(nv_ok["low"].mean())
+
+per_year = window_counts(nv_ok["low"], window=4,
+                         labels=nv_ok["date"].dt.year)
+print(f"{len(nv_ok)} quarters, {int(nv_ok['low'].sum())} of them Low "
+      f"(growth below {100 * low_cut:.2f}%), so p = {p_low:.2f}")
+print(f"{len(per_year)} complete years; "
+      f"{per_year.attrs['observations dropped']} quarters left over\n")
+print(per_year.to_frame().T.to_string())
+```
+
+```{python}
+#| label: nv-dispersion
+nv_check = dispersion_check(per_year, n=4, p=p_low)
+nv_check.round(3)
+```
+
+```{python}
+#| label: nv-dispersion-chart
+_ = pmf_chart(nv_check.index, nv_check["windows observed"] / len(per_year),
+              overlay=nv_check["binomial P(X = x)"],
+              bar_label="Nevada, share of years observed",
+              overlay_label="Binomial(n = 4, p = 0.25)",
+              title="Low-growth quarters per year: Nevada against the binomial",
+              xlab="Low-growth quarters in the year", ylab="Share of years")
+```
+
+```{python}
+#| label: nv-dispersion-stats
+#| include: false
+a = nv_check.attrs
+years_all4 = int(nv_check.loc[4, "windows observed"])
+exp_all4 = float(nv_check.loc[4, "windows expected"])
+p_all4 = float(nv_check.loc[4, "binomial P(X = x)"])
+years_two = int(nv_check.loc[2, "windows observed"])
+exp_two = float(nv_check.loc[2, "windows expected"])
+```
+
+The means agree: `{python} f"{a['observed mean']:.2f}"` low quarters a year
+observed, $np=$ `{python} f"{a['binomial mean']:.2f}"` predicted. Everything
+else disagrees. The binomial says a year with all four quarters Low has
+probability `{python} f"{p_all4:.4f}"`, so in `{python} str(a['windows'])`
+years we should expect `{python} f"{exp_all4:.2f}"` of them. Nevada had
+`{python} str(years_all4)`. The binomial expects about
+`{python} f"{exp_two:.0f}"` years with exactly two Low quarters, and Nevada
+had `{python} str(years_two)`. The observed variance is
+`{python} f"{a['observed variance']:.2f}"` against a binomial $npq$ of
+`{python} f"{a['binomial variance']:.2f}"`, a ratio of
+`{python} f"{a['variance ratio']:.1f}"`.
+
+::: {.charcoal}
+Bad quarters arrive in clumps. A low-growth quarter makes the next one more
+likely to be low, which is the dependence we measured in Chapter 4, and it is
+precisely what characteristic 4 rules out. Nevada's years are mostly all-clear
+or all-bad, with little in between.
+
+Some of that clumping is built into the measurement, and you should know it.
+Our growth figure compares each quarter with the same quarter a year earlier,
+so neighboring quarters share three-quarters of their data and cannot help
+moving together. The rest is the economy: recessions last longer than a
+quarter. Either way the lesson is the same. The trials are not independent,
+and the reason is visible only to someone who asked how the data were built.
+
+The binomial did not fail quietly here because we went looking. It usually
+does fail quietly. Loan defaults cluster in recessions. Machine failures
+cluster after a bad batch of parts. Absences cluster in flu season. In each
+case a binomial model will get the average right and badly understate how
+often the extreme outcomes occur, and the extreme outcomes are the ones that
+sink a business. Before using the binomial, ask what would make one trial's
+outcome informative about the next.
+:::
+
+## Using software to calculate binomial probabilities
+
+In Excel, `=BINOM.DIST(x, n, p, cumulative)` returns the probability of
+exactly $x$ successes when `cumulative` is `FALSE`, and of $x$ or fewer when
+it is `TRUE`. Those are the first two columns of every table above.
+`=BINOM.DIST(5, 50, 0.4, TRUE)` reproduces the Corporate Headquarters answer.
+
+Your textbook also prints binomial and Poisson tables in Appendix A. They hold
+the same numbers for a limited menu of $n$, $p$, and $\lambda$, and we will
+not use them.
+
+::: {.prompt}
+Prompt
+
+> For a binomial distribution with n = 50 and p = 0.4, compute by running
+> code, not from memory, a table of P(X = x) and P(X <= x) for x from 0 to 50.
+> Then tell me P(X <= 5), and separately P(X >= 25). For each one, state the
+> inequality you evaluated and how you got it from the cumulative column.
+:::
+
+Asking for the inequality is how you check the translation. If Claude
+evaluated $P(X>25)$ when you wanted $P(X\ge 25)$, the stated inequality is
+where you will see it.
+
+# The Poisson Distribution
+
+A binomial experiment counts successes in a fixed number of trials. Some
+counts have no trials. How many customers arrive in the next hour? There is
+no $n$ customers who each either arrived or did not. There is only a stretch
+of time, and a count of what happened in it.
+
+## The characteristics of a Poisson process
+
+::: {.blue}
+A **Poisson process** has the following characteristics:
+
+1. The experiment consists of counting the number of occurrences of an event
+   over a period of time, area, distance, or any other type of measurement.
+2. The mean of the Poisson distribution has to be the same for each equal
+   interval of measurement.
+3. The number of occurrences during one interval is independent of the number
+   of occurrences in any other interval.
+4. The intervals that are defined in the Poisson process cannot overlap.
+:::
+
+Typical Poisson random variables: customers arriving at a storefront in an
+hour, calls reaching a help desk in ten minutes, typographical errors on a
+page, flaws in a square yard of fabric, workplace injuries in a month.
+
+## Using Poisson probability distributions
+
+::: {.blue}
+For the **Poisson probability distribution**,
+
+$$P(x)=\frac{\lambda^x e^{-\lambda}}{x!},$$
+
+where $x$ is the number of occurrences of interest over the interval,
+$\lambda$ is the mean number of occurrences over the interval, $e\approx
+2.71828$, and $P(x)$ is the probability of exactly $x$ occurrences.
+
+The **variance** of a Poisson distribution equals its mean:
+
+$$\sigma^2=\lambda \qquad\text{so}\qquad \sigma=\sqrt{\lambda}.$$
+:::
+
+::: {.brown}
+Two things distinguish the Poisson from the binomial.
+
+$\lambda$ is an average, so it does **not** have to be a whole number. A help
+desk can average 4.2 calls an hour. The count $x$ must be whole; its mean need
+not be.
+
+There is **no upper limit** on $x$. A binomial count cannot exceed $n$. A
+Poisson count has no $n$, so every whole number has some probability, however
+tiny. That is why "more than 8" cannot be computed by adding up the terms, and
+has to be done with the complement rule.
+
+And one thing to notice: the whole distribution is set by a single number.
+Know $\lambda$ and you know the mean, the variance, and every probability.
+:::
+
+## Application: Corporate Headquarters, one more hour
+
+::: {.brown}
+Data scientists at Corporate Headquarters anticipate that 4 additional
+customers would visit the store if it stayed open an additional hour. What is
+the probability that more than 8 customers visit in that hour, according to
+the Poisson distribution?
+:::
+
+```{python}
+#| label: pois-hq
+LAM_HQ = 4
+extra = poisson_table(LAM_HQ)
+extra.loc[:12].round(5)
+```
+
+```{python}
+#| label: pois-hq-stats
+#| include: false
+p_more8 = probability_of(extra, "more than", 8)
+p_le8 = probability_of(extra, "at most", 8)
+```
+
+```{python}
+#| label: pois-hq-math
+#| echo: false
+#| output: asis
+show_math(r"\begin{split}P(x>8)&=\sum_{i=9}^{\infty}\frac{\lambda^i "
+          r"e^{-\lambda}}{i!}\\&=1-\sum_{i=0}^{8}\frac{4^i e^{-4}}{i!}"
+          rf"\\&=1-{p_le8:.5f}\\&={p_more8:.5f}\end{{split}}")
+```
+
+```{python}
+#| label: pois-hq-chart
+shown = extra.loc[:14]
+_ = pmf_chart(shown.index, shown["P(X = x)"], highlight=range(9, 15),
+              title="Customers in the extra hour, Poisson with mean 4",
+              xlab="Customers arriving", mean=LAM_HQ)
+```
+
+There is a `{python} pct(p_more8)` chance of more than 8 customers. Note that
+the sum being subtracted starts at $i=0$. Zero customers is an outcome, with
+probability $e^{-4}=$ `{python} f"{poisson_pmf(0, LAM_HQ):.4f}"`, and leaving
+it out is an easy way to be wrong by almost 2 percentage points.
+
+If staffing for the extra hour can comfortably handle 8 customers, this is the
+probability the plan is overwhelmed. The standard deviation is
+$\sqrt{4}=2$ customers, so 8 is two standard deviations above the mean.
+
+## Changing the interval
+
+$\lambda$ belongs to an interval. Change the interval and you must change
+$\lambda$ with it, in proportion, before doing anything else. This works
+because characteristic 2 says the rate is the same in every equal stretch.
+
+::: {.brown}
+The store averages 4 customers an hour.
+
+**(a)** What is the probability of exactly 4 customers in the next hour?
+
+**(b)** What is the probability of exactly 2 customers in the next 30 minutes?
+
+**(c)** What is the probability of no customers at all in the next 15 minutes?
+:::
+
+```{python}
+#| label: rescale
+lam_60 = rescale_rate(4, per=60, to=60)
+lam_30 = rescale_rate(4, per=60, to=30)
+lam_15 = rescale_rate(4, per=60, to=15)
+
+rescaled = pd.DataFrame({
+    "interval (minutes)": [60, 30, 15],
+    "lambda for that interval": [lam_60, lam_30, lam_15],
+    "x asked about": [4, 2, 0],
+    "P(X = x)": [poisson_pmf(4, lam_60), poisson_pmf(2, lam_30),
+                 poisson_pmf(0, lam_15)],
+}, index=pd.Index(list("abc"), name="part"))
+rescaled.round(4)
+```
+
+::: {.scarlet}
+Parts (a) and (b) look as though they ought to match: half the time, half the
+customers. They do not. Exactly 4 in an hour has probability
+`{python} f"{poisson_pmf(4, lam_60):.4f}"` and exactly 2 in half an hour has
+probability `{python} f"{poisson_pmf(2, lam_30):.4f}"`.
+
+You rescale the **mean**. You cannot rescale the **probability**. Whenever the
+interval in the question differs from the interval the average was quoted for,
+the first line of your work is a new $\lambda$.
+:::
+
+## Using the Poisson distribution to approximate the binomial
+
+::: {.blue}
+When the number of trials is large and the probability of success is small,
+specifically when
+
+$$n\ge 20 \qquad\text{and}\qquad p\le 0.05,$$
+
+binomial probabilities can be approximated with the Poisson formula by setting
+$\lambda=np$:
+
+$$P(x)\approx\frac{(np)^x e^{-np}}{x!}.$$
+:::
+
+::: {.brown}
+A distribution center mis-packs 3% of its orders. Forty orders are pulled for
+inspection. What is the probability that exactly 2 are mis-packed?
+:::
+
+```{python}
+#| label: approx-good
+good = poisson_vs_binomial(n=40, p=0.03)
+print(f"lambda = np = {good.attrs['lambda']:.2f};  "
+      f"n >= 20 and p <= 0.05: {good.attrs['rule satisfied']}")
+good.round(4)
+```
+
+```{python}
+#| label: approx-stats
+#| include: false
+b2 = float(good.loc[2, "binomial"])
+p2 = float(good.loc[2, "Poisson"])
+bad = poisson_vs_binomial(n=40, p=0.40, max_x=30)
+worst_good = float(good["difference"].abs().max())
+worst_bad = float(bad["difference"].abs().max())
+```
+
+The exact binomial answer is `{python} f"{b2:.4f}"` and the Poisson
+approximation is `{python} f"{p2:.4f}"`. No entry in the table is off by more
+than `{python} f"{worst_good:.4f}"`.
+
+The conditions matter. Keep $n=40$ but let $p=0.40$, and the two distributions
+part company:
+
+```{python}
+#| label: approx-charts
+#| layout-ncol: 2
+_ = pmf_chart(good.index, good["binomial"], overlay=good["Poisson"],
+              bar_label="binomial", overlay_label="Poisson, mean np",
+              title="n = 40, p = 0.03: rule satisfied",
+              xlab="Successes", figsize=(5.5, 3.8))
+_ = pmf_chart(bad.index, bad["binomial"], overlay=bad["Poisson"],
+              bar_label="binomial", overlay_label="Poisson, mean np",
+              title="n = 40, p = 0.40: rule violated",
+              xlab="Successes", figsize=(5.5, 3.8))
+```
+
+With $p=0.40$ the largest gap is `{python} f"{worst_bad:.4f}"`. The Poisson is
+too spread out, because its variance is $np$ while the binomial's is the
+smaller $npq$. When $p$ is tiny, $q$ is nearly 1 and the two variances are
+nearly equal, which is the whole reason the approximation works.
+
+::: {.charcoal}
+A fair question: if software computes the binomial exactly, why approximate
+it? For arithmetic, you no longer need to. The textbook's motive, fewer
+calculator keystrokes, has expired.
+
+The idea has not. It explains *why* so many business counts are Poisson. A
+count of rare events, such as typos, accidents, fraud cases, or warranty
+claims, is a binomial with an enormous $n$ (every keystroke, every mile driven,
+every transaction) and a minuscule $p$. You will never know that $n$ or that
+$p$. The approximation says you do not need them. Their product, the average
+count $\lambda$, is enough, and that you can estimate from records.
+:::
+
+## Using software to calculate Poisson probabilities
+
+In Excel, `=POISSON.DIST(x, lambda, cumulative)` works exactly like
+`BINOM.DIST`: `FALSE` for exactly $x$ occurrences, `TRUE` for $x$ or fewer.
+The Corporate Headquarters answer is `=1-POISSON.DIST(8, 4, TRUE)`.
+
+# The Hypergeometric Distribution
+
+::: {.blue}
+The **hypergeometric distribution** is used when samples are taken from a
+small population without being replaced.
+:::
+
+The binomial requires a constant $p$. In Chapter 4 an auditor drew invoices
+from a batch of 32, of which 9 contained an error, and we saw that the
+probability of an error on the second draw depended on the first: 9/32, then
+8/31 or 9/31. When you sample without replacement from a small population,
+the probability of a success on each draw depends on the draws before it. The
+trials are not independent with a constant $p$, so characteristics 3 and 4
+fail together and the binomial does not apply.
+
+::: {.blue}
+For the **hypergeometric distribution**,
+
+$$P(x)=\frac{_{N-R}C_{n-x}\;\cdot\;_{R}C_{x}}{_{N}C_{n}},$$
+
+where $N$ is the population size, $R$ is the number of successes in the
+population, $n$ is the sample size, and $x$ is the number of successes in the
+sample.
+:::
+
+Read it as a classical probability from Chapter 4. The denominator counts
+every sample of $n$ that could be drawn. The numerator counts the samples with
+exactly $x$ successes: the ways to choose $x$ from the $R$ successes, times
+the ways to choose the other $n-x$ from the $N-R$ failures.
+
+::: {.brown}
+The **mean** and **standard deviation** of the hypergeometric distribution
+are
+
+$$\mu=\frac{nR}{N} \qquad\text{and}\qquad
+\sigma=\sqrt{\frac{nR(N-R)}{N^2}}\;\sqrt{\frac{N-n}{N-1}}.$$
+:::
+
+## The auditor, continued
+
+Suppose the auditor pulls 5 of the 32 invoices. How many will contain an
+error?
+
+```{python}
+#| label: hyper-audit
+N_INV, R_BAD, n_pull = 32, 9, 5
+audit = binomial_vs_hypergeometric(n=n_pull, R=R_BAD, N=N_INV)
+audit.round(4)
+```
+
+```{python}
+#| label: hyper-audit-stats
+#| include: false
+mu_a = hypergeometric_mean(n_pull, R_BAD, N_INV)
+sd_a = hypergeometric_sd(n_pull, R_BAD, N_INV)
+sd_a_binom = binomial_sd(n_pull, R_BAD / N_INV)
+fpc = sqrt((N_INV - n_pull) / (N_INV - 1))
+```
+
+The left column is correct. The right column is what the binomial would say
+if we pretended each invoice was put back, with $p=R/N=$
+`{python} f"{R_BAD / N_INV:.4f}"`. Both have the same mean,
+`{python} f"{mu_a:.3f}"` bad invoices. With $p=R/N$, the hypergeometric mean
+$nR/N$ *is* $np$.
+
+The standard deviations differ: `{python} f"{sd_a:.3f}"` for the
+hypergeometric against `{python} f"{sd_a_binom:.3f}"` for the binomial. Look
+at the formula again. The first square root is $\sqrt{npq}$. The second,
+$\sqrt{(N-n)/(N-1)}=$ `{python} f"{fpc:.3f}"`, is a shrink factor. Sampling
+without replacement is *less* variable, because every invoice you pull is
+information you cannot draw again. The factor approaches 1 as $N$ grows, and
+then the binomial is a fine approximation. It returns in Chapter 7 under the
+name **finite population correction**.
+
+## Application: selecting store managers
+
+::: {.brown}
+A regional vice president would like to select 3 store managers at random from
+the 12 area stores. Two of the area store managers have less than 2 years of
+experience. What is the probability that none of the managers with less than
+2 years of experience is selected?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: managers
+managers = hypergeometric_table(n=3, R=2, N=12)
+managers.round(4)
+```
+
+```{python}
+#| label: managers-math
+#| echo: false
+#| output: asis
+p_none = hypergeometric_pmf(0, 3, 2, 12)
+show_math(r"\begin{split}P(x=0)&=\frac{_{12-2}C_{3-0}\cdot{}_{2}C_{0}}"
+          r"{_{12}C_{3}}"
+          rf"=\frac{{{comb(10, 3)}\times{comb(2, 0)}}}{{{comb(12, 3)}}}"
+          rf"\\&={p_none:.4f}\end{{split}}")
+```
+
+Of the `{python} str(comb(12, 3))` possible groups of three,
+`{python} str(comb(10, 3))` contain only experienced managers, so the
+probability is `{python} pct(hypergeometric_pmf(0, 3, 2, 12))`.
+:::
+
+## Application: was the selection random?
+
+::: {.brown}
+A casino's compliance group audits 6 of its 25 slot-machine cabinets each
+quarter, chosen, it says, at random. Eight of the 25 cabinets come from one
+vendor. This quarter, 5 of the 6 audited cabinets were that vendor's, and the
+vendor has complained of being singled out. Does the vendor have a case?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+Define a success as selecting one of the vendor's cabinets: $N=25$, $R=8$,
+$n=6$, and we observed $x=5$.
+
+```{python}
+#| label: casino
+casino = hypergeometric_table(n=6, R=8, N=25)
+casino.round(5)
+```
+
+```{python}
+#| label: casino-stats
+#| include: false
+mu_c = hypergeometric_mean(6, 8, 25)
+sd_c = hypergeometric_sd(6, 8, 25)
+p_ge5 = probability_of(casino, "at least", 5)
+```
+
+Under random selection we would expect $\mu=nR/N=$ `{python} f"{mu_c:.2f}"` of
+the vendor's cabinets in the sample, with a standard deviation of
+`{python} f"{sd_c:.2f}"`. The probability of 5 *or more* is
+`{python} f"{p_ge5:.5f}"`, about 1 in `{python} one_in(p_ge5)`.
+
+This is the Corporate Headquarters argument again. Either the casino drew a
+1-in-`{python} one_in(p_ge5)` sample, or the selection was not random. The
+vendor has a case worth answering. Calculations of exactly this kind are
+offered as evidence in discrimination suits over layoffs and promotions, where
+the "population" is a workforce and the "sample" is who was let go.
+
+As before, we used the tail, "5 or more," not "exactly 5."
+:::
+
+## Using software to calculate hypergeometric probabilities
+
+In Excel, `=HYPGEOM.DIST(x, n, R, N, cumulative)`, where $x$ is the number of
+successes in the sample, $n$ is the sample size, $R$ is the number of successes
+in the population, and $N$ is the population size. `=HYPGEOM.DIST(0, 3, 2, 12,
+FALSE)` reproduces the store managers answer. The helper functions in this
+note take their arguments in the same order.
+
+# Which Distribution Is It?
+
+On an exam and in practice, nobody tells you which distribution applies.
+Three questions settle it.
+
+| Ask | If yes |
+|---|---|
+| Is there a fixed number of trials, each a success or failure, with constant $p$ and independent trials? | **Binomial**, with $n$ and $p$ |
+| Same, but sampling *without replacement* from a *small* population, so $p$ shifts with each draw? | **Hypergeometric**, with $N$, $R$, $n$ |
+| No trials at all, just a count of occurrences over an interval of time or space, with a known average? | **Poisson**, with $\lambda$ |
+
+::: {.brown}
+Name the distribution and its parameters for each of the following.
+
+**(a)** An airline finds 7% of ticketed passengers do not show up. It sells 60
+tickets for a flight. How many no-shows?
+
+**(b)** A hotel front desk averages 9 check-ins per hour on Friday evenings.
+How many in the next 20 minutes?
+
+**(c)** A department of 14 people includes 5 who hold a PMP certification.
+Four are picked at random for a project team. How many on the team are
+certified?
+
+**(d)** A survey firm phones 200 households drawn from the 900,000 households
+in Clark County, where 31% own a pet. How many pet owners in the sample?
+
+**(e)** A textile mill averages 1.8 flaws per 100 yards of fabric. How many
+flaws in a 250-yard roll?
+
+**(f)** Each of 18 sales calls ends in a sale or not. The rep closes 25% of
+calls in general, but tends to go on hot and cold streaks. How many sales?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Binomial, $n=60$, $p=0.07$. The Poisson shortcut is not licensed,
+because $p$ is above 0.05, though with $n$ this large it would not be far
+off.
+
+**(b)** Poisson. The average is quoted per hour and the question is about 20
+minutes, so $\lambda=9\times\frac{20}{60}=$
+`{python} f"{rescale_rate(9, per=60, to=20):.0f}"`.
+
+**(c)** Hypergeometric, $N=14$, $R=5$, $n=4$. The sample is
+`{python} pct(4 / 14, 0)` of the population and is drawn without replacement.
+
+**(d)** Strictly hypergeometric, since nobody is phoned twice. In practice
+binomial with $n=200$, $p=0.31$: the sample is
+`{python} pct(200 / 900_000, 3)` of the population, and the shrink factor
+$\sqrt{(N-n)/(N-1)}$ is `{python} f"{sqrt((900_000 - 200) / (900_000 - 1)):.5f}"`.
+This is why polls are analysed with the binomial.
+
+**(e)** Poisson, with $\lambda=1.8\times\frac{250}{100}=$
+`{python} f"{rescale_rate(1.8, per=100, to=250):.1f}"`. The interval is a
+length, not a time.
+
+**(f)** It has the form of a binomial with $n=18$ and $p=0.25$, and streaks
+are a violation of independence. This is Nevada's economy again. A binomial
+will get the rep's average right and understate how often a very good or very
+bad week occurs.
+:::
+
+# Applications
+
+**Attempt each one before opening the solution.**
+
+## The help desk
+
+::: {.brown}
+An IT help desk averages 18 calls per hour. Its two technicians can clear 5
+calls in any 10-minute window without a queue forming. Assume calls follow a
+Poisson distribution.
+
+**(a)** What is the probability that a queue forms in a given 10-minute
+window?
+
+**(b)** What is the probability that a 5-minute coffee break goes
+uninterrupted?
+
+**(c)** What assumption is most likely to be wrong, and which way does it
+push the answer to (a)?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: helpdesk
+lam_10 = rescale_rate(18, per=60, to=10)
+lam_5 = rescale_rate(18, per=60, to=5)
+desk = poisson_table(lam_10)
+p_queue = probability_of(desk, "more than", 5)
+p_quiet = poisson_pmf(0, lam_5)
+
+print(f"(a) lambda for 10 minutes = {lam_10:.1f}")
+print("    " + probability_of(desk, "more than", 5, explain=True))
+print(f"(b) lambda for 5 minutes = {lam_5:.1f};  P(X = 0) = {p_quiet:.4f}")
+```
+
+**(a)** A queue forms when *more than* 5 calls arrive, so we need $P(X>5)=
+1-P(X\le 5)$ with $\lambda=$ `{python} f"{lam_10:.0f}"`:
+`{python} pct(p_queue)`. About one window in `{python} one_in(p_queue)`.
+
+**(b)** `{python} pct(p_quiet)`. Better than even odds the break is
+interrupted.
+
+**(c)** Characteristic 2, a constant rate. Help desk calls are not spread
+evenly through the day; they pile up at 9 a.m. and after lunch. An average of
+18 an hour conceals busy hours well above 18 and quiet hours well below.
+During the busy hours the chance of a queue is far higher than
+`{python} pct(p_queue, 0)`, and that is when it matters. Characteristic 3 is
+suspect too: one system outage produces a burst of calls that are anything but
+independent.
+:::
+
+## The supplier's claim
+
+::: {.brown}
+A supplier guarantees that no more than 5% of its components are defective.
+Your receiving dock tests 20 components from a very large shipment and finds 4
+defective.
+
+**(a)** If the supplier's claim is exactly true, how many defectives would you
+expect, and with what standard deviation?
+
+**(b)** What is the probability of finding 4 or more?
+
+**(c)** What do you conclude? What would you need to believe for the
+calculation to be valid?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: supplier
+supplier = binomial_table(20, 0.05)
+p_ge4 = probability_of(supplier, "at least", 4)
+print(f"(a) mean = np = {binomial_mean(20, 0.05):.2f},  "
+      f"sd = sqrt(npq) = {binomial_sd(20, 0.05):.3f}")
+print("(b) " + probability_of(supplier, "at least", 4, explain=True))
+supplier.loc[:6].round(5)
+```
+
+**(a)** We expect `{python} f"{binomial_mean(20, 0.05):.0f}"` defective, give
+or take `{python} f"{binomial_sd(20, 0.05):.2f}"`.
+
+**(b)** $P(X\ge 4)=1-P(X\le 3)=$ `{python} f"{p_ge4:.4f}"`.
+
+**(c)** If the claim were true, a sample this bad would turn up about
+`{python} pct(p_ge4, 1)` of the time, roughly once in
+`{python} one_in(p_ge4)` shipments. That is strong evidence that the defect
+rate in this shipment is above 5%, and grounds to hold the shipment and call
+the supplier.
+
+It is not proof. One shipment in `{python} one_in(p_ge4)` from an honest
+supplier would look like this. How small a probability has to be before you
+act is a business judgment about the cost of being wrong in each direction,
+and Chapter 9 gives that judgment a name.
+
+For the calculation to hold, the 20 components must be a random sample (not
+the top layer of one pallet), and one component's being defective must not
+make its neighbor's more likely. If defects come in runs from a single bad
+production hour, the trials are dependent, and as with Nevada the binomial
+would understate the chance of a cluster like this one. The shipment being
+"very large" is what lets us use the binomial instead of the hypergeometric.
+:::
+
+# Laboratory 5
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 5 pack](../upload_packs/lab-5-chapter-05.zip)** — one
+file. Unzip it and you will have a folder holding 6 files. Drag all 6
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 6 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `05_discrete_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 5 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `05_discrete_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+The lab script answers the questions in this note. The skill to practice is
+getting a *new* question answered and checking the answer. Try this, with your
+own numbers in place of mine:
+
+::: {.prompt}
+Prompt
+
+> A call center averages 42 calls per hour. Assume the Poisson distribution.
+> By running code, find the probability of more than 10 calls in the next 10
+> minutes. Before you compute anything, tell me (1) the value of lambda you
+> are using and why, and (2) the inequality you are evaluating and how you
+> will get it from a cumulative probability. Then show the code and its
+> output.
+:::
+
+Check three things in the reply: that $\lambda$ was rescaled to 10 minutes,
+that "more than 10" became $1-P(X\le 10)$ and not $1-P(X\le 9)$, and that the
+number came from executed code. Those are the three places this chapter goes
+wrong, and you now know enough to catch all three.
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook with three sheets, one each for the binomial,
+> Poisson, and hypergeometric distributions. On each sheet, the parameters
+> (n and p; lambda; or N, R and n) are editable input cells at the top. Below
+> them, build a table of x, P(X = x), P(X <= x), and P(X >= x) using
+> BINOM.DIST, POISSON.DIST, and HYPGEOM.DIST, with real formulas that
+> reference the input cells. Add cells for the mean and standard deviation of
+> each distribution, and a column chart of P(X = x). Pre-fill the binomial
+> sheet with n = 50 and p = 0.4 from my Chapter 5 lecture notes. Give me the
+> file to download.
+:::
+
+Change $p$ on the binomial sheet from 0.4 to 0.1 and watch the chart slide
+left and skew. Then set $n=40$ and $p=0.03$ on the binomial sheet and
+$\lambda=1.2$ on the Poisson sheet, and put the two `P(X = x)` columns side by
+side. Answer in one paragraph: at what value of $p$, holding $n=40$, would
+*you* stop trusting the Poisson approximation, and what did you look at to
+decide?

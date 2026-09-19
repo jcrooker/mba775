@@ -101,6 +101,17 @@ LABS = {
         "scripts": ["04_probability.py", "_course.py", "_stats.py", "_prob.py"],
         "data": ["nevada_economy.csv"],
     },
+    "lab-5-chapter-05": {
+        "chapter": 5,
+        "topic": "discrete probability distributions",
+        "run": {"05_discrete_distributions.py":
+                "the mean and variance of a distribution, expected monetary "
+                "value, the binomial, Poisson and hypergeometric distributions, "
+                "and using a probability to judge a claim"},
+        "scripts": ["05_discrete_distributions.py", "_course.py", "_stats.py",
+                    "_dist.py"],
+        "data": ["nevada_economy.csv"],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

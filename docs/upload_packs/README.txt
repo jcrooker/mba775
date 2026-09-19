@@ -8,6 +8,7 @@ into a Claude conversation.
     lab-2-chapter-02/   Chapter 2 - displaying data
     lab-3-chapter-03/   Chapter 3 - calculating descriptive statistics
     lab-4-chapter-04/   Chapter 4 - probability
+    lab-5-chapter-05/   Chapter 5 - discrete probability distributions
     lab-16a-forecasting-1/   Chapter 16a - forecasting 1 - naive, moving averages, MAD
     lab-16b-forecasting-2/   Chapter 16b - forecasting 2 - exponential smoothing
     lab-16-data-tools/   Chapter 16 - getting the forecasting-challenge data

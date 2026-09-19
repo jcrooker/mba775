@@ -23,7 +23,7 @@ __all__ = [
     "histogram", "binned_bar", "bar_chart", "pareto_chart", "pie_chart",
     "ogive", "heatmap", "stem_and_leaf", "scatter", "time_series",
     "box_plot", "normal_curve", "returns_bar",
-    "probability_tree", "convergence_plot", "venn",
+    "probability_tree", "convergence_plot", "venn", "pmf_chart",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -673,11 +673,13 @@ def probability_tree(first, second, title=None, figsize=(11, 6.5),
 
 def convergence_plot(outcomes, target=None, title=None, xlab="Number of rolls",
                      ylab="Running empirical probability", figsize=(10, 4.5),
-                     points=400):
+                     points=400, target_label="classical probability"):
     """The law of large numbers, drawn: a running empirical probability
     against the classical probability it is converging on.
 
     `outcomes` is a boolean-like sequence — True where the event happened.
+    Pass numbers instead and the same picture is a running sample mean
+    closing in on an expected value; set `target_label` to say so.
     """
     hits = pd.Series(outcomes).astype(float).to_numpy()
     n = len(hits)
@@ -692,7 +694,7 @@ def convergence_plot(outcomes, target=None, title=None, xlab="Number of rolls",
     ax.plot(idx + 1, running[idx], color=UNLV_SCARLET, linewidth=1.4)
     if target is not None:
         ax.axhline(target, color="black", linestyle="--", linewidth=1.3,
-                   label=f"classical probability = {target:.4f}")
+                   label=f"{target_label} = {target:.4f}")
         ax.legend(frameon=False, fontsize=9)
     ax.set_xscale("log")
     _finish(ax, title, xlab, ylab)
@@ -772,3 +774,44 @@ def venn(a="A", b="B", shade="intersection", disjoint=False, title=None,
     fig.tight_layout()
     plt.show()
     return {"a": a, "b": b, "shade": shade, "disjoint": disjoint}
+
+
+def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
+              highlight=None, overlay=None, overlay_label=None,
+              bar_label=None, mean=None, ymax=None, figsize=(9, 4.5)):
+    """A discrete probability distribution, drawn as one bar per value.
+
+    `highlight` is a collection of x values to draw in scarlet while the rest
+    go grey, which is how to show the event a question is asking about.
+    `overlay` is a second set of probabilities on the same x values, drawn as
+    points, for putting one distribution on top of another. `mean` marks the
+    expected value with a dashed line. Set `ymax` to the same value on two
+    charts that will be compared side by side, so that equal heights mean
+    equal probabilities.
+    """
+    x = list(x)
+    p = list(probabilities)
+    fig, ax = plt.subplots(figsize=figsize)
+    if highlight is None:
+        colors = [UNLV_SCARLET] * len(x)
+    else:
+        chosen = set(highlight)
+        colors = [UNLV_SCARLET if v in chosen else "#c9c9c9" for v in x]
+    ax.bar(x, p, color=colors, alpha=0.9, width=0.8, label=bar_label)
+    if overlay is not None:
+        ax.plot(x, list(overlay), linestyle="none", marker="o", markersize=6,
+                markerfacecolor="white", markeredgecolor="black",
+                markeredgewidth=1.4, label=overlay_label)
+    if mean is not None:
+        ax.axvline(mean, color="black", linestyle="--", linewidth=1.2,
+                   label=f"mean = {mean:.2f}")
+    if bar_label or overlay_label or mean is not None:
+        ax.legend(frameon=False, fontsize=9)
+    if len(x) <= 25:
+        ax.set_xticks(x)
+    if ymax is not None:
+        ax.set_ylim(0, ymax)
+    _finish(ax, title, xlab, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"x": x, "probability": p})
