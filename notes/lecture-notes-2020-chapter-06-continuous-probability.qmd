@@ -1,0 +1,1909 @@
+---
+title: "Continuous Probability Distributions"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import exp, log, sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (pmf_chart, density_chart, density_histogram,
+                     approximation_chart, UNLV_SCARLET, UNLV_GRAY)
+from _dist import binomial_table, poisson_table, probability_of, emv_table
+from _stats import empirical_rule
+from _cont import (normal_pdf, normal_cdf, normal_inv, z_value, x_value,
+                   normal_area, interval_shape, normal_interval_table,
+                   normal_percentile_table, empirical_rule_normal,
+                   one_sided_bounds, exponential_parameters, exponential_pdf,
+                   exponential_cdf, exponential_area, exponential_percentile,
+                   uniform_pdf, uniform_cdf, uniform_area, uniform_mean,
+                   uniform_sd, uniform_percentile, approximation_conditions,
+                   continuity_guide, normal_approximation, simulate,
+                   sample_vs_theory, standardize, z_tail_check,
+                   arrivals_per_interval, normal_fit_check, six_sigma_table)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def money(x, decimals=0):
+    """Dollars for prose. Quarto escapes the dollar sign in inline output
+    itself, so it must not be escaped here."""
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x):,.{decimals}f}"
+
+
+def mnum(x, decimals=0):
+    """A number with thousands separators that LaTeX will not mangle."""
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`, so that
+    computed values reach LaTeX without being escaped on the way."""
+    print(f"$${latex}$$\n")
+
+
+def grid(mu, sigma, k=4, n=801):
+    """x values spanning mu +/- k sigma, for drawing a normal curve."""
+    return np.linspace(mu - k * sigma, mu + k * sigma, n)
+
+
+nv = pd.read_csv("data/nevada_economy.csv", parse_dates=["date"])
+```
+
+## Objectives
+
++ Understand the properties of continuous random variables, and why the
+  probability of any single value is zero.
++ Read a probability density correctly: the **area** under it is a
+  probability, its **height** is not.
++ Identify the characteristics of the normal probability distribution.
++ Calculate normal probabilities for every shape of interval, and interpret
+  $z$-scores, knowing when the standard normal applies to them and when it
+  does not.
++ Work backwards from a probability to a value: percentiles, targets,
+  reorder points.
++ Revisit the empirical rule, and judge whether real data are normal enough
+  for the normal model to be trusted.
++ Use the normal distribution to approximate the binomial distribution,
+  including the continuity correction for every way the question can be
+  worded.
++ Identify the characteristics of the exponential probability distribution,
+  keep its rate and its mean straight, and calculate exponential
+  probabilities.
++ Identify the characteristics of the uniform probability distribution and
+  calculate uniform probabilities.
+
+::: {.charcoal}
+Chapter 5 put a probability on every value a **count** could take. This
+chapter does the same for a **measurement**: a waiting time, a flight time,
+a month's sales, a quarter's growth rate. The change sounds small. It is not.
+A measurement has infinitely many possible values in any interval, so we can
+no longer list them and attach a probability to each. Probability becomes an
+**area under a curve**, and every question in this chapter turns into "which
+area, and how do I get it?"
+
+The normal distribution, the bell curve from Chapter 3, is the centre of the
+chapter and of the rest of the course. Every confidence interval and
+hypothesis test in Chapters 8 through 15 is built on it. So the habits worth
+building now are the ones that carry: name the shape of the area you want,
+sketch it, compute it as a difference of two cumulative probabilities, and
+check the answer against the picture.
+
+As in Chapter 5, you will not grind through these by hand on an exam. You will
+be handed output and asked which number answers the question and what it
+means. The tables in this note are the skill.
+:::
+
+# Continuous Random Variables
+
+::: {.blue}
+**Continuous random variables** are outcomes that take on any numerical value
+in an interval, as determined by conducting an experiment. They are usually
+*measured* rather than counted: time, distance, weight, money treated as a
+continuum, rates of growth.
+:::
+
+```{python}
+#| label: flight
+#| include: false
+rng = np.random.default_rng(20221007)
+flight_seconds = float(rng.uniform(0, 60))
+flight_hours = 4 + 24 / 60 + flight_seconds / 3600
+```
+
+Consider the flight time of American Airlines flight 2348 from *Las Vegas* to
+*Washington, DC*. One evening it completed the trip in 4 hours, 24 minutes,
+and `{python} f"{flight_seconds:.4f}"` seconds, or
+`{python} f"{flight_hours:.7f}"` hours. A more precise clock would add more
+digits. There is no last digit.
+
+What is the probability that the flight takes *exactly* 4.4 hours? Between any
+two flight times, however close, there are infinitely many others, and 4.4
+hours is one point among them. Its probability is zero:
+
+$$P(x=4.4)=0.$$
+
+That is not the same as saying a 4.4-hour flight is impossible. It says that
+to get a probability bigger than zero, we have to ask about an **interval**:
+between 4.3 and 4.5 hours, or less than 4.4 hours.
+
+::: {.brown}
+A practical consequence: for a continuous random variable, whether the end
+point is included makes no difference.
+
+$$P(x\le 4.4)=P(x<4.4)+P(x=4.4)=P(x<4.4).$$
+
+Contrast this with Chapter 5, where "fewer than 4" and "4 or fewer" were
+different events with different probabilities and confusing them was the
+chapter's most common mistake. With a measurement, "less than" and "at most"
+are the same question. That mistake goes away here, and comes back the moment
+we use a continuous curve to approximate a count, later in this note.
+:::
+
+## Density is not probability
+
+If a single value has probability zero, what does a curve for a continuous
+random variable show?
+
+::: {.blue}
+A **probability density function**, $f(x)$, is a curve with two properties:
+
+1. It is never negative: $f(x)\ge 0$.
+2. The total **area** under it is 1.
+
+The probability that $x$ falls in an interval is the **area under the curve
+over that interval**. The **height** of the curve, $f(x)$, is a *density*: it
+says where values are more or less concentrated, but it is not the
+probability of anything.
+:::
+
+The difference matters because densities can be larger than 1, and
+probabilities cannot. Two examples from later in the chapter:
+
+```{python}
+#| label: density-above-one
+#| layout-ncol: 2
+cx = np.linspace(7.2, 8.4, 601)
+_ = density_chart(cx, uniform_pdf(cx, 7.4, 8.2), shade=(7.5, 8.0),
+                  area=uniform_area(7.4, 8.2, 7.5, 8.0),
+                  title="Coffee dispensed, uniform from 7.4 to 8.2 oz",
+                  xlab="Ounces", ymax=1.5, figsize=(5.5, 3.8))
+ex = np.linspace(0, 2, 601)
+_ = density_chart(ex, exponential_pdf(ex, 3), shade=(0, 0.25),
+                  area=exponential_area(3, None, 0.25),
+                  title="Exponential waiting time, lambda = 3",
+                  xlab="Hours", ymax=3.3, figsize=(5.5, 3.8))
+```
+
+The coffee machine's density is `{python} f"{uniform_pdf(7.7, 7.4, 8.2):.2f}"`
+everywhere between 7.4 and 8.2 ounces, because the rectangle is only 0.8 wide
+and its area has to be 1. The exponential curve starts at a height of 3. Both
+are perfectly good distributions. The shaded areas,
+`{python} f"{uniform_area(7.4, 8.2, 7.5, 8.0):.4f}"` and
+`{python} f"{exponential_area(3, None, 0.25):.4f}"`, are the probabilities.
+
+::: {.scarlet}
+A chart of a continuous distribution whose vertical axis says "Probability" is
+mislabelled, and the mislabel teaches the wrong idea: that you can read a
+probability off the curve by looking at its height. Every density chart in
+these notes labels the axis **density**, and every probability is shown as a
+shaded area. When you ask Claude for one of these charts, check the axis.
+:::
+
+## Three shapes
+
+This chapter covers three continuous distributions. They are not the only
+ones, but between them they cover most of what a manager will meet.
+
+```{python}
+#| label: three-shapes
+#| layout-ncol: 3
+g = np.linspace(-4, 4, 401)
+_ = density_chart(g, normal_pdf(g), title="Normal", xlab="x",
+                  ymax=0.45, figsize=(4.2, 3.2))
+g = np.linspace(0, 5, 401)
+_ = density_chart(g, exponential_pdf(g, 1), title="Exponential", xlab="x",
+                  ymax=1.1, figsize=(4.2, 3.2))
+g = np.linspace(-0.5, 2.5, 401)
+_ = density_chart(g, uniform_pdf(g, 0, 2), title="Uniform", xlab="x",
+                  ymax=0.6, figsize=(4.2, 3.2))
+```
+
+- The **normal** distribution describes measurements that cluster around a
+  centre, with large departures in either direction rare: fill weights on a
+  production line, test scores, forecast errors.
+- The **exponential** distribution describes waiting times between events,
+  where short waits are common and long ones rarer: time between customer
+  arrivals, time between machine failures.
+- The **uniform** distribution describes a measurement that is equally
+  likely to fall anywhere in a range: the wait for a shuttle that runs on a
+  fixed schedule when you arrive at a random moment.
+
+# The Normal Distribution
+
+## Characteristics of the normal probability distribution
+
+::: {.blue}
+The **normal probability distribution** is a continuous distribution that is
+bell-shaped and symmetric around its mean. Its characteristics:
+
++ The distribution is bell-shaped and symmetric around its mean, $\mu$.
++ Because it is symmetric, the mean and the median are the same value.
++ Values near the mean, where the curve is tallest, are more likely than
+  values toward the ends, where the curve is lower.
++ The total area under the curve is 1.
++ Because the curve is symmetric around the mean, the area to the left of the
+  mean is 0.5, and so is the area to the right.
++ The left and right ends extend indefinitely, never quite touching the
+  horizontal axis.
+:::
+
+## What the two parameters do
+
+Suppose we model next month's sales at a retail shop as normal with a mean of
+\$20,000 and a standard deviation of \$8,000. Because of uncertainty in the
+economy, sales six months out are modelled as normal with the same mean and a
+standard deviation of \$12,000. What does the larger standard deviation do?
+
+```{python}
+#| label: sales-sigma
+sx = np.linspace(-28_000, 68_000, 801)
+_ = density_chart(sx, {"next month, sd $8,000": normal_pdf(sx, 20_000, 8_000),
+                       "six months out, sd $12,000": normal_pdf(sx, 20_000, 12_000)},
+                  title="Same mean, different standard deviations",
+                  xlab="Monthly sales ($)", mark=[0])
+```
+
+A larger standard deviation spreads the curve out and lowers it. The area
+still has to be 1, so a wider curve must be a shorter one. Now suppose,
+five months later, the economy has improved: the standard deviation for next
+month is back to \$8,000, and the mean is \$23,000.
+
+```{python}
+#| label: sales-mu
+_ = density_chart(sx, {"mean $20,000": normal_pdf(sx, 20_000, 8_000),
+                       "mean $23,000": normal_pdf(sx, 23_000, 8_000)},
+                  title="Same standard deviation, different means",
+                  xlab="Monthly sales ($)")
+```
+
+Changing the mean slides the curve along the axis without changing its shape.
+
+::: {.brown}
+**Insight:** for a normal distribution, the two parameters $\mu$ and $\sigma$
+completely determine the curve. Know them and you know every probability.
+:::
+
+```{python}
+#| label: sales-negative
+#| include: false
+neg_8 = normal_area(20_000, 8_000, None, 0)
+neg_12 = normal_area(20_000, 12_000, None, 0)
+```
+
+::: {.scarlet}
+Look at the dashed line at zero in the first chart. The curve does not stop
+there. With a standard deviation of \$12,000, this model puts a
+`{python} pct(neg_12, 1)` probability on **negative** sales, and even at
+\$8,000 it is `{python} pct(neg_8, 2)`. A shop cannot sell less than nothing.
+
+The normal distribution is a model, and its tails run forever in both
+directions. That is harmless when the impossible region is many standard
+deviations away, and misleading when it is not. You met the same problem in
+Chapter 3, where three standard deviations below mean Nevada income was a
+negative number. Before using a normal model, ask whether the variable can
+take every value the curve allows.
+:::
+
+::: {.blue}
+The **normal probability density function** is
+
+$$f(x)=\frac{1}{\sigma\sqrt{2\pi}}\;e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2},$$
+
+where $e\approx2.71828$, $\pi\approx3.14159$, $\mu$ is the mean of the
+distribution, $\sigma$ is its standard deviation, and $x$ is any real number.
+:::
+
+You will never need to evaluate this formula. It is here so that you know
+the curve is a specific function of $\mu$ and $\sigma$ and nothing else, and
+because it is what software is evaluating when you ask for a normal
+probability.
+
+## The $z$-score and the standard normal distribution
+
+::: {.blue}
+The **$z$-score** is the number of standard deviations a value $x$ lies from
+the mean of its distribution:
+
+$$z=\frac{x-\mu}{\sigma}.$$
+
+$z$ is negative for values below the mean, positive for values above it, and
+zero at the mean. It has no units: minutes, dollars, and inches all become
+"standard deviations."
+
+The **standard normal distribution** is the normal distribution with $\mu=0$
+and $\sigma=1$.
+:::
+
+**If $x$ is normally distributed**, then its $z$-scores follow the standard
+normal distribution. Standardizing is just a change of units, like converting
+feet to inches: the curve keeps its shape, and the axis is relabelled. That is
+why one table, or one Excel function, can serve every normal distribution
+there is.
+
+::: {.scarlet}
+Read the condition in that sentence again: **if $x$ is normally
+distributed.** Standardizing *any* data gives $z$-scores with a mean of 0
+and a standard deviation of 1. It does **not** make them normal. The
+$z$-scores of skewed data are exactly as skewed as the data.
+:::
+
+Here is the proof by example. Take 100,000 waiting times from an exponential
+distribution, the right-skewed shape from the section above, and standardize
+them.
+
+```{python}
+#| label: z-not-normal
+waits = simulate("exponential", draws=100_000, lam=0.25)
+zt = z_tail_check(waits)
+print(f"mean of z = {zt.attrs['mean of z']:.4f},  "
+      f"sd of z = {zt.attrs['sd of z']:.4f}")
+zt.round(4)
+```
+
+```{python}
+#| label: z-not-normal-chart
+zw = standardize(waits)
+zg = np.linspace(-4, 6, 501)
+_ = density_histogram(zw, zg, normal_pdf(zg), bins=80,
+                      title="Standardized exponential waiting times",
+                      xlab="z", curve_label="standard normal",
+                      bar_label="z-scores of the waits")
+```
+
+```{python}
+#| label: z-not-normal-stats
+#| include: false
+z_lt1 = float(zt.loc["z < -1", "share observed"])
+n_lt1 = normal_cdf(-1)
+z_gt2 = float(zt.loc["z > 2", "share observed"])
+n_gt2 = 1 - normal_cdf(2)
+```
+
+The mean is 0 and the standard deviation is 1, as promised. Everything else
+is wrong. The standard normal puts `{python} pct(n_lt1, 1)` of values below
+$z=-1$; these waits put almost none there, `{python} pct(z_lt1, 2)`, and in
+theory none at all: a wait cannot be shorter than zero, and zero is exactly one
+standard deviation below the mean. Above
+$z=2$ the standard normal puts `{python} pct(n_gt2, 1)`, and the waits put
+`{python} pct(z_gt2, 1)`, more than twice as much. Every $z$-score was computed
+correctly. A normal probability attached to any of them would be wrong.
+
+Chapter 3 ran into the same thing with inflation: the $z$-scores were fine,
+and the bell-curve percentages did not fit them, because inflation is skewed.
+A $z$-score tells you *how far*. Only the shape of the distribution tells you
+*how likely*.
+
+## Calculating normal probabilities
+
+The time customers spend on the phone with a cable company's customer service
+line follows a normal distribution with a mean of 12 minutes and a standard
+deviation of 3 minutes. What is the probability that the next caller spends
+**14 minutes or less** on the phone?
+
+```{python}
+#| label: call-14
+MU_C, SD_C = 12, 3
+call_14 = normal_area(MU_C, SD_C, None, 14, explain=True)
+call_14.to_frame("next caller")
+```
+
+```{python}
+#| label: call-14-math
+#| echo: false
+#| output: asis
+z14 = z_value(14, MU_C, SD_C)
+show_math(rf"z=\frac{{x-\mu}}{{\sigma}}=\frac{{14-12}}{{3}}={z14:.4f}"
+          rf"\qquad P(x\le 14)=P(z\le {z14:.4f})={normal_cdf(14, MU_C, SD_C):.4f}")
+```
+
+```{python}
+#| label: call-14-chart
+cg = grid(MU_C, SD_C)
+_ = density_chart(cg, normal_pdf(cg, MU_C, SD_C), shade=(None, 14),
+                  area=normal_area(MU_C, SD_C, None, 14),
+                  title="Customer service calls: P(x < 14)",
+                  xlab="Minutes on the phone", z_scale=(MU_C, SD_C))
+```
+
+There is a `{python} pct(normal_area(MU_C, SD_C, None, 14))` chance the next
+caller is on the phone 14 minutes or less. The chart carries two scales: the
+original minutes along the bottom and the $z$-scores along the top. The area
+is the same area whichever scale you read it on. That is all "converting to
+the standard normal" means.
+
+::: {.blue}
+**Every normal probability is a difference of two cumulative probabilities.**
+Software gives you one thing, $P(X\le x)$, the area to the *left* of $x$.
+Everything else follows from the total area being 1:
+
+| You want | Compute | In Excel |
+|---|---|---|
+| $P(X<b)$ | $P(X\le b)$ | `=NORM.DIST(b, mu, sigma, TRUE)` |
+| $P(X>a)$ | $1-P(X\le a)$ | `=1-NORM.DIST(a, mu, sigma, TRUE)` |
+| $P(a<X<b)$ | $P(X\le b)-P(X\le a)$ | `=NORM.DIST(b,...)-NORM.DIST(a,...)` |
+
+`NORM.S.DIST(z, TRUE)` does the same for the standard normal, given a
+$z$-score instead of $x$, $\mu$, and $\sigma$. With `FALSE` as the last
+argument, both functions return the *height* of the curve, which, as above,
+is not a probability. You will almost never want `FALSE` in this chapter.
+:::
+
+The four basic questions about the call centre, in one table:
+
+```{python}
+#| label: call-four
+calls = normal_interval_table(MU_C, SD_C, [(None, 14), (14, None),
+                                           (None, 8.5), (8.5, None)])
+calls[["event", "shape", "z lower", "z upper", "computed as",
+       "probability"]].round(4)
+```
+
+Rows 1 and 2 sum to 1, and so do rows 3 and 4: each pair is an event and its
+complement. Run that check every time.
+
+### Symmetry is a shortcut, not a detour
+
+Return to the shop with sales normal, mean \$20,000 and standard deviation
+\$8,000. What is the probability that sales exceed \$16,000?
+
+```{python}
+#| label: sales-16
+#| echo: false
+#| output: asis
+z16 = z_value(16_000, 20_000, 8_000)
+show_math(rf"z=\frac{{16{{,}}000-20{{,}}000}}{{8{{,}}000}}={z16:.1f}"
+          rf"\qquad P(z>{z16:.1f})=P(z<{-z16:.1f})={normal_cdf(-z16):.4f}")
+```
+
+The area to the right of $-0.5$ is the mirror image of the area to the left
+of $+0.5$. One line. Sales exceed \$16,000 with probability
+`{python} pct(normal_area(20_000, 8_000, 16_000, None))`.
+
+Your textbook prints cumulative normal tables in Appendix A, and some
+questions are written with them in mind. We will not use them, for the reason
+we did not use the binomial tables in Chapter 5: they hold the same numbers
+as `NORM.DIST` for a limited menu of $z$-scores, rounded to two decimals.
+
+## Five shapes of interval
+
+Your textbook's author compiled the annual snowfall for Minneapolis,
+Minnesota, from 1884 to 2017. It follows a normal distribution reasonably
+well, with a mean of 46 inches and a standard deviation of 18.5 inches. If history is a good guide,
+what is the probability that next winter brings each of the following?
+
+```{python}
+#| label: snow-table
+MU_S, SD_S = 46, 18.5
+snow = normal_interval_table(MU_S, SD_S, [(None, 20), (70, None), (30, 70),
+                                          (60, 75), (12, 35)])
+snow[["event", "shape", "z lower", "z upper", "P(X <= upper)",
+      "P(X <= lower)", "probability"]].round(4)
+```
+
+```{python}
+#| label: snow-charts
+#| layout-ncol: 3
+sg = grid(MU_S, SD_S)
+for (lo, hi), ttl in [((30, 70), "Straddles the mean"),
+                      ((60, 75), "Entirely above the mean"),
+                      ((12, 35), "Entirely below the mean")]:
+    _ = density_chart(sg, normal_pdf(sg, MU_S, SD_S), shade=(lo, hi),
+                      area=normal_area(MU_S, SD_S, lo, hi), title=ttl,
+                      xlab="Inches of snow", mark=[MU_S], figsize=(4.2, 3.4))
+```
+
+::: {.brown}
+**Name the shape before you compute.** There are only five: a left tail, a
+right tail, an interval straddling the mean, an interval entirely above the
+mean, and an interval entirely below it. Every one of them is computed the
+same way, $P(X\le\text{upper})-P(X\le\text{lower})$, with the missing end of a
+tail treated as 0 or 1. The only thing that changes is the picture.
+
+So draw the picture. Your textbook's author reports that students accuse
+him of trickery when the interval falls entirely on one side of the mean, as
+in the 60-to-75-inch question. There is no trick. The common error is to
+treat the area from the mean to 75 inches as the answer, or to add 0.5 to
+something. A sketch with the mean marked makes both errors visible before
+they happen.
+:::
+
+## Reading the output
+
+::: {.brown}
+A Strip resort's revenue manager models the weekend nightly rate for a
+standard room as normal with a mean of \$210 and a standard deviation of
+\$35. She asks Claude for cumulative probabilities and receives the table
+below. Using only the table, find the probability that a randomly chosen
+weekend night is priced:
+
+**(a)** below \$175
+
+**(b)** above \$245
+
+**(c)** between \$175 and \$245
+
+**(d)** between \$220 and \$280
+
+**(e)** above \$140
+
+**(f)** exactly \$210
+:::
+
+```{python}
+#| label: rate-table
+MU_R, SD_R = 210, 35
+rate_points = [140, 175, 210, 220, 245, 280]
+rates = pd.DataFrame({
+    "z": [z_value(v, MU_R, SD_R) for v in rate_points],
+    "P(X <= x)": [normal_cdf(v, MU_R, SD_R) for v in rate_points],
+}, index=pd.Index(rate_points, name="nightly rate x ($)"))
+rates.round(4)
+```
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: rate-solve
+F = rates["P(X <= x)"]
+rate_answers = pd.DataFrame({
+    "means": ["X < 175", "X > 245", "175 < X < 245", "220 < X < 280",
+              "X > 140", "X = 210"],
+    "shape": [interval_shape(MU_R, None, 175), interval_shape(MU_R, 245, None),
+              interval_shape(MU_R, 175, 245), interval_shape(MU_R, 220, 280),
+              interval_shape(MU_R, 140, None), "a single point"],
+    "read from the table as": ["P(X <= 175)", "1 - P(X <= 245)",
+                               "P(X <= 245) - P(X <= 175)",
+                               "P(X <= 280) - P(X <= 220)",
+                               "1 - P(X <= 140)", "zero"],
+    "probability": [F[175], 1 - F[245], F[245] - F[175], F[280] - F[220],
+                    1 - F[140], 0.0],
+}, index=pd.Index(list("abcdef"), name="part"))
+rate_answers.round(4)
+```
+
+Part (c) is the empirical rule's 68%, since \$175 and \$245 are one standard
+deviation either side of the mean. Parts (a) and (b) are equal by symmetry.
+Part (d) is the one that lies entirely above the mean: subtract two
+cumulative probabilities, and do not add 0.5 to anything.
+
+Part (f) is zero, because a continuous random variable has no probability at
+a single point. If the manager means "\$210 to the nearest dollar," that is
+the interval from \$209.50 to \$210.50, with probability
+`{python} f"{normal_area(MU_R, SD_R, 209.5, 210.5):.4f}"`. Asking what a
+question *means* is worth doing before computing anything.
+:::
+
+## Working backwards: percentiles and targets
+
+The questions so far supply a value and ask for a probability. Managers ask
+the reverse just as often: *what value* puts a given share of outcomes below
+it? That is a **percentile**, and finding one means running the cumulative
+probability backwards.
+
+::: {.blue}
+To find the value $x$ with a share $p$ of the distribution below it:
+
+1. Find the $z$-score with area $p$ to its left: `=NORM.S.INV(p)`.
+2. Convert it back to the original units with the $z$-score formula solved
+   for $x$:
+
+$$x=\mu+z\,\sigma.$$
+
+Or in one step: `=NORM.INV(p, mu, sigma)`.
+:::
+
+### Application: a service-level goal
+
+Management at the cable company wants 95% of calls to be finished in under 18
+minutes. With calls normal, mean 12 and standard deviation 3, is the goal
+being met?
+
+```{python}
+#| label: call-goal
+call_p = normal_percentile_table(MU_C, SD_C, [0.95])
+call_p.round(4)
+```
+
+```{python}
+#| label: call-goal-stats
+#| include: false
+x95 = float(call_p["x = mu + z sigma"].iloc[0])
+z95 = float(call_p["z = NORM.S.INV(share)"].iloc[0])
+share_18 = normal_area(MU_C, SD_C, None, 18)
+```
+
+```{python}
+#| label: call-goal-math
+#| echo: false
+#| output: asis
+show_math(rf"x=\mu+z\sigma=12+({z95:.4f})(3)={x95:.2f}\text{{ minutes}}")
+```
+
+```{python}
+#| label: call-goal-chart
+_ = density_chart(cg, normal_pdf(cg, MU_C, SD_C), shade=(None, x95),
+                  area=0.95, title="The 95th percentile of call length",
+                  xlab="Minutes on the phone", mark=[18],
+                  z_scale=(MU_C, SD_C))
+```
+
+Ninety-five percent of calls finish within `{python} f"{x95:.2f}"` minutes,
+which is inside the 18-minute target, so the goal is met. There are two
+equivalent ways to check a goal like this, and it is worth knowing both:
+
+- compare the **95th percentile** (`{python} f"{x95:.2f}"` minutes) with the
+  **target** (18 minutes), or
+- compare the **share of calls under the target**
+  (`{python} pct(share_18, 2)`) with the **required share** (95%).
+
+They always agree. Use whichever matches how the question is asked.
+
+### Application: a reorder point
+
+A Henderson gas station waits 4 days for each delivery of regular gasoline.
+Demand during those 4 days, the **lead time**, is normal with a mean of 930
+gallons and a standard deviation of 140. The station reorders when its tank
+falls to the **reorder point**. Where should the reorder point be for a 90%
+chance of not running out before the delivery arrives? What about 95% or 99%?
+
+```{python}
+#| label: reorder
+MU_G, SD_G = 930, 140
+reorder = normal_percentile_table(MU_G, SD_G, [0.90, 0.95, 0.99])
+reorder["safety stock (x - mu)"] = reorder["x = mu + z sigma"] - MU_G
+reorder.round(2)
+```
+
+```{python}
+#| label: reorder-stats
+#| include: false
+r90, r95, r99 = reorder["x = mu + z sigma"]
+s90, s95, s99 = reorder["safety stock (x - mu)"]
+p_1200 = normal_area(MU_G, SD_G, None, 1200)
+```
+
+For a 90% service level, reorder at `{python} f"{r90:,.0f}"` gallons. The
+`{python} f"{s90:.0f}"` gallons above average lead-time demand are the
+**safety stock**, and in this model the safety stock is just $z\sigma$.
+
+::: {.charcoal}
+Read down the safety stock column. Going from 90% to 95% costs
+`{python} f"{s95 - s90:.0f}"` more gallons. Going from 95% to 99% costs
+`{python} f"{s99 - s95:.0f}"` more, for a smaller gain in protection. Each
+additional point of service level is more expensive than the last, because
+you are buying your way further into a tail that keeps getting thinner. That
+is a business conclusion, and it comes straight from the shape of the curve.
+
+The same table works in reverse. The station's current reorder point is
+1,200 gallons. The probability that lead-time demand stays below it is
+`{python} pct(p_1200, 2)`: that is its current service level.
+:::
+
+## The empirical rule, computed instead of remembered
+
+In Chapter 3 the empirical rule was a rule of thumb: about 68%, 95%, and
+99.7% of a bell-shaped distribution lie within one, two, and three standard
+deviations of the mean. Now we can compute it.
+
+```{python}
+#| label: er-normal
+empirical_rule_normal().round(4)
+```
+
+For the call centre, that means about 68% of calls last between 9 and 15
+minutes, about 95% between 6 and 18 minutes, and practically all between 3 and
+21 minutes. Each is $\mu\pm k\sigma$.
+
+::: {.scarlet}
+The empirical rule is the normal distribution's rule. Chebyshev's Theorem,
+in the last column, is the rule for *every* distribution, which is why it is
+so much weaker.
+
+One more thing about Chebyshev, because it is easy to misuse. It bounds the
+two tails *together*: at most $1/k^2$ of any distribution lies more than $k$
+standard deviations from the mean, on one side or the other. Splitting that
+in half to get a bound on one tail assumes the two tails are equal, which a
+skewed distribution does not guarantee. Nothing stops all of the outside
+probability from sitting in one tail. A bound on a single tail that holds for
+every distribution exists, and it is called **Cantelli's inequality**: at most
+$1/(1+k^2)$ lies more than $k$ standard deviations *above* the mean.
+:::
+
+```{python}
+#| label: one-sided
+one_sided_bounds(2).to_frame("2 standard deviations above the mean").round(4)
+```
+
+For $k=2$, the normal curve puts `{python} pct(1 - normal_cdf(2), 2)` above
+the mean plus two standard deviations. A distribution of *unknown* shape can
+put as much as `{python} pct(1 / 5, 0)` there. That gap is the price of not
+knowing the shape, and it is why the next section matters.
+
+## Is it normal enough? Nevada's growth rate
+
+Whether data are normal is a claim to be checked, not assumed. In Chapters 4
+and 5 we worked with the year-over-year growth rate of Nevada's real GDP,
+quarter by quarter. Is it normal?
+
+```{python}
+#| label: nv-growth
+growth = nv["gdp_growth"].dropna()
+gm, gs = growth.mean(), growth.std(ddof=1)
+print(f"{len(growth)} quarters,  mean = {100 * gm:.2f}%,  sd = {100 * gs:.2f}%")
+gg = np.linspace(gm - 4 * gs, gm + 4 * gs, 601)
+_ = density_histogram(growth, gg, normal_pdf(gg, gm, gs), bins=24,
+                      title="Nevada real GDP growth, year over year, by quarter",
+                      xlab="Growth rate", curve_label="normal, same mean and sd",
+                      bar_label="Nevada quarters")
+```
+
+```{python}
+#| label: nv-er
+empirical_rule(growth, name="Nevada growth")
+```
+
+```{python}
+#| label: nv-fit
+nv_fit = normal_fit_check(growth, [-0.08, -0.05, 0.0, 0.05])
+nv_fit.round(4)
+```
+
+```{python}
+#| label: nv-fit-stats
+#| include: false
+er_g = empirical_rule(growth)
+in1 = float(er_g.loc["1 sd", "actual_percent"])
+in3 = float(er_g.loc["3 sd", "actual_percent"])
+obs8 = float(nv_fit.loc[-0.08, "share observed"])
+mod8 = float(nv_fit.loc[-0.08, "normal model says"])
+n8 = int(nv_fit.loc[-0.08, "observations below"])
+obs0 = float(nv_fit.loc[0.0, "share observed"])
+mod0 = float(nv_fit.loc[0.0, "normal model says"])
+worst = nv.dropna(subset=["gdp_growth"]).nsmallest(8, "gdp_growth")
+years_worst = sorted(set(worst["date"].dt.year))
+```
+
+The normal curve gets the centre and the tails wrong, in opposite directions.
+`{python} f"{in1:.1f}"`% of quarters lie within one standard deviation of the
+mean, where a normal distribution would put 68%. Too many ordinary quarters.
+At the same time, `{python} f"{100 - in3:.1f}"`% lie beyond three standard
+deviations, where the normal would put 0.3%. Too many extreme ones.
+
+::: {.charcoal}
+Read the `observed / model` column of the last table as a risk manager would.
+The normal model says a quarter of contraction worse than $-8\%$ has
+probability `{python} pct(mod8, 1)`. Nevada had `{python} str(n8)` such
+quarters in `{python} str(len(growth))`, or `{python} pct(obs8, 1)`, about
+`{python} f"{obs8 / mod8:.1f}"` times as many. Meanwhile the model puts
+`{python} pct(mod0, 0)` of quarters below zero growth, and only
+`{python} pct(obs0, 0)` were.
+
+So a normal model fitted to these data is too *pessimistic* about mild
+slowdowns and too *optimistic* about severe ones. The second error is the
+expensive one. A reserve, a credit line, or a staffing plan sized to the
+normal curve would be sized for a world with fewer deep recessions than
+Nevada has had.
+
+And look at *when* the eight worst quarters occurred:
+`{python} ", ".join(str(y) for y in years_worst[:-1]) + ", and " + str(years_worst[-1])`. Two episodes, the Great
+Recession and the pandemic, account for all of them. Bad quarters arrive in
+clumps, the same dependence that broke the binomial in Chapter 5, and part of
+it is built into a year-over-year measure, where neighbouring quarters share
+three-quarters of their data. Chapter 12 introduces a formal test of whether
+data are normal. The habit to build now is to put the curve on top of the
+histogram and look before you rely on it.
+:::
+
+## Expected value with normal probabilities
+
+Chapter 5 priced the RAD Construction bridge contract with three subjective
+probabilities for finishing early, on time, or late. A continuous model
+gives those probabilities a source.
+
+::: {.brown}
+RAD has been awarded a contract to replace a bridge. From experience on
+previous projects, RAD believes completion time is normal with a mean of 92
+days and a standard deviation of 9 days. It expects a net profit of \$125,000.
+Finishing in less than 84 days earns a \$20,000 bonus from the state. Taking
+longer than 106 days costs a \$15,000 penalty. What is RAD's expected profit?
+:::
+
+```{python}
+#| label: rad-normal
+p_early = normal_area(92, 9, None, 84)
+p_late = normal_area(92, 9, 106, None)
+p_on = 1 - p_early - p_late
+RAD_STATES = {"early (< 84 days)": p_early,
+              "on time (84 to 106 days)": p_on,
+              "late (> 106 days)": p_late}
+pd.Series(RAD_STATES).round(4).to_frame("probability")
+```
+
+```{python}
+#| label: rad-normal-emv
+rad6 = emv_table({"bridge contract": {"early (< 84 days)": 145_000,
+                                      "on time (84 to 106 days)": 125_000,
+                                      "late (> 106 days)": 110_000}},
+                 RAD_STATES)
+rad6.style.format({c: "${:,.0f}" for c in rad6.columns if c != "CV"}
+                  | {"CV": "{:.4f}"})
+```
+
+```{python}
+#| label: rad-normal-stats
+#| include: false
+emv6 = float(rad6["EMV"].iloc[0])
+```
+
+The expected profit is `{python} money(emv6)`. The normal model did the part
+the project manager did by judgment in Chapter 5: it turned a belief about
+completion time into the three probabilities, a left tail, a right tail, and
+the interval between them. The EMV arithmetic is unchanged. If RAD can shave
+the mean to 88 days, the same two lines of code reprice the contract, which is
+the practical advantage of a model over a guess.
+
+## Focus on analytics: Six Sigma
+
+In 1986 an engineer at Motorola introduced **Six Sigma**, a quality
+programme whose name comes from the normal distribution: design a process so
+tightly that the specification limits sit six standard deviations from the
+target. Six Sigma is famous for promising 3.4 defects per million
+opportunities. Where does that number come from?
+
+```{python}
+#| label: six-sigma
+six = six_sigma_table()
+six.style.format({"DPMO, centred": "{:,.4f}",
+                  "DPMO, mean shifted 1.5 sigma": "{:,.1f}",
+                  "yield, shifted": "{:.7f}"})
+```
+
+```{python}
+#| label: six-sigma-stats
+#| include: false
+dpmo6c = float(six.loc[6, "DPMO, centred"])
+dpmo6s = float(six.loc[6, "DPMO, mean shifted 1.5 sigma"])
+```
+
+::: {.charcoal}
+If the process were perfectly centred, being six standard deviations from
+both limits would produce about `{python} f"{1000 * dpmo6c:.0f}"` defects per
+*billion*, not 3.4 per million. The famous figure assumes the process mean
+drifts by up to 1.5 standard deviations over time, which leaves only 4.5
+standard deviations to the nearer limit. The normal tail beyond 4.5 standard
+deviations is `{python} f"{dpmo6s:.1f}"` per million.
+
+Your textbook quotes the 3.4 without the drift, and the number cannot be
+derived from "six sigma" as stated. The lesson for a manager is general: a
+headline statistic usually carries an assumption, and you find it by asking
+the number to be recomputed.
+:::
+
+# The Normal Approximation to the Binomial
+
+At the end of Chapter 5, the binomial distribution for 50 customers with
+$p=0.4$ looked close to a bell curve. That was not an accident. When the
+number of trials is large enough, a binomial distribution is well
+approximated by a normal curve with the same mean and standard deviation.
+
+::: {.blue}
+A binomial distribution with $n$ trials and probability of success $p$ can be
+approximated by a normal distribution with
+
+$$\mu=np \qquad\text{and}\qquad \sigma=\sqrt{npq}$$
+
+when $np\ge 5$ and $nq\ge 5$, where $q=1-p$. In words: when both the
+expected number of successes and the expected number of failures are at least
+5.
+:::
+
+## Application: drive-through order errors
+
+Carl's Jr. recently reported a 6% error rate on drive-through orders. Here a
+"success" is an order filled *incorrectly*; success is a label, not a
+compliment. What is the probability that exactly 7 of the next 120
+drive-through orders are wrong?
+
+```{python}
+#| label: carls-conditions
+N_CJ, P_CJ = 120, 0.06
+cj = approximation_conditions(N_CJ, P_CJ)
+cj.to_frame("Carl's Jr., n = 120, p = 0.06").round(4)
+```
+
+Both conditions hold. The exact answer comes from Chapter 5:
+
+```{python}
+#| label: carls-exact
+cj_table = binomial_table(N_CJ, P_CJ)
+p7_exact = probability_of(cj_table, "exactly", 7)
+print(f"BINOM.DIST(7, 120, 0.06, FALSE) = {p7_exact:.4f}")
+```
+
+To approximate it with the normal curve we run straight into the opening
+idea of this chapter: under a continuous curve, $P(X=7)=0$. A single point
+has no area. So we give each whole number a slice of the curve one unit wide,
+centred on it. The number 7 gets the slice from 6.5 to 7.5.
+
+```{python}
+#| label: carls-chart
+mu_cj, sd_cj = float(cj["mu = np"]), float(cj["sigma = sqrt(npq)"])
+shown = cj_table.loc[:18]
+_ = approximation_chart(shown.index, shown["P(X = x)"], mu_cj, sd_cj,
+                        highlight=[7], shade=(6.5, 7.5),
+                        title="Exactly 7 wrong orders out of 120",
+                        xlab="Orders filled incorrectly")
+```
+
+```{python}
+#| label: carls-approx
+normal_approximation(N_CJ, P_CJ, "exactly", 7).to_frame("exactly 7").round(4)
+```
+
+The scarlet bar is the exact binomial probability. Its area, one unit wide,
+and the shaded slice of the curve beneath it, are nearly equal: the
+approximation gives `{python} f"{normal_area(mu_cj, sd_cj, 6.5, 7.5):.4f}"`
+against an exact `{python} f"{p7_exact:.4f}"`. Without the half-unit slice,
+the approximation is zero, which is the last row's point.
+
+::: {.blue}
+The **continuity correction factor** represents each whole number $k$ by the
+interval from $k-0.5$ to $k+0.5$. To approximate a binomial probability:
+
+1. List the whole numbers the question includes.
+2. Move the **left** boundary down by 0.5 and the **right** boundary up by
+   0.5, so each included number gets its whole slice.
+3. A boundary at $-\infty$ or $+\infty$ needs no correction.
+:::
+
+## Translating the question, again
+
+The continuity correction is Chapter 5's phrase guide with one more step. A
+question about "fewer than 3" and one about "3 or fewer" include different
+whole numbers, so they get different corrections:
+
+```{python}
+#| label: continuity-guide
+continuity_guide(3).style.hide(axis="index")
+```
+
+::: {.scarlet}
+Do the translation in two steps, never one. First, the words become a list of
+whole numbers: "fewer than 3" is 0, 1, 2. Then the list becomes an interval
+with half a unit added at each end: $X<2.5$. Students who go straight from
+"fewer than 3" to a boundary tend to land on 3.5, because "3" is the number in
+the sentence. The list of whole numbers is the check.
+:::
+
+Here are the textbook's questions about Carl's Jr., answered three ways:
+exactly, with the correction, and without it.
+
+```{python}
+#| label: carls-all
+cj_all = pd.DataFrame([
+    normal_approximation(N_CJ, P_CJ, "exactly", 7),
+    normal_approximation(N_CJ, P_CJ, "at most", 4),
+    normal_approximation(N_CJ, P_CJ, "more than", 8),
+    normal_approximation(N_CJ, P_CJ, "between", 7, 9),
+]).set_index("question")
+cj_all.round(4)
+```
+
+```{python}
+#| label: carls-all-stats
+#| include: false
+worst_c = float(cj_all["error, corrected"].abs().max())
+worst_u = float(cj_all["error, uncorrected"].abs().max())
+```
+
+With the correction, no answer is off by more than
+`{python} f"{worst_c:.3f}"`. Without it, the worst is off by
+`{python} f"{worst_u:.3f}"`. The half unit is not a rounding nicety.
+
+::: {.charcoal}
+If software computes the binomial exactly, why learn the approximation? The
+textbook's reason, saving arithmetic, has expired, as it did for the Poisson
+approximation in Chapter 5.
+
+The idea has not. A sample proportion is a binomial count divided by $n$.
+That it is approximately normal, once $n$ is large enough, is the reason the
+confidence intervals for proportions in Chapter 8 and the tests in Chapter 9
+use $z$. Every polling margin of error you have ever read rests on this
+section.
+:::
+
+::: {.brown}
+The Harvard Business School website reported that 12% of applicants were
+admitted in 2016. Suppose 60 applications are selected at random. Use the
+normal approximation to find the probability that:
+
+**(a)** fewer than 5 are admitted
+
+**(b)** 6, 7, 8, or 9 are admitted
+
+**(c)** 11 or more are admitted
+
+Check that the approximation is licensed, and compare each answer with the
+exact binomial.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: hbs
+hc = approximation_conditions(60, 0.12)
+print(f"np = {hc['np']:.1f},  nq = {hc['nq']:.1f},  "
+      f"conditions met: {hc['np >= 5 and nq >= 5']}\n")
+hbs = pd.DataFrame([
+    normal_approximation(60, 0.12, "fewer than", 5),
+    normal_approximation(60, 0.12, "between", 6, 9),
+    normal_approximation(60, 0.12, "at least", 11),
+], index=list("abc"))
+hbs.round(4)
+```
+
+$np=7.2$ and $nq=52.8$, so both conditions hold.
+
+**(a)** Fewer than 5 is 0 through 4, so the boundary is 4.5, not 5.5.
+
+**(b)** 6 through 9 runs from 5.5 to 9.5.
+
+**(c)** 11 or more starts at 10.5.
+
+Every corrected answer is within
+`{python} f"{100 * hbs['error, corrected'].abs().max():.1f}"` percentage points
+of the exact binomial. The uncorrected answers miss by as much as
+`{python} f"{100 * hbs['error, uncorrected'].abs().max():.0f}"` points, and
+part (a) shows why the boundary matters: using 5 instead of 4.5 quietly adds
+most of the slice for "exactly 5" to an event that excludes it.
+:::
+
+# The Exponential Distribution
+
+::: {.blue}
+The **exponential probability distribution** describes the time (or
+distance, or other measure) between events: the time between customer
+arrivals, between machine failures, between website hits. Its density is
+
+$$f(x)=\lambda e^{-\lambda x}\qquad\text{for } x\ge 0,$$
+
+where $e\approx2.71828$ and $\lambda$ is the **rate** at which events occur:
+the average number of events per unit of time. $\lambda$ can be any positive
+number. It does not have to be a whole number: 0.25 customers per minute is a
+perfectly good rate.
+
+The **mean** and the **standard deviation** of an exponential distribution
+are equal:
+
+$$\mu=\sigma=\frac{1}{\lambda}.$$
+:::
+
+## The other side of the Poisson
+
+You have met $\lambda$ before. In Chapter 5 the Poisson distribution counted
+the number of arrivals in an interval, with mean $\lambda$. The exponential
+distribution measures the time **between** those same arrivals. It is one
+process seen two ways: count the events, and you get a Poisson; time the gaps,
+and you get an exponential.
+
+We can watch that happen. Below are 20,000 simulated waiting times between
+customers at a store that averages 4 customers an hour, drawn from an
+exponential distribution with $\lambda=4$ per hour. Lay them end to end, and
+count how many customers arrive in each hour:
+
+```{python}
+#| label: poisson-link
+gaps = simulate("exponential", draws=20_000, lam=4)
+hourly = arrivals_per_interval(gaps, interval=1)
+print(f"{len(gaps):,} waiting times cover {len(hourly):,} complete hours.")
+print(f"Mean waiting time  = {gaps.mean():.4f} hours  (1/lambda = {1/4:.4f})")
+print(f"Arrivals per hour: mean = {hourly.mean():.3f}, "
+      f"variance = {hourly.var(ddof=0):.3f}  (Poisson: both equal lambda = 4)")
+```
+
+```{python}
+#| label: poisson-link-chart
+counts = hourly.value_counts().sort_index()
+pois4 = poisson_table(4).loc[:counts.index.max()]
+observed = (counts / counts.sum()).reindex(pois4.index, fill_value=0)
+_ = pmf_chart(pois4.index, observed, overlay=pois4["P(X = x)"],
+              bar_label="simulated hours, share observed",
+              overlay_label="Poisson, lambda = 4",
+              title="Exponential gaps produce Poisson counts",
+              xlab="Customers arriving in the hour", ylab="Share of hours")
+```
+
+The counts land on the Poisson probabilities from Chapter 5, and their mean
+and variance are both close to 4. Nothing about counts was put into the
+simulation. Only the gaps were.
+
+## The shape of the exponential
+
+```{python}
+#| label: exp-shapes
+eg = np.linspace(0, 3, 601)
+_ = density_chart(eg, {"lambda = 1": exponential_pdf(eg, 1),
+                       "lambda = 2": exponential_pdf(eg, 2),
+                       "lambda = 3": exponential_pdf(eg, 3)},
+                  title="Exponential densities", xlab="x")
+```
+
+Every exponential curve starts at a height of $\lambda$ at $x=0$ and decays
+toward zero. A higher rate means events come faster, so short waits are more
+concentrated near zero. Note again that two of these curves start above 1.
+They are densities.
+
+::: {.brown}
+Three differences between the exponential and the normal:
+
+1. The exponential is **right-skewed**; the normal is symmetric.
+2. The exponential is described by **one** parameter, $\lambda$ (or
+   equivalently $\mu=1/\lambda$); the normal needs two, $\mu$ and $\sigma$.
+3. An exponential random variable **cannot be negative**. The next customer
+   cannot arrive two minutes *before* the last one. A normal random variable
+   can take any value.
+:::
+
+## Getting $\lambda$ and $\mu$ straight
+
+The textbook's author reports that choosing the value of $\lambda$ is where
+his students struggle most, and it is where most wrong answers in this
+section start.
+
+::: {.blue}
+- $\lambda$ is a **countable rate**: events *per* unit of time, such as
+  customers per minute.
+- $\mu=1/\lambda$ is a **measurable interval**: time *per* event, such as
+  minutes per customer.
+- Both must be in the **same time unit** as the question. If the question asks
+  about minutes, $\lambda$ must be per minute.
+:::
+
+Three ways the information arrives, and what to do with each:
+
+```{python}
+#| label: lambda-mu
+lam_examples = pd.DataFrame({
+    "deli counter: a customer every 4 minutes":
+        exponential_parameters(mean=4, unit="minute", event="customer").values,
+    "same deli, quoted per hour: 15 customers an hour, question in minutes":
+        exponential_parameters(rate=15, per=60, to=1, unit="minute",
+                               event="customer").values,
+    "hockey: 32.2 shots per 60-minute game, question in minutes":
+        exponential_parameters(rate=32.2, per=60, to=1, unit="minute",
+                               event="shot").values,
+}, index=["lambda (events per minute)", "mu = 1/lambda (minutes per event)",
+          "sigma = mu (minutes)"]).T
+lam_examples.round(4)
+```
+
+::: {.scarlet}
+The first two rows are the same deli described two ways, and they give the
+same $\lambda=0.25$ per minute. A customer every 4 minutes *is* 15 customers
+an hour. Whenever the rate is quoted for a different interval than the one
+the question asks about, the first line of your work is a new $\lambda$, as
+it was for the Poisson in Chapter 5. And when you are handed a mean time
+between events, the first line is $\lambda=1/\mu$. Plugging a mean into a
+formula that wants a rate is the most common error in this section, and it
+produces an answer that looks perfectly reasonable.
+:::
+
+## Calculating exponential probabilities
+
+::: {.blue}
+The **exponential cumulative distribution function** gives the probability
+that the waiting time is at most $a$:
+
+$$P(x\le a)=1-e^{-\lambda a}.$$
+
+Its complement, the probability of waiting **longer** than $a$, is simply
+
+$$P(x>a)=e^{-\lambda a}.$$
+
+In Excel, `=EXPON.DIST(a, lambda, TRUE)` returns $P(x\le a)$. Note that
+Excel wants the **rate**, $\lambda$, not the mean.
+:::
+
+At the deli counter, customers arrive on average every 4 minutes, so
+$\lambda=0.25$ per minute. What is the probability that the next customer
+arrives within 2 minutes? Between 4 and 8 minutes from now? Not for more than
+7 minutes?
+
+```{python}
+#| label: deli
+LAM_D = 0.25
+deli = pd.DataFrame([exponential_area(LAM_D, None, 2, explain=True),
+                     exponential_area(LAM_D, 4, 8, explain=True),
+                     exponential_area(LAM_D, 7, None, explain=True)])
+deli.index = pd.Index(["within 2 minutes", "between 4 and 8 minutes",
+                       "longer than 7 minutes"], name="question")
+deli.drop(columns=["Excel"]).round(4)
+```
+
+```{python}
+#| label: deli-chart
+#| layout-ncol: 3
+dg = np.linspace(0, 20, 601)
+for (lo, hi), ttl in [((None, 2), "Within 2 minutes"),
+                      ((4, 8), "Between 4 and 8 minutes"),
+                      ((7, None), "Longer than 7 minutes")]:
+    _ = density_chart(dg, exponential_pdf(dg, LAM_D), shade=(lo, hi),
+                      area=exponential_area(LAM_D, lo, hi), title=ttl,
+                      xlab="Minutes until next customer", mark=[4],
+                      figsize=(4.2, 3.4))
+```
+
+```{python}
+#| label: deli-excel
+for q, f in deli["Excel"].items():
+    print(f"{q:<26} {f}")
+```
+
+The dashed line in each chart is the mean, 4 minutes. There is a
+`{python} pct(exponential_area(LAM_D, None, 2), 1)` chance of a customer
+within 2 minutes, a `{python} pct(exponential_area(LAM_D, 4, 8), 1)` chance
+of one between 4 and 8 minutes, and a
+`{python} pct(exponential_area(LAM_D, 7, None), 1)` chance of a wait longer
+than 7.
+
+## The mean is not the typical wait
+
+```{python}
+#| label: exp-median
+#| include: false
+med_d = exponential_percentile(0.5, LAM_D)
+p95_d = exponential_percentile(0.95, LAM_D)
+below_mean = exponential_cdf(1 / LAM_D, LAM_D)
+```
+
+The average wait at the deli is 4 minutes. The median wait, the time with
+half of waits shorter, is only `{python} f"{med_d:.2f}"` minutes, and
+`{python} pct(below_mean, 1)` of waits are shorter than the mean. In a
+right-skewed distribution a few long waits pull the mean above the typical
+case, which is the Chapter 3 lesson about skew applied to a model.
+
+::: {.blue}
+The exponential percentile has a closed form. The wait with a share $p$ of
+waits shorter than it is
+
+$$x=\frac{-\ln(1-p)}{\lambda}.$$
+
+At $p=0.5$ this is the median, $\ln 2/\lambda\approx0.693\,\mu$.
+:::
+
+A staffing question in this form: how long a gap between customers should the
+deli plan for, if it wants to cover 95% of gaps? $-\ln(0.05)/0.25=$
+`{python} f"{p95_d:.2f}"` minutes, almost three times the mean.
+
+::: {.brown}
+**The exponential has no memory.** If a customer has not arrived in the last
+5 minutes, the probability of waiting more than another 4 minutes is
+$P(x>9\mid x>5)=e^{-0.25(9)}/e^{-0.25(5)}=e^{-0.25(4)}=$
+`{python} f"{exp(-0.25 * 4):.4f}"`, exactly the same as the probability of
+waiting more than 4 minutes starting from scratch. No customer is ever "due."
+
+This is a property worth checking against the business. Arrivals of
+independent customers really do behave this way. Machine parts that wear out
+do not: a bearing that has run 10,000 hours is *more* likely to fail in the
+next hour than a new one. If the thing you are timing ages, the exponential
+is the wrong model, however convenient its formula.
+:::
+
+## Exercises
+
+These questions all concern an exponential distribution with a **mean**
+of 0.25 hours between events.
+
+::: {.brown}
+**(a)** What is $\lambda$, per hour?
+
+**(b)** What is the probability that the next event comes between 0.5 and 0.75
+hours from now?
+
+**(c)** Between 0.15 and 0.35 hours?
+
+**(d)** After more than 0.15 hours?
+
+**(e)** Within 0.4 hours?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: exp-workouts
+print(exponential_parameters(mean=0.25, unit="hour", event="event")
+      .round(4).to_string(), "\n")
+LAM_W = 1 / 0.25
+work = pd.DataFrame([exponential_area(LAM_W, 0.5, 0.75, explain=True),
+                     exponential_area(LAM_W, 0.15, 0.35, explain=True),
+                     exponential_area(LAM_W, 0.15, None, explain=True),
+                     exponential_area(LAM_W, None, 0.4, explain=True)],
+                    index=list("bcde"))
+work[["event", "computed as", "probability", "Excel"]].round(4)
+```
+
+**(a)** A mean of 0.25 hours between events is $\lambda=1/0.25=4$ events per
+hour. That is the whole exercise: everything after it is substitution.
+
+**(b)** Both ends are beyond the mean, in the thin part of the tail, so the
+probability is small.
+
+**(c)** This interval straddles the mean of 0.25 hours.
+
+**(d)** A right tail: $e^{-4(0.15)}$, no subtraction from 1 needed.
+
+**(e)** Parts (d) and (e) do not sum to 1, because they are not complements:
+"more than 0.15" and "within 0.4" overlap. Check complements only when the two
+events really are opposites.
+:::
+
+# The Uniform Distribution
+
+::: {.blue}
+With the **continuous uniform probability distribution**, every interval of
+the same width within the range has the same probability. If the smallest
+possible value is $a$ and the largest is $b$, the density is
+
+$$f(x)=\begin{cases}\dfrac{1}{b-a}, & a\le x\le b\\[4pt] 0, & \text{otherwise.}\end{cases}$$
+
+The probability of an interval is its width as a share of the whole range:
+
+$$P(x_1\le x\le x_2)=\frac{x_2-x_1}{b-a}.$$
+
+The mean and standard deviation are
+
+$$\mu=\frac{a+b}{2}\qquad\text{and}\qquad\sigma=\frac{b-a}{\sqrt{12}}.$$
+:::
+
+## Where uniform distributions come from
+
+Uniform distributions are less common in nature than the textbook's
+examples suggest, but there is one place they arise for a clear reason. A
+resort shuttle leaves the lobby every 12 minutes, on schedule. A guest who
+walks out at a random moment, with no idea of the timetable, waits somewhere
+between 0 and 12 minutes, and no part of that range is more likely than any
+other. That wait is uniform on $[0, 12]$, because the guest's arrival is
+unrelated to the schedule.
+
+```{python}
+#| label: shuttle
+SH_A, SH_B = 0, 12
+print(f"height of the density   f(x) = 1/(b - a) = {uniform_pdf(5, SH_A, SH_B):.4f} per minute")
+print(f"mean wait               (a + b)/2        = {uniform_mean(SH_A, SH_B):.2f} minutes")
+print(f"standard deviation      (b - a)/sqrt(12) = {uniform_sd(SH_A, SH_B):.4f} minutes")
+print(f"P(wait more than 9 min) (12 - 9)/12      = {uniform_area(SH_A, SH_B, 9, None):.4f}")
+```
+
+Compare this with the deli counter. There, customers arrive at random and the
+wait is exponential, so short waits are most likely. Here the *shuttle* is on
+a schedule and only the guest is random, so every wait is equally likely.
+Which distribution describes a waiting time depends on what is random and
+what is fixed.
+
+## Application: a start-up checklist
+
+The time a manager takes to run the start-up checklist for a production line
+is uniform between 15 and 35 minutes.
+
+```{python}
+#| label: checklist
+A_C, B_C = 15, 35
+ck = pd.DataFrame([uniform_area(A_C, B_C, None, 20, explain=True),
+                   uniform_area(A_C, B_C, 20, 25, explain=True),
+                   uniform_area(A_C, B_C, 30, None, explain=True)],
+                  index=["under 20 minutes", "between 20 and 25 minutes",
+                         "over 30 minutes"])
+ck[["event", "computed as", "probability"]]
+```
+
+```{python}
+#| label: checklist-chart
+ug = np.linspace(10, 40, 601)
+_ = density_chart(ug, uniform_pdf(ug, A_C, B_C), shade=(20, 25),
+                  area=uniform_area(A_C, B_C, 20, 25),
+                  title="Start-up checklist: P(20 < x < 25)",
+                  xlab="Minutes", ymax=0.07)
+```
+
+The density is $1/(35-15)=0.05$ per minute everywhere in the range. The
+probability of finishing between 20 and 25 minutes is the area of a rectangle
+5 minutes wide and 0.05 high, or 0.25. Any 5-minute stretch inside the range
+has the same probability.
+
+### Working backwards with a uniform
+
+The plant manager wants 80% of start-ups completed within 30 minutes. Is the
+goal being met?
+
+```{python}
+#| label: checklist-goal
+x80 = uniform_percentile(0.80, A_C, B_C)
+share_30 = uniform_area(A_C, B_C, None, 30)
+print(f"80th percentile  x = a + 0.80 (b - a) = 15 + 0.80 (20) = {x80:.1f} minutes")
+print(f"share finished within 30 minutes      = (30 - 15)/20  = {share_30:.2f}")
+```
+
+The 80th percentile is `{python} f"{x80:.0f}"` minutes, beyond the 30-minute
+target, and only `{python} pct(share_30, 0)` of start-ups finish within 30
+minutes. The goal is not being met. As with the cable company, the two checks
+agree.
+
+The mean start-up time is `{python} f"{uniform_mean(A_C, B_C):.0f}"` minutes,
+with a standard deviation of `{python} f"{uniform_sd(A_C, B_C):.2f}"`
+minutes. Excel has no uniform distribution function; the formulas are short
+enough that the arithmetic is the function.
+
+# Which Distribution Is It?
+
+As in Chapter 5, nobody tells you which distribution applies. Four questions
+settle most cases.
+
+| Ask | If yes |
+|---|---|
+| Is it a measurement that clusters around a centre, symmetric, with extremes rare in both directions? And have you looked at the data? | **Normal**, with $\mu$ and $\sigma$ |
+| Is it the time (or distance) *between* independent events that occur at a steady average rate? | **Exponential**, with $\lambda$ |
+| Is every value in a fixed range equally likely, typically because something random meets something scheduled? | **Uniform**, with $a$ and $b$ |
+| Is it a *count* of successes in $n$ trials, with $np\ge5$ and $nq\ge5$? | **Binomial**, which you may approximate by a **normal** with $\mu=np$, $\sigma=\sqrt{npq}$ and the continuity correction |
+
+::: {.brown}
+Name the distribution and its parameters for each of the following.
+
+**(a)** A help desk receives 18 calls an hour. How long until the next call?
+
+**(b)** A bottling line fills bottles to a mean of 500 ml with a standard
+deviation of 2 ml. How much is in the next bottle?
+
+**(c)** A monorail train leaves the station every 8 minutes. You arrive with
+no idea of the timetable. How long do you wait?
+
+**(d)** 3% of a casino's 400 slot machines need service on a given day. How
+many need service tomorrow?
+
+**(e)** 40% of 200 surveyed Las Vegas visitors say they will return within a
+year. How many say so?
+
+**(f)** How long until a light bulb burns out, when bulbs fail mostly after
+long use?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Exponential. The rate is per hour; if the question is in minutes,
+$\lambda=18/60=0.3$ per minute and $\mu=1/0.3\approx3.33$ minutes.
+
+**(b)** Normal, $\mu=500$, $\sigma=2$, provided fill weights look bell-shaped
+when you check them. Fill weights on a well-run line usually do.
+
+**(c)** Uniform on $[0, 8]$ minutes: a random arrival meeting a fixed
+schedule.
+
+**(d)** A binomial count, $n=400$, $p=0.03$. Here $np=12$ and $nq=388$, so the
+normal approximation is licensed, with $\mu=12$ and
+$\sigma=\sqrt{400(0.03)(0.97)}=$ `{python} f"{sqrt(400 * 0.03 * 0.97):.2f}"`.
+The Poisson with $\lambda=12$ is licensed too, by Chapter 5's rule
+($n\ge20$, $p\le0.05$). Two approximations, one count.
+
+**(e)** A binomial count, $n=200$, $p=0.40$, approximately normal with
+$\mu=80$ and $\sigma=$ `{python} f"{sqrt(200 * 0.4 * 0.6):.2f}"`.
+
+**(f)** It looks like a waiting time, which suggests the exponential, but the
+exponential has no memory, and a bulb that fails mostly after long use is
+ageing. The exponential is the wrong model. Statisticians use other
+distributions (the Weibull is the usual one) that let the failure rate rise
+with age. Recognizing when the convenient model does not fit is the skill.
+:::
+
+# Applications
+
+**Attempt each one before opening the solution.**
+
+## Interstate speeds
+
+::: {.brown}
+Speeds on a stretch of I-15 between Las Vegas and Primm are normal with a mean
+of 72 mph and a standard deviation of 6 mph.
+
+**(a)** What share of cars are travelling above the 75 mph limit?
+
+**(b)** What share are travelling between 65 and 80 mph?
+
+**(c)** The Highway Patrol wants to set an enforcement threshold that only the
+fastest 5% of cars exceed. What speed is it?
+
+**(d)** Is the normal model reasonable for speeds on a congested weekend
+afternoon? Why or why not?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: i15
+MU_I, SD_I = 72, 6
+i15 = normal_interval_table(MU_I, SD_I, [(75, None), (65, 80)])
+print(i15[["event", "shape", "computed as", "probability"]].round(4)
+      .to_string(), "\n")
+normal_percentile_table(MU_I, SD_I, [0.95]).round(2)
+```
+
+**(a)** `{python} pct(normal_area(MU_I, SD_I, 75, None), 1)` of cars exceed
+75 mph, a right tail.
+
+**(b)** `{python} pct(normal_area(MU_I, SD_I, 65, 80), 1)`. The interval
+straddles the mean.
+
+**(c)** The 95th percentile: $72+1.645(6)=$
+`{python} f"{normal_inv(0.95, MU_I, SD_I):.1f}"` mph. The question supplies a
+share and asks for a value, so it runs the cumulative probability backwards.
+
+**(d)** Probably not. On a congested afternoon, speeds pile up near a ceiling
+set by traffic, with a long tail of very slow cars in the jams. That is a
+left-skewed distribution, and the normal model would misstate both tails.
+The parameters came from somewhere: ask whether they came from conditions like
+the ones you are asking about.
+:::
+
+## The ATM
+
+::: {.brown}
+Customers arrive at a casino-floor ATM at an average rate of 15 an hour.
+Assume the time between arrivals is exponential.
+
+**(a)** What are $\lambda$ per minute and the mean time between arrivals?
+
+**(b)** What is the probability that the next customer arrives within 3
+minutes?
+
+**(c)** In more than 7 minutes?
+
+**(d)** Between 4 and 8 minutes?
+
+**(e)** What is the median time between customers?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: atm
+atm = exponential_parameters(rate=15, per=60, to=1, unit="minute",
+                             event="customer")
+print(atm.round(4).to_string(), "\n")
+LAM_A = float(atm.iloc[0])
+atm_q = pd.DataFrame([exponential_area(LAM_A, None, 3, explain=True),
+                      exponential_area(LAM_A, 7, None, explain=True),
+                      exponential_area(LAM_A, 4, 8, explain=True)],
+                     index=list("bcd"))
+atm_q[["event", "computed as", "probability", "Excel"]].round(4)
+```
+
+**(a)** 15 an hour is $\lambda=15/60=0.25$ per minute, a mean of 4 minutes
+between customers. This is the deli counter in disguise.
+
+**(b)** to **(d)** are read from the table. Part (c) is a right tail,
+$e^{-0.25(7)}$.
+
+**(e)** $\ln 2/0.25=$ `{python} f"{exponential_percentile(0.5, LAM_A):.2f}"`
+minutes, well below the 4-minute mean.
+:::
+
+## Airport security
+
+::: {.brown}
+Suppose the time to pass through a security checkpoint at Harry Reid
+International is uniform between 5 and 30 minutes.
+
+**(a)** What is the height of the density, and what are the mean and standard
+deviation?
+
+**(b)** What is the probability that the next passenger needs less than 12
+minutes? More than 20 minutes? Exactly 15 minutes?
+
+**(c)** What time represents the 75th percentile?
+
+**(d)** Would you believe a uniform model for this? What would you expect the
+real distribution to look like?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: security
+A_S, B_S = 5, 30
+print(f"(a) f(x) = 1/(30 - 5) = {uniform_pdf(10, A_S, B_S):.2f};  "
+      f"mean = {uniform_mean(A_S, B_S):.1f};  sd = {uniform_sd(A_S, B_S):.4f}")
+print(f"(b) P(x < 12) = (12 - 5)/25 = {uniform_area(A_S, B_S, None, 12):.2f}")
+print(f"    P(x > 20) = (30 - 20)/25 = {uniform_area(A_S, B_S, 20, None):.2f}")
+print(f"    P(x = 15) = 0, a single point")
+print(f"(c) 75th percentile = 5 + 0.75(25) = {uniform_percentile(0.75, A_S, B_S):.2f} minutes")
+```
+
+**(d)** Hard to believe. A uniform model says a 6-minute wait is exactly as
+likely as a 29-minute wait, and that nobody ever waits 31. Real queues produce
+right-skewed waiting times: most people get through fairly quickly, and a
+minority wait a long time when lines build. The uniform model is the
+textbook's convenience. When a question hands you a distribution, ask whether
+you would have chosen it.
+:::
+
+# Statistical Laboratory
+
+The distributions in this chapter are **data generating mechanisms**: rules
+that produce samples. Each section above computed what the mechanism
+implies. Here we run each mechanism and compare the sample with the theory.
+
+```{python}
+#| label: lab-draws
+#| layout-ncol: 3
+lab_n = simulate("normal", draws=10_000, mu=10, sigma=4)
+lab_e = simulate("exponential", draws=10_000, lam=0.5)
+lab_u = simulate("uniform", draws=10_000, a=10, b=35)
+g1 = np.linspace(-6, 26, 400)
+_ = density_histogram(lab_n, g1, normal_pdf(g1, 10, 4), title="Normal(10, 4)",
+                      figsize=(4.2, 3.4))
+g2 = np.linspace(0, 16, 400)
+_ = density_histogram(lab_e, g2, exponential_pdf(g2, 0.5),
+                      title="Exponential, lambda = 0.5", figsize=(4.2, 3.4))
+g3 = np.linspace(5, 40, 400)
+_ = density_histogram(lab_u, g3, uniform_pdf(g3, 10, 35),
+                      title="Uniform(10, 35)", figsize=(4.2, 3.4))
+```
+
+```{python}
+#| label: lab-moments
+pd.DataFrame({
+    "sample mean": [lab_n.mean(), lab_e.mean(), lab_u.mean()],
+    "true mean": [10, 1 / 0.5, uniform_mean(10, 35)],
+    "sample sd": [lab_n.std(), lab_e.std(), lab_u.std()],
+    "true sd": [4, 1 / 0.5, uniform_sd(10, 35)],
+}, index=["normal", "exponential", "uniform"]).round(4)
+```
+
+Each histogram is drawn on the density scale, so its bars have total area 1
+and can be laid under the curve. The samples follow their curves, and the
+sample means and standard deviations are close to the true values. For the
+exponential, note what "true" means: with $\lambda=0.5$, both the mean and the
+standard deviation are $1/\lambda=2$, not 0.5.
+
+How close is close, and how does it depend on the sample size? Below, for
+each sample size, we draw 2,000 samples and record how far the sample mean and
+the sample standard deviation land from the truth, on average.
+
+```{python}
+#| label: lab-precision
+prec = pd.concat({
+    "normal(10, 4)": sample_vs_theory("normal", mu=10, sigma=4),
+    "exponential(0.5)": sample_vs_theory("exponential", lam=0.5),
+    "uniform(10, 35)": sample_vs_theory("uniform", a=10, b=35),
+})
+prec.round(4)
+```
+
+::: {.charcoal}
+In every case the average error shrinks as the sample grows, and it shrinks
+in a regular way: a sample 100 times larger has errors about 10 times smaller.
+That pattern, error proportional to $1/\sqrt{n}$, is the subject of Chapter 7,
+and it is the reason a sample of a few thousand voters can describe a country.
+Notice also that the standard deviation is estimated less precisely than the
+mean, and least precisely for the skewed exponential, where the occasional
+very long wait moves the sample standard deviation around.
+:::
+
+# Appendix: Where the Formulas Come From
+
+You will not be asked to derive these. They are here for anyone who wants to
+see that the formulas in the blue boxes are consequences of the densities,
+not additional facts to memorize. For a continuous random variable, the mean
+is the density-weighted average of $x$:
+
+$$E[x]=\int x\,f(x)\,dx,$$
+
+the continuous version of $\sum x\,P(x)$ from Chapter 5, and the variance is
+$E[x^2]-(E[x])^2$, the continuous version of Chapter 5's shortcut formula.
+
+### The uniform distribution
+
+With $f(x)=1/(b-a)$ on $[a,b]$,
+
+$$E[x]=\int_a^b\frac{x}{b-a}\,dx=\frac{b^2-a^2}{2(b-a)}=\frac{(b-a)(b+a)}{2(b-a)}=\frac{a+b}{2},$$
+
+$$E[x^2]=\int_a^b\frac{x^2}{b-a}\,dx=\frac{b^3-a^3}{3(b-a)}=\frac{a^2+ab+b^2}{3},$$
+
+$$\sigma^2=\frac{a^2+ab+b^2}{3}-\frac{(a+b)^2}{4}
+=\frac{4a^2+4ab+4b^2-3a^2-6ab-3b^2}{12}=\frac{(b-a)^2}{12}.$$
+
+So $\sigma=(b-a)/\sqrt{12}$.
+
+### The exponential distribution
+
+With $f(x)=\lambda e^{-\lambda x}$ on $[0,\infty)$, integrate by parts with
+$u=x$ and $dv=\lambda e^{-\lambda x}dx$, so that $du=dx$ and
+$v=-e^{-\lambda x}$:
+
+$$E[x]=\int_0^\infty x\,\lambda e^{-\lambda x}\,dx
+=\Big[-x e^{-\lambda x}\Big]_0^\infty+\int_0^\infty e^{-\lambda x}\,dx
+=0+\Big[-\tfrac{1}{\lambda}e^{-\lambda x}\Big]_0^\infty=\frac{1}{\lambda}.$$
+
+The same step applied twice gives $E[x^2]=2/\lambda^2$, so
+$\sigma^2=2/\lambda^2-1/\lambda^2=1/\lambda^2$ and $\sigma=1/\lambda$: the
+mean and the standard deviation are equal. The cumulative probability is the
+area from 0 to $a$:
+
+$$P(x\le a)=\int_0^a\lambda e^{-\lambda x}\,dx=\Big[-e^{-\lambda x}\Big]_0^a=1-e^{-\lambda a}.$$
+
+Setting $1-e^{-\lambda x}=p$ and solving gives the percentile,
+$x=-\ln(1-p)/\lambda$.
+
+### The normal distribution
+
+Substitute $z=(x-\mu)/\sigma$, so $x=\mu+\sigma z$ and the density becomes the
+standard normal density $\phi(z)=e^{-z^2/2}/\sqrt{2\pi}$:
+
+$$E[x]=\int_{-\infty}^{\infty}(\mu+\sigma z)\,\phi(z)\,dz
+=\mu\int_{-\infty}^{\infty}\phi(z)\,dz+\sigma\int_{-\infty}^{\infty}z\,\phi(z)\,dz
+=\mu\cdot1+\sigma\cdot0=\mu.$$
+
+The first integral is the total area under a density, which is 1. The second
+is 0 by symmetry: $z\,\phi(z)$ takes equal and opposite values at $z$ and
+$-z$, so the area to the left of zero cancels the area to the right. No
+special functions are needed.
+
+# Laboratory 6
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 6 pack](../upload_packs/lab-6-chapter-06.zip)** — one
+file. Unzip it and you will have a folder holding 7 files. Drag all 7
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 7 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `06_continuous_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 6 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `06_continuous_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+The lab script answers the questions in this note. The skill to practice is
+getting a *new* question answered and checking the answer. Try this, with your
+own numbers in place of mine:
+
+::: {.prompt}
+Prompt
+
+> A casino cage averages 45 customers per hour, and the time between
+> customers is exponential. By running code, find (1) the probability that
+> the next customer arrives within 30 seconds, and (2) the time between
+> customers that 90% of gaps are shorter than. Before you compute anything,
+> tell me the value of lambda you are using, in which time unit, and why.
+> Then show the code, its output, and the equivalent Excel formula for (1).
+> Draw the density with the area for (1) shaded, and label the vertical axis
+> correctly.
+:::
+
+Check four things in the reply: that $\lambda$ was converted to the time unit
+of the question (30 seconds is half a minute, or 1/120 of an hour), that the
+Excel formula passes the **rate** to `EXPON.DIST` and not the mean, that the
+vertical axis of the chart says density rather than probability, and that the
+numbers came from executed code.
+
+A second one, for the normal distribution:
+
+::: {.prompt}
+Prompt
+
+> Daily covers (meals served) at a Summerlin restaurant are normal with a
+> mean of 340 and a standard deviation of 45. By running code, find the
+> probability of more than 400 covers, of between 300 and 360, and the number
+> of covers the restaurant should prep for to meet demand on 95% of days.
+> For each one, say which shape of interval it is (left tail, right tail,
+> straddles the mean, entirely above or below the mean), give the Excel
+> formula, and shade it on a chart.
+:::
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook with three sheets, one each for the normal,
+> exponential, and uniform distributions. On each sheet, the parameters
+> (mean and standard deviation; lambda; or a and b) are editable input cells
+> at the top, along with a lower and an upper bound for a question. Below
+> them, compute P(X < upper), P(X > lower), and P(lower < X < upper) with real
+> formulas that reference the input cells (NORM.DIST and EXPON.DIST, and the
+> width formula for the uniform), plus the mean, the standard deviation, and
+> a cell where I type a share p and get the percentile back (NORM.INV, and the
+> closed-form formulas for the other two). Add a line chart of the density
+> over a sensible range, with the vertical axis titled "density". Pre-fill the
+> normal sheet with mean 12 and standard deviation 3 from my Chapter 6 lecture
+> notes. Give me the file to download.
+:::
+
+On the normal sheet, set the bounds to 9 and 15, then 6 and 18, then 3 and 21,
+and confirm the empirical rule's 68%, 95%, and 99.7%. Then set the standard
+deviation to 6 and watch the chart flatten while the area stays 1. Answer in
+one paragraph: if a manager told you she wanted the curve to be "higher" so
+that more calls fell near 12 minutes, which parameter would she need to
+change, and in which direction?

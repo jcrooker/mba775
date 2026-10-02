@@ -112,6 +112,18 @@ LABS = {
                     "_dist.py"],
         "data": ["nevada_economy.csv"],
     },
+    "lab-6-chapter-06": {
+        "chapter": 6,
+        "topic": "continuous probability distributions",
+        "run": {"06_continuous_distributions.py":
+                "density versus probability, normal probabilities and "
+                "percentiles, whether data are normal enough, the normal "
+                "approximation to the binomial, and the exponential and "
+                "uniform distributions"},
+        "scripts": ["06_continuous_distributions.py", "_course.py",
+                    "_stats.py", "_dist.py", "_cont.py"],
+        "data": ["nevada_economy.csv"],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

@@ -24,6 +24,7 @@ __all__ = [
     "ogive", "heatmap", "stem_and_leaf", "scatter", "time_series",
     "box_plot", "normal_curve", "returns_bar",
     "probability_tree", "convergence_plot", "venn", "pmf_chart",
+    "density_chart", "density_histogram", "approximation_chart",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -812,6 +813,151 @@ def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
     if ymax is not None:
         ax.set_ylim(0, ymax)
     _finish(ax, title, xlab, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"x": x, "probability": p})
+
+
+# ---------------------------------------------------------------------------
+# Continuous distributions (Chapter 6)
+# ---------------------------------------------------------------------------
+
+_CURVE_COLORS = [UNLV_SCARLET, "#333333", "#9FA1A4", "#d9822b"]
+
+
+def density_chart(x, curves, shade=None, area=None, title=None, xlab="x",
+                  ylab="density, f(x)", z_scale=None, mark=None,
+                  ymax=None, figsize=(9, 4.5)):
+    """One or more probability density curves, with an interval shaded.
+
+    `x` is the grid of values and `curves` maps a label to the density at
+    each grid point. `shade=(lower, upper)` shades the area under the FIRST
+    curve between the two values; use None for an open end. `area` is the
+    probability of that interval, printed on the chart, because the shaded
+    AREA is the probability and the height of the curve is not.
+
+    The vertical axis is labelled as a density on purpose. A density is a
+    height, it can exceed 1, and it is not the probability of anything.
+
+    `z_scale=(mu, sigma)` adds a second horizontal axis in z-score units, so
+    the original scale and the standardized scale can be read off one
+    picture. `mark` is a list of x values to draw as dashed reference lines.
+    """
+    x = np.asarray(x, dtype=float)
+    if not isinstance(curves, dict):
+        curves = {None: curves}
+    fig, ax = plt.subplots(figsize=figsize)
+    first = None
+    for i, (label, f) in enumerate(curves.items()):
+        f = np.asarray(f, dtype=float)
+        if first is None:
+            first = f
+        ax.plot(x, f, color=_CURVE_COLORS[i % len(_CURVE_COLORS)],
+                linewidth=2.2 if i == 0 else 1.8, label=label)
+    if shade is not None:
+        lo = x.min() if shade[0] is None else shade[0]
+        hi = x.max() if shade[1] is None else shade[1]
+        mask = (x >= lo) & (x <= hi)
+        ax.fill_between(x[mask], first[mask], color=UNLV_SCARLET, alpha=0.30,
+                        linewidth=0)
+        for edge in (shade[0], shade[1]):
+            if edge is not None:
+                ax.axvline(edge, color=UNLV_SCARLET, linewidth=1.0,
+                           linestyle=":")
+        if area is not None:
+            # A corner label, on the side away from the shading, stays legible
+            # however narrow the shaded slice is.
+            right_side = (lo + hi) / 2 > (x.min() + x.max()) / 2
+            ax.text(0.02 if right_side else 0.98, 0.92,
+                    f"shaded area = {area:.4f}", transform=ax.transAxes,
+                    ha="left" if right_side else "right", fontsize=10,
+                    color="#1a1a1a", fontweight="600",
+                    bbox=dict(facecolor="white", edgecolor=UNLV_SCARLET,
+                              boxstyle="round,pad=0.3"))
+    for m in (mark or []):
+        ax.axvline(m, color=UNLV_GRAY, linestyle="--", linewidth=1.0)
+    if any(label is not None for label in curves):
+        ax.legend(frameon=False, fontsize=9)
+    if ymax is None:
+        # Headroom above the tallest curve, so the area label never sits on it.
+        ymax = 1.22 * max(float(np.nanmax(np.asarray(f, dtype=float)))
+                          for f in curves.values())
+    ax.set_ylim(0, ymax)
+    ax.set_xlim(x.min(), x.max())
+    _finish(ax, title, xlab, ylab)
+    if z_scale is not None:
+        mu, sigma = z_scale
+        top = ax.secondary_xaxis(
+            "top", functions=(lambda v: (v - mu) / sigma,
+                              lambda z: mu + z * sigma))
+        top.set_xlabel("z = (x - mu) / sigma", color=UNLV_GRAY)
+        top.tick_params(colors=UNLV_GRAY)
+    fig.tight_layout()
+    plt.show()
+    out = pd.DataFrame({"x": x})
+    for label, f in curves.items():
+        out[label if label is not None else "density"] = np.asarray(f)
+    return out
+
+
+def density_histogram(data, x=None, density=None, bins=40, title=None,
+                      xlab="x", curve_label="theoretical density",
+                      bar_label="sample", figsize=(9, 4.5)):
+    """A histogram drawn on the DENSITY scale, so that it can sit under a
+    density curve and be compared with it. Bar areas sum to 1, just as the
+    area under the curve does.
+
+    Pass `x` and `density` to draw the theoretical curve on top.
+    """
+    s = pd.Series(data, dtype=float).dropna()
+    fig, ax = plt.subplots(figsize=figsize)
+    heights, edges, _ = ax.hist(s, bins=bins, density=True,
+                                color="#c9c9c9", edgecolor="white",
+                                label=bar_label)
+    if x is not None and density is not None:
+        ax.plot(x, density, color=UNLV_SCARLET, linewidth=2.2,
+                label=curve_label)
+    ax.legend(frameon=False, fontsize=9)
+    _finish(ax, title, xlab, "density")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"lower": edges[:-1], "upper": edges[1:],
+                         "density": heights})
+
+
+def approximation_chart(x, probabilities, mu, sigma, highlight=None,
+                        shade=None, title=None, xlab="x",
+                        figsize=(10, 4.5)):
+    """A binomial distribution as bars with its normal approximation drawn
+    over it.
+
+    Bars in `highlight` are the whole numbers the question asks about, drawn
+    in scarlet. `shade=(lower, upper)` shades the area under the normal curve
+    that stands in for them, which, after the continuity correction, runs
+    from half a unit below the first bar to half a unit above the last.
+    """
+    x = np.asarray(list(x), dtype=float)
+    p = np.asarray(list(probabilities), dtype=float)
+    chosen = set(highlight or [])
+    colors = [UNLV_SCARLET if v in chosen else "#d9d9d9" for v in x]
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.bar(x, p, width=1.0, color=colors, edgecolor="white", alpha=0.85,
+           label="binomial P(X = x)")
+    grid = np.linspace(x.min() - 0.5, x.max() + 0.5, 800)
+    curve = np.exp(-0.5 * ((grid - mu) / sigma) ** 2) / (sigma * np.sqrt(2 * np.pi))
+    ax.plot(grid, curve, color="black", linewidth=1.8,
+            label=f"normal, mean {mu:.2f}, sd {sigma:.2f}")
+    if shade is not None:
+        lo = grid.min() if shade[0] is None else shade[0]
+        hi = grid.max() if shade[1] is None else shade[1]
+        m = (grid >= lo) & (grid <= hi)
+        ax.fill_between(grid[m], curve[m], facecolor="none",
+                        edgecolor="black", hatch="///", linewidth=0,
+                        zorder=3, label="normal area used")
+    ax.legend(frameon=False, fontsize=9)
+    if len(x) <= 30:
+        ax.set_xticks(x)
+    _finish(ax, title, xlab, "probability (bars) / density (curve)")
     fig.tight_layout()
     plt.show()
     return pd.DataFrame({"x": x, "probability": p})
