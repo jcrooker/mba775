@@ -11,6 +11,7 @@ into a Claude conversation.
     lab-5-chapter-05/   Chapter 5 - discrete probability distributions
     lab-6-chapter-06/   Chapter 6 - continuous probability distributions
     lab-7-chapter-07/   Chapter 7 - sampling and sampling distributions
+    lab-8-chapters-08-09/   Chapter 8-9 - confidence intervals and hypothesis testing
     lab-16a-forecasting-1/   Chapter 16a - forecasting 1 - naive, moving averages, MAD
     lab-16b-forecasting-2/   Chapter 16b - forecasting 2 - exponential smoothing
     lab-16-data-tools/   Chapter 16 - getting the forecasting-challenge data

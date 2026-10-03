@@ -136,6 +136,18 @@ LABS = {
                     "_cont.py", "_samp.py"],
         "data": ["big9_faculty_1999.csv", "nevada_agi_2016_sample.csv"],
     },
+    "lab-8-chapters-08-09": {
+        "chapter": "8-9",
+        "topic": "confidence intervals and hypothesis testing",
+        "run": {"08_09_confidence_intervals_and_tests.py":
+                "t and z critical values, confidence intervals for a mean and "
+                "a proportion and what 95% means, sample size, false positives "
+                "and false negatives, t-tests and proportion tests with exact "
+                "p-values, the interval-test link, and power"},
+        "scripts": ["08_09_confidence_intervals_and_tests.py", "_course.py",
+                    "_dist.py", "_cont.py", "_samp.py", "_infer.py"],
+        "data": ["big9_faculty_1999.csv", "nevada_agi_2016_sample.csv"],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

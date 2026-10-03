@@ -25,6 +25,7 @@ __all__ = [
     "box_plot", "normal_curve", "returns_bar",
     "probability_tree", "convergence_plot", "venn", "pmf_chart",
     "density_chart", "density_histogram", "approximation_chart",
+    "interval_chart", "test_chart", "power_chart", "line_chart",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -965,3 +966,160 @@ def approximation_chart(x, probabilities, mu, sigma, highlight=None,
     fig.tight_layout()
     plt.show()
     return pd.DataFrame({"x": x, "probability": p})
+
+
+# ---------------------------------------------------------------------------
+# Confidence intervals and hypothesis tests (Chapters 8 and 9)
+# ---------------------------------------------------------------------------
+
+def interval_chart(lower, upper, truth, estimates=None, title=None,
+                   xlab="value", figsize=(9, 6.5)):
+    """Many confidence intervals stacked vertically against the true value.
+
+    Intervals that capture the truth are grey; those that miss are scarlet.
+    This is what "95% confidence" means: a statement about how often the
+    METHOD succeeds, visible as the share of grey bars.
+    """
+    lo = np.asarray(lower, dtype=float)
+    hi = np.asarray(upper, dtype=float)
+    k = len(lo)
+    hit = (lo <= truth) & (truth <= hi)
+    fig, ax = plt.subplots(figsize=figsize)
+    y = np.arange(1, k + 1)
+    ax.hlines(y[hit], lo[hit], hi[hit], color="#9FA1A4", linewidth=1.6,
+              label=f"captured the truth ({hit.sum()})")
+    ax.hlines(y[~hit], lo[~hit], hi[~hit], color=UNLV_SCARLET, linewidth=2.4,
+              label=f"missed ({(~hit).sum()})")
+    if estimates is not None:
+        e = np.asarray(estimates, dtype=float)
+        ax.plot(e, y, "o", markersize=2.5, color="#333333")
+    ax.axvline(truth, color="black", linewidth=1.4, linestyle="--",
+               label="true value = " + (f"{truth:,.0f}" if abs(truth) >= 1000
+                                         else f"{truth:.4g}"))
+    ax.set_ylim(0, k + 1)
+    ax.set_yticks([])
+    ax.legend(frameon=False, fontsize=9, loc="upper right")
+    _finish(ax, title, xlab, "sample", grid_axis="x")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"lower": lo, "upper": hi, "captured": hit})
+
+
+def test_chart(x, density, statistic, critical=None, alternative="greater",
+               p_value=None, title=None, xlab="test statistic",
+               figsize=(9, 4.5)):
+    """The null distribution of a test statistic, with the p-value shaded.
+
+    The shaded area beyond the observed statistic (both tails for a
+    two-sided test) is the p-value. Dashed grey lines mark the critical
+    values; the observed statistic is the solid black line.
+    """
+    x = np.asarray(x, dtype=float)
+    f = np.asarray(density, dtype=float)
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(x, f, color="#333333", linewidth=2.0, label="if H0 is true")
+    if alternative == "less":
+        regions = [x <= statistic]
+    elif alternative == "greater":
+        regions = [x >= statistic]
+    else:
+        a = abs(statistic)
+        regions = [x <= -a, x >= a]
+    for i, m in enumerate(regions):
+        ax.fill_between(x[m], f[m], color=UNLV_SCARLET, alpha=0.35,
+                        linewidth=0, label="p-value area" if i == 0 else None)
+    if critical is not None:
+        crits = ([-abs(critical), abs(critical)] if alternative == "two-sided"
+                 else [critical])
+        for i, c in enumerate(crits):
+            ax.axvline(c, color=UNLV_GRAY, linestyle="--", linewidth=1.2,
+                       label="critical value" if i == 0 else None)
+    ax.axvline(statistic, color="black", linewidth=1.6,
+               label=f"observed = {statistic:.3f}")
+    if alternative == "two-sided":
+        ax.axvline(-statistic, color="black", linewidth=1.0, linestyle=":")
+    if p_value is not None:
+        ax.text(0.02, 0.92, f"p-value = {p_value:.4f}",
+                transform=ax.transAxes, ha="left", fontsize=10,
+                fontweight="600", color="#1a1a1a",
+                bbox=dict(facecolor="white", edgecolor=UNLV_SCARLET,
+                          boxstyle="round,pad=0.3"))
+    ax.set_ylim(0, 1.25 * f.max())
+    ax.set_xlim(x.min(), x.max())
+    ax.legend(frameon=False, fontsize=9, loc="upper right")
+    _finish(ax, title, xlab, "density")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"x": x, "density": f})
+
+
+def power_chart(mu0, mu_true, se, cut, alternative="greater", title=None,
+                xlab="sample mean, x-bar", figsize=(9, 6.5)):
+    """Two sampling distributions on one x-axis: the one H0 claims (top) and
+    the one that is actually true (bottom). The dotted line is the critical
+    sample mean. alpha is the scarlet area of the TOP curve past the line;
+    beta is the grey area of the BOTTOM curve on the do-not-reject side.
+    One-sided tests only.
+    """
+    lo = min(mu0, mu_true) - 4 * se
+    hi = max(mu0, mu_true) + 4 * se
+    x = np.linspace(lo, hi, 801)
+
+    def dens(m):
+        return np.exp(-0.5 * ((x - m) / se) ** 2) / (se * np.sqrt(2 * np.pi))
+
+    f0, f1 = dens(mu0), dens(mu_true)
+    rej = x >= cut if alternative == "greater" else x <= cut
+    fig, (top, bot) = plt.subplots(2, 1, figsize=figsize, sharex=True)
+    top.plot(x, f0, color="#333333", linewidth=2)
+    top.fill_between(x[rej], f0[rej], color=UNLV_SCARLET, alpha=0.45,
+                     linewidth=0, label="alpha: reject a TRUE H0 (Type I)")
+    top.axvline(mu0, color=UNLV_GRAY, linewidth=1)
+    bot.plot(x, f1, color="#333333", linewidth=2)
+    bot.fill_between(x[~rej], f1[~rej], color="#9FA1A4", alpha=0.7,
+                     linewidth=0, label="beta: miss a FALSE H0 (Type II)")
+    bot.fill_between(x[rej], f1[rej], color=UNLV_SCARLET, alpha=0.18,
+                     linewidth=0, label="power = 1 - beta")
+    bot.axvline(mu_true, color=UNLV_GRAY, linewidth=1)
+    for ax, name in ((top, f"If H0 is true: mean {mu0:g}"),
+                     (bot, f"What is actually true: mean {mu_true:g}")):
+        ax.axvline(cut, color="black", linestyle=":", linewidth=1.6)
+        ax.set_yticks([])
+        ax.legend(frameon=False, fontsize=9, loc="upper right")
+        ax.set_title(name, fontsize=10, loc="left")
+        ax.set_ylim(0, 1.3 * f0.max())
+        ax.grid(False)
+    bot.set_xlabel(xlab)
+    if title:
+        fig.suptitle(title, color=UNLV_SCARLET, fontsize=12, fontweight="600")
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({"x": x, "H0 density": f0, "true density": f1})
+
+
+def line_chart(x, series, title=None, xlab=None, ylab=None, hlines=None,
+               vlines=None, ylim=None, markers=True, figsize=(9, 4.5)):
+    """One or more lines on a shared x-axis. `series` maps a label to the y
+    values. `hlines` / `vlines` are reference values drawn dashed grey."""
+    fig, ax = plt.subplots(figsize=figsize)
+    if not isinstance(series, dict):
+        series = {None: series}
+    for i, (label, y) in enumerate(series.items()):
+        ax.plot(list(x), list(y), color=_CURVE_COLORS[i % len(_CURVE_COLORS)],
+                linewidth=2.2, marker="o" if markers else None,
+                markersize=4, label=label)
+    for h in (hlines or []):
+        ax.axhline(h, color=UNLV_GRAY, linestyle="--", linewidth=1)
+    for v in (vlines or []):
+        ax.axvline(v, color=UNLV_GRAY, linestyle="--", linewidth=1)
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+    if any(label is not None for label in series):
+        ax.legend(frameon=False, fontsize=9)
+    _finish(ax, title, xlab, ylab, grid_axis="both")
+    fig.tight_layout()
+    plt.show()
+    out = pd.DataFrame({"x": list(x)})
+    for label, y in series.items():
+        out[label if label is not None else "y"] = list(y)
+    return out

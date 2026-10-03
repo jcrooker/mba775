@@ -1,0 +1,1536 @@
+---
+title: "Confidence Intervals and Hypothesis Testing"
+subtitle: "Chapters 8 and 9"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (density_chart, density_histogram, interval_chart,
+                     test_chart, power_chart, line_chart,
+                     UNLV_SCARLET, UNLV_GRAY)
+from _cont import normal_pdf, normal_cdf, normal_inv
+from _samp import simple_random_sample
+from _infer import (t_pdf, t_cdf, t_inv, critical_value,
+                    critical_value_table, mean_interval,
+                    mean_interval_from_data, proportion_interval,
+                    interval_levels_table, interval_sizes_table,
+                    sample_size_mean, sample_size_proportion,
+                    sample_size_table, p_value, t_test, t_test_from_data,
+                    z_test, proportion_test, interval_test_agreement,
+                    critical_mean, power_mean, power_table, power_by_n,
+                    n_for_power, alpha_beta_table, simulate_intervals,
+                    simulate_t_statistics, t_tail_rates,
+                    simulate_rejections, error_table, excel_crosswalk)
+
+warnings.filterwarnings("ignore")
+np.seterr(all="ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+pd.set_option("display.max_colwidth", 70)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def money(x, decimals=0):
+    """Dollars for prose. Quarto escapes the dollar sign in inline output
+    itself, so it must not be escaped here."""
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x):,.{decimals}f}"
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`."""
+    print(f"$${latex}$$\n")
+
+
+def tidy(obj, digits=4):
+    """Round the numbers in a result for display, leaving text, whole
+    numbers, and True/False alone."""
+    def r(v):
+        if isinstance(v, (bool, np.bool_)):
+            return bool(v)
+        if isinstance(v, (float, np.floating)):
+            return int(v) if float(v).is_integer() and abs(v) >= 1 else round(float(v), digits)
+        return v
+    if isinstance(obj, pd.DataFrame):
+        return obj.astype(object).apply(lambda col: col.map(r))
+    return obj.astype(object).map(r)
+
+
+def numbers(series, digits=4):
+    """A result Series as a one-column table, without the prose fields."""
+    keep = series.drop(labels=[k for k in ("conclusion",) if k in series])
+    return tidy(keep, digits).to_frame("value")
+
+
+def mnum(x, decimals=0):
+    """A number with thousands separators that LaTeX will not mangle."""
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+faculty = pd.read_csv("data/big9_faculty_1999.csv")
+agi = pd.read_csv("data/nevada_agi_2016_sample.csv")["AGI"].dropna()
+MU_FAC = float(faculty["salary"].mean())
+```
+
+## Objectives
+
++ Distinguish a point estimate from an interval estimate, and say what the
+  "95%" in a 95% confidence interval does and does not mean.
++ Build and interpret a confidence interval for a mean (with $t$, and with
+  $z$ when $\sigma$ is known) and for a proportion.
++ Explain how the confidence level, the variability of the data, and the
+  sample size each move the margin of error, and find the sample size a
+  target margin requires.
++ State null and alternative hypotheses from a claim, before seeing the
+  data, and choose between a one-tailed and a two-tailed test.
++ Define Type I and Type II errors as **false positives** and **false
+  negatives**, with their probabilities $\alpha$ and $\beta$.
++ Calculate and correctly interpret a p-value for a $t$-test of a mean and a
+  $z$-test of a proportion.
++ Use the link between a confidence interval and a two-tailed test.
++ Calculate and interpret the power of a test, and say how $\alpha$, the
+  true effect, and $n$ change it.
++ Tell statistical significance from practical importance.
+
+::: {.charcoal}
+Chapter 7 asked: if we knew the population, how would a sample statistic
+behave? These two chapters turn that question around. A manager holds *one*
+sample and wants to say something about the population she cannot see. She
+wants either a range for the unknown value ("average order size is between
+\$118 and \$141") or a verdict on a claim ("the new kiosks really are faster
+than five minutes").
+
+Both answers come from one piece of machinery, built from the standard error
+of Chapter 7:
+
+$$\text{estimate}\ \pm\ (\text{critical value})\times(\text{standard error}).$$
+
+Read as a range, it is a **confidence interval** (Chapter 8). Solved for
+$n$, it tells you **how large a sample** to take (Chapter 8). Rearranged as
+$(\text{estimate}-\text{claimed value})/\text{standard error}$, it is the
+**test statistic** of a hypothesis test, and its tail area is the
+**p-value** (Chapter 9). One engine, three uses. That is why we can cover
+two chapters in one week, and it is the thread to hold on to.
+
+As before, you will not compute these by hand on an exam. You will be handed
+output, from Excel or from code, and asked what it means.
+:::
+
+# Part I: Confidence Intervals (Chapter 8)
+
+## Point estimates and interval estimates
+
+::: {.blue}
+A **point estimate** is a single number computed from a sample to estimate a
+population parameter: the sample mean $\bar{x}$ for $\mu$, the sample
+proportion $\hat{p}$ for $p$.
+
+An **interval estimate**, or **confidence interval**, is a range of values,
+computed from the sample, constructed by a method that captures the
+parameter in a stated share of samples, the **confidence level**, such as
+95%.
+:::
+
+A point estimate is the best single guess, and it is almost certainly
+wrong: Chapter 7 showed that $\bar{x}$ lands above or below $\mu$ by a
+sampling error that changes from sample to sample. A point estimate says
+nothing about how wrong it is likely to be. The interval does, and its
+half-width has a name.
+
+::: {.blue}
+The **margin of error** is the distance from the point estimate to either end
+of a confidence interval:
+
+$$\text{margin of error}=(\text{critical value})\times(\text{standard error}),\qquad
+\text{interval}=\text{estimate}\pm\text{margin of error}.$$
+:::
+
+## The three intervals of this week
+
+| Parameter | Estimate | Standard error | Critical value | Excel margin of error |
+|---|---|---|---|---|
+| mean, $\sigma$ known | $\bar{x}$ | $\sigma/\sqrt{n}$ | $z_{\alpha/2}$ | `=CONFIDENCE.NORM(alpha, sigma, n)` |
+| mean, $\sigma$ unknown (the usual case) | $\bar{x}$ | $s/\sqrt{n}$ | $t_{\alpha/2,\,n-1}$ | `=CONFIDENCE.T(alpha, s, n)` |
+| proportion | $\hat{p}=x/n$ | $\sqrt{\hat{p}(1-\hat{p})/n}$ | $z_{\alpha/2}$ | `=NORM.S.INV(1-alpha/2)*SE` |
+
+Here $\alpha=1-\text{confidence level}$, so a 95% interval has $\alpha=0.05$,
+split as 0.025 in each tail. If the sample is more than 5% of a finite
+population, multiply the standard error by the finite population correction
+$\sqrt{(N-n)/(N-1)}$ exactly as in Chapter 7 (Section 8.6 of the text works
+an example).
+
+### When $\sigma$ is known
+
+Your textbook starts here because the arithmetic is simplest. QVC samples 32
+orders: $\bar{x}=\$129.20$, and the population standard deviation is taken
+to be known, $\sigma=\$40.60$.
+
+```{python}
+#| label: qvc
+qvc = interval_levels_table(129.2, 40.60, 32, levels=(0.90, 0.95, 0.99),
+                            sigma_known=True)
+qvc.round(3)
+```
+
+```{python}
+#| label: qvc-stats
+#| include: false
+q95 = qvc.loc["95%"]
+q90, q99 = qvc.loc["90%"], qvc.loc["99%"]
+```
+
+::: {.charcoal}
+At 95%, we estimate that the average QVC order is between
+`{python} money(q95["lower"], 2)` and `{python} money(q95["upper"], 2)`.
+Asking for 99% confidence widens the interval to
+`{python} money(q99["width"], 2)`, against `{python} money(q90["width"], 2)`
+at 90%. **More confidence costs width.** The sample is the same in every
+row; only the promise changed. (The textbook prints slightly different
+limits because it rounds the standard error to 7.173 before multiplying.)
+:::
+
+In practice $\sigma$ is almost never known. If you knew the population's
+standard deviation you would very likely know its mean too, and there would
+be nothing to estimate. The realistic case replaces $\sigma$ with $s$, and
+that changes the critical value.
+
+## When $\sigma$ is unknown: the Student's $t$-distribution
+
+::: {.blue}
+When the sample standard deviation $s$ replaces $\sigma$, the standardized
+mean
+
+$$t=\frac{\bar{x}-\mu}{s/\sqrt{n}}$$
+
+follows the **Student's $t$-distribution** with $n-1$ **degrees of freedom**
+(df), provided the population is normal. The degrees of freedom count the
+values free to vary once $\bar{x}$ is fixed: knowing the mean and $n-1$ of the
+values pins down the last one.
+:::
+
+**Properties of the $t$-distribution**
+
++ Bell-shaped and symmetric around 0, with total area 1.
++ Flatter in the middle and **heavier in the tails** than the normal,
+  because $s$ itself varies from sample to sample and adds uncertainty.
++ A family of curves, one for each df. As df grows, $s$ becomes a reliable
+  stand-in for $\sigma$ and $t$ approaches the standard normal.
++ So the critical $t$ is always **larger** than the critical $z$ for the
+  same confidence, and $t$-intervals are wider.
+
+```{python}
+#| label: t-curves
+tx = np.linspace(-4.5, 4.5, 601)
+_ = density_chart(tx, {"t, df = 3": t_pdf(tx, 3), "t, df = 10": t_pdf(tx, 10),
+                       "t, df = 30": t_pdf(tx, 30),
+                       "standard normal": normal_pdf(tx)},
+                  title="The t-distribution has heavier tails than the normal",
+                  xlab="t or z")
+```
+
+```{python}
+#| label: t-table
+critical_value_table().round(3)
+```
+
+```{python}
+#| label: t-table-stats
+#| include: false
+t10, t30, t100 = (critical_value(0.95, df=d) for d in (10, 30, 100))
+```
+
+::: {.charcoal}
+At 95% confidence the critical value is `{python} f"{t10:.3f}"` with 10 df,
+`{python} f"{t30:.3f}"` with 30, and `{python} f"{t100:.3f}"` with 100,
+against 1.960 for $z$. With small samples the difference matters; past a
+hundred or so degrees of freedom it is cosmetic. Excel's
+`=T.INV.2T(0.05, df)` returns these values.
+:::
+
+::: {.brown}
+William Sealy Gosset worked out this distribution in 1908 while testing
+barley and hops for the Guinness brewery in Dublin, where samples were small
+and expensive. Guinness did not let its staff publish under their own names,
+so he signed the paper "Student." The most-used small-sample method in
+statistics came out of quality control in a business.
+:::
+
+### Application: Big Ten faculty salaries
+
+In Chapter 7 we met the 215 economics faculty at Big Ten universities in
+1999. Because we have the whole population, we know the true mean salary,
+`{python} money(MU_FAC)`, and can check our interval against it. Pretend we
+can afford to look at only 30 of them.
+
+```{python}
+#| label: fac-ci
+fac_srs = simple_random_sample(faculty, 30, seed=21)["salary"]
+fac_ci = mean_interval_from_data(fac_srs, 0.95)
+numbers(fac_ci)
+```
+
+```{python}
+#| label: fac-ci-math
+#| echo: false
+#| output: asis
+show_math(rf"\bar{{x}}\pm t_{{0.025,\,29}}\frac{{s}}{{\sqrt{{n}}}}="
+          rf"{mnum(fac_ci['estimate (x-bar)'])}\pm {fac_ci['critical value']:.3f}"
+          rf"\times\frac{{{mnum(fac_ci['s (sample sd)'])}}}{{\sqrt{{30}}}}="
+          rf"{mnum(fac_ci['estimate (x-bar)'])}\pm{mnum(fac_ci['margin of error'])}")
+```
+
+::: {.charcoal}
+We estimate, with 95% confidence, that the mean salary of the 215 faculty is
+between `{python} money(fac_ci["lower"])` and
+`{python} money(fac_ci["upper"])`. The true mean,
+`{python} money(MU_FAC)`, is
+`{python} "inside" if fac_ci["lower"] <= MU_FAC <= fac_ci["upper"] else "outside"`
+this interval. `{python} ("This particular sample ran " + ("high" if fac_ci["estimate (x-bar)"] > MU_FAC else "low") + ", by " + money(abs(fac_ci["estimate (x-bar)"] - MU_FAC)) + ", and the interval still reached the truth with " + money(min(MU_FAC - fac_ci["lower"], fac_ci["upper"] - MU_FAC)) + " to spare." if fac_ci["lower"] <= MU_FAC <= fac_ci["upper"] else "This particular sample missed. Nothing went wrong with the arithmetic.")`
+Whether a given interval catches the truth is a matter of luck. How often
+the method catches it is not, as the next section shows.
+:::
+
+::: {.brown}
+The textbook's Dr. Gregg samples 18 patients and finds a mean of 100.3 with a
+sample standard deviation of 16.6. Find the 95% confidence interval for the
+population mean, and write the Excel formula for its margin of error. What
+must be true of the population for this interval to be trustworthy with
+only 18 observations?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: gregg
+gregg = mean_interval(100.3, 16.6, 18, 0.95)
+numbers(gregg)
+```
+
+The interval is `{python} f"{gregg['lower']:.2f}"` to
+`{python} f"{gregg['upper']:.2f}"`, with $t_{0.025,17}=$
+`{python} f"{gregg['critical value']:.3f}"`. The margin of error is
+`=CONFIDENCE.T(0.05, 16.6, 18)`. With $n=18$ the Central Limit Theorem
+cannot be relied on, so the population itself must be close to normal.
+:::
+
+## What "95% confident" means
+
+::: {.scarlet}
+**A confidence interval is not a probability statement about $\mu$.** Once
+the sample is drawn, the interval is fixed and so is $\mu$: the interval
+either contains $\mu$ or it does not. There is nothing left to be random. It
+is wrong to say "there is a 95% probability that $\mu$ is between
+`{python} money(fac_ci["lower"])` and `{python} money(fac_ci["upper"])`."
+:::
+
+::: {.blue}
+The **confidence level** describes the **method**, not any one interval: if
+we drew sample after sample and built an interval from each in the same way,
+95% of those intervals would capture $\mu$. The share that miss is $\alpha$.
+"We are 95% confident" is shorthand for "this interval came from a method
+that works 95% of the time."
+:::
+
+We can watch the method work, because for the faculty we know $\mu$. Each
+horizontal line below is the 95% $t$-interval from a fresh sample of 30
+(drawn with replacement, so the population behaves as if it were infinite).
+
+```{python}
+#| label: coverage-100
+cov100 = simulate_intervals(faculty["salary"].to_numpy(), 30, MU_FAC,
+                            level=0.95, reps=100, seed=8)
+_ = interval_chart(cov100["lower"], cov100["upper"], MU_FAC,
+                   estimates=cov100["x-bar"],
+                   title="100 samples of 30 faculty, 100 confidence intervals",
+                   xlab="Mean salary (dollars)")
+```
+
+```{python}
+#| label: coverage-big
+#| include: false
+cov_fac = simulate_intervals(faculty["salary"].to_numpy(), 30, MU_FAC,
+                             reps=100_000)["captured mu?"].mean()
+cov_norm = simulate_intervals(lambda rng, shape: rng.normal(100, 16, shape),
+                              30, 100, reps=100_000)["captured mu?"].mean()
+hits100 = int(cov100["captured mu?"].sum())
+```
+
+::: {.charcoal}
+`{python} hits100` of these 100 intervals captured the true mean, and
+`{python} 100 - hits100` missed (in scarlet). Nothing about a miss looks
+different from the inside: each was computed correctly from a perfectly good random
+sample. You never learn which kind you are holding. That is the price of
+estimating from a sample, and the confidence level is how you choose to pay
+it.
+
+Repeat the experiment 100,000 times and the share that capture the truth
+settles down. From a normal population it is
+`{python} pct(cov_norm, 1)`, as promised. From the faculty salaries it is
+`{python} pct(cov_fac, 1)`, a little short of 95%, because salaries are
+right-skewed and 30 observations do not fully cure that. Keep that number
+in mind for the section after next.
+:::
+
+## The margin of error and its three levers
+
+The margin of error is $(\text{critical value})\times s/\sqrt{n}$. Three
+things move it, and a manager controls two of them.
+
+1. **The confidence level.** Higher confidence means a larger critical value
+   and a wider interval (the QVC table above).
+2. **The variability of the data, $s$.** Noisier data, wider interval. You
+   rarely control this, though a better measurement process or a stratified
+   design (Chapter 7) can reduce it.
+3. **The sample size, $n$.** Larger samples, narrower intervals, but through
+   $\sqrt{n}$: to halve the margin you need about **four times** the data.
+
+```{python}
+#| label: me-sizes
+me_n = interval_sizes_table(29_500, [25, 50, 100, 200, 400, 1_600])
+me_n.round({"standard error": 1, "critical value": 3, "margin of error": 1})
+```
+
+```{python}
+#| label: me-sizes-stats
+#| include: false
+me100, me400 = me_n.loc[100, "margin of error"], me_n.loc[400, "margin of error"]
+```
+
+::: {.charcoal}
+With a standard deviation like the faculty salaries' (about \$29,500), a
+sample of 100 gives a 95% margin of error of `{python} money(me100)`;
+quadrupling to 400 gives `{python} money(me400)`, a little better than half
+because the critical $t$ also falls. Precision is expensive. The next
+section turns this around and asks how large a sample a target margin
+requires.
+:::
+
+## When is the $t$-interval trustworthy?
+
+::: {.blue}
+The $t$-interval assumes the **population is normal**. The assumption
+matters most when $n$ is small. As $n$ grows, the Central Limit Theorem makes
+$\bar{x}$ close to normal anyway, and the $t$-procedure becomes reliable for
+most populations, **but how large is "large" depends on how skewed the
+population is.**
+:::
+
+The textbook's rule of thumb is $n\ge30$. The honest version is a
+simulation. Below, we draw thousands of samples from a population whose mean
+we know, compute the $t$-statistic for each, and compare its distribution
+with the $t$-curve it is supposed to follow. On the left the population is
+normal. On the right it is the Nevada adjusted gross income file from
+Chapter 7, which is strongly right-skewed.
+
+```{python}
+#| label: t-sim-charts
+#| layout-ncol: 2
+mu_agi = float(agi.mean())
+t_norm = simulate_t_statistics(lambda rng, shape: rng.normal(0, 1, shape), 10, 0)
+t_agi = simulate_t_statistics(agi.to_numpy(), 10, mu_agi)
+grid = np.linspace(-5, 5, 401)
+_ = density_histogram(t_norm[np.abs(t_norm) < 5], grid, t_pdf(grid, 9),
+                      bins=60, title="Normal population, n = 10",
+                      xlab="t statistic", curve_label="t, df = 9")
+_ = density_histogram(t_agi[np.abs(t_agi) < 5], grid, t_pdf(grid, 9),
+                      bins=60, title="Nevada AGI (skewed), n = 10",
+                      xlab="t statistic", curve_label="t, df = 9")
+```
+
+The pictures hint at the problem; the tail counts measure it. These are the
+actual error rates of 5% one-tailed tests, which is the same as asking how
+often a one-sided 95% bound would miss.
+
+```{python}
+#| label: t-sim-rates
+rates = {}
+for name, pop, mu in (("normal", lambda rng, shape: rng.normal(0, 1, shape), 0.0),
+                      ("Nevada AGI", agi.to_numpy(), mu_agi)):
+    for n in (10, 30, 100, 400):
+        if name == "normal" and n > 30:
+            continue
+        rates[f"{name}, n = {n}"] = t_tail_rates(
+            simulate_t_statistics(pop, n, mu), n)
+tail_rates = pd.DataFrame(rates).T
+tail_rates.round(3)
+```
+
+```{python}
+#| label: t-sim-stats
+#| include: false
+agi30 = tail_rates.loc["Nevada AGI, n = 30"]
+agi400 = tail_rates.loc["Nevada AGI, n = 400"]
+```
+
+::: {.charcoal}
+With a normal population the $t$-procedure does exactly what it promises,
+even at $n=10$. With the skewed income data at $n=30$, a test that is
+supposed to be wrong 5% of the time in the lower tail is wrong
+`{python} pct(agi30["lower-tailed test rejects"], 1)` of the time, and in
+the upper tail only `{python} pct(agi30["upper-tailed test rejects"], 1)`.
+The errors pile up on one side. Even at $n=400$ the two tails are
+`{python} pct(agi400["lower-tailed test rejects"], 1)` and
+`{python} pct(agi400["upper-tailed test rejects"], 1)`. Two-tailed
+procedures fare better, because the two errors partly cancel.
+:::
+
+::: {.scarlet}
+**"$n\ge30$" is a starting point, not a guarantee.** For incomes, sales,
+claims, wait times and anything else with a long right tail, look at the
+data before trusting a $t$-interval or $t$-test, and be most careful with
+one-tailed tests. Your textbook suggests that a larger sample helps "where
+the $t$-distribution can be approximated by the normal distribution." The
+reason a larger sample helps is the Central Limit Theorem acting on
+$\bar{x}$, not $t$ turning into $z$. Chapter 12 introduces a formal check of
+normality.
+:::
+
+## A confidence interval for a proportion
+
+::: {.blue}
+For a population proportion, with $x$ successes in a sample of $n$ and
+$\hat{p}=x/n$,
+
+$$\hat{p}\pm z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} .$$
+
+The normal approximation needs enough successes and failures:
+$n\hat{p}\ge5$ and $n(1-\hat{p})\ge5$ (many texts ask for 10; the stricter
+rule is safer).
+:::
+
+The textbook surveys 175 people, of whom 116 have the characteristic of
+interest, and asks for a 99% interval.
+
+```{python}
+#| label: prop-ci
+pci = proportion_interval(116, 175, 0.99)
+numbers(pci)
+```
+
+::: {.charcoal}
+The sample proportion is `{python} f"{pci['estimate (p-hat)']:.3f}"`, and
+with 99% confidence the population proportion is between
+`{python} f"{pci['lower']:.3f}"` and `{python} f"{pci['upper']:.3f}"`, a
+margin of error of `{python} f"{pci['margin of error']:.3f}"`, or about
+`{python} f"{100 * pci['margin of error']:.0f}"` percentage points. News
+reports of polls quote this margin, almost always at 95%.
+:::
+
+::: {.scarlet}
+The standard error here uses $\hat{p}$, because the interval makes no claim
+about $p$ and $\hat{p}$ is the best we have. When we *test* a claimed
+proportion in Part II, the standard error will use the claimed value
+instead. Students mix these up more than anything else in the proportion
+material.
+:::
+
+## How large a sample do you need?
+
+This is the most practical result in Chapter 8. Set the margin of error you
+can live with, $E$, and solve for $n$.
+
+::: {.blue}
+**For a mean:** $n=\left(\dfrac{z_{\alpha/2}\,\sigma}{E}\right)^2$.
+
+**For a proportion:** $n=\dfrac{z_{\alpha/2}^2\,p(1-p)}{E^2}$.
+
+**Always round up.** Rounding down gives a margin slightly larger than you
+asked for. $\sigma$ and $p$ are *planning values* from a pilot study or past
+data. With no information about $p$, use $p=0.5$, which makes $p(1-p)$ as
+large as it can be, so the sample is never too small.
+:::
+
+```{python}
+#| label: n-examples
+pd.DataFrame({
+    "AT&T: mean, sigma = 400, E = 75, 95%": tidy(sample_size_mean(400, 75, 0.95), 3),
+    "proportion, p = 0.12, E = 0.05, 98%": tidy(sample_size_proportion(0.05, 0.98, 0.12), 3),
+    "proportion, p = 0.5, E = 0.05, 98%": tidy(sample_size_proportion(0.05, 0.98, 0.5), 3),
+}).T.fillna("")
+```
+
+```{python}
+#| label: n-stats
+#| include: false
+n_att = sample_size_mean(400, 75)
+n12 = sample_size_proportion(0.05, 0.98, 0.12)
+n50 = sample_size_proportion(0.05, 0.98, 0.5)
+```
+
+::: {.charcoal}
+AT&T needs `{python} f"{n_att['n (round UP)']:.0f}"` customers: the formula
+gives `{python} f"{n_att['(z sigma / E)^2']:.2f}"`, and 109 would fall just
+short. For the proportion, a prior estimate of 12% requires
+`{python} f"{n12['n (round UP)']:.0f}"`; with no prior information
+(p = 0.5) it takes `{python} f"{n50['n (round UP)']:.0f}"`. Knowing
+something about $p$ in advance saves more than half the sample.
+
+The textbook reports 230 and 543. It uses $z=2.33$ from its table; Excel's
+`=NORM.S.INV(0.99)` gives 2.326, and the extra precision moves each answer by
+one. Either is acceptable. Just be consistent.
+:::
+
+```{python}
+#| label: n-halving
+sample_size_table([0.08, 0.04, 0.02, 0.01], level=0.95, p=0.5)
+```
+
+::: {.charcoal}
+**Halving the margin of error quadruples the sample.** This one table
+explains why national polls settle on about 1,000 respondents (a margin
+near three points) and almost never pay for the 10,000 that would buy one
+point.
+:::
+
+::: {.brown}
+A Las Vegas resort wants to estimate the average amount a convention
+attendee spends on property, to within \$15 with 95% confidence. Last year's
+survey suggests a standard deviation of about \$110. **(a)** How many
+attendees should it survey? **(b)** It also wants the share who would return
+next year, to within 4 points at 95%, with no prior estimate. How many for
+that? **(c)** One survey will ask both questions. How many responses does it
+need?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: resort-n
+r_mean = sample_size_mean(110, 15, 0.95)
+r_prop = sample_size_proportion(0.04, 0.95, 0.5)
+pd.DataFrame({"(a) mean": tidy(r_mean, 3),
+              "(b) proportion": tidy(r_prop, 3)}).T.fillna("")
+```
+
+**(a)** `{python} f"{r_mean['n (round UP)']:.0f}"`. **(b)**
+`{python} f"{r_prop['n (round UP)']:.0f}"`. **(c)** The larger of the two,
+`{python} f"{max(r_mean['n (round UP)'], r_prop['n (round UP)']):.0f}"`, so
+that both targets are met. And in practice more than that, since not
+everyone asked will answer, a nonsampling problem (Chapter 7) that no
+formula fixes.
+:::
+
+# Part II: Hypothesis Testing (Chapter 9)
+
+## The logic of a test
+
+::: {.blue}
+A **hypothesis** is a claim about a population parameter, such as a mean or
+a proportion.
+
+The **null hypothesis**, $H_0$, is the status quo or the claim being
+tested. It always contains the equality: $=$, $\le$, or $\ge$ a specific
+value.
+
+The **alternative hypothesis**, $H_1$, is what we would conclude if the data
+are strong enough evidence against $H_0$. It never contains the equality:
+$\ne$, $<$, or $>$.
+:::
+
+A hypothesis test is a trial. $H_0$ is the defendant, presumed innocent. The
+data are the evidence. The verdict is **reject $H_0$** (guilty: the evidence
+is strong enough) or **do not reject $H_0$** (not guilty: it is not). A jury
+never declares a defendant *innocent*, only *not guilty*, because a lack of
+evidence is not proof of innocence.
+
+::: {.scarlet}
+**We never "accept" $H_0$.** Failing to reject it means the data are
+**consistent with** $H_0$, not that they show it is true. The same data are
+usually consistent with many other values too. Your textbook occasionally
+says a sample "supports the original assumption" after a failure to reject.
+Read that as "fails to contradict."
+:::
+
+## Stating the hypotheses
+
+Three claims, three setups.
+
+::: {.charcoal}
+**Time on a web page.** A study reported in the *Wall Street Journal*
+([Does the Internet Make You Smarter?](https://crooker.faculty.unlv.edu/mba775/articles/Does_the_Internet_Make_You_Smarter_-WSJ-2010-06-03.pdf)
+and
+[Does the Internet Make You Dumber?](https://crooker.faculty.unlv.edu/mba775/articles/Does_the_Internet_Make_You_Dumber_-WSJ-2010-06-04.pdf))
+says the average American looks at a web page for 56 seconds. A student
+wants to know whether UNLV students are *different*, in either direction:
+
+$$H_0:\mu=56\qquad H_1:\mu\ne56\qquad\text{(two-tailed)}$$
+
+**Light bulb life.** A lab wants evidence that a new bulb *lasts longer*
+than the industry's 8,000 hours. The claim needing evidence goes in $H_1$:
+
+$$H_0:\mu\le8{,}000\qquad H_1:\mu>8{,}000\qquad\text{(one-tailed, upper)}$$
+
+**An 18-game NFL season.** The commissioner says a majority of fans favor
+it. The players' union, which opposes it, wants evidence that the
+commissioner is wrong:
+
+$$H_0:p\ge0.5\qquad H_1:p<0.5\qquad\text{(one-tailed, lower)}$$
+:::
+
+::: {.blue}
+A **two-tailed test** has $H_1:\ne$ and looks for a difference in either
+direction. A **one-tailed test** has $H_1:<$ or $H_1:>$ and looks in one
+direction only.
+:::
+
+::: {.scarlet}
+**Choose the hypotheses and the tail before you look at the data.** $H_1$ is
+the claim that *requires evidence*, not the answer you are hoping for. A
+one-tailed p-value is half the two-tailed one, so choosing the tail after
+seeing which way the data point turns a two-tailed p of 0.08 into a
+one-tailed 0.04 and an "insignificant" result into a "significant" one. That
+is not analysis; it is a thumb on the scale. When in doubt, test two-sided.
+:::
+
+## Two ways to be wrong: false positives and false negatives
+
+Because the verdict rests on a sample, it can be wrong in two ways, and the
+two mistakes have very different costs.
+
+In the language of testing, a **positive** result is a test that **rejects
+$H_0$**: it reports that it found something, an effect, a difference, a
+disease, a fraud, a benefit. A **negative** result is a test that does
+**not** reject $H_0$: it reports that it found nothing.
+
+::: {.blue}
+A **Type I error** is a **false positive**: rejecting $H_0$ when $H_0$ is
+actually true. The test reports an effect that is not there. Its probability
+is $\alpha$, the **significance level**, which we choose:
+
+$$\alpha=P(\text{reject }H_0\mid H_0\text{ is true}).$$
+
+A **Type II error** is a **false negative**: failing to reject $H_0$ when
+$H_0$ is actually false. The test misses an effect that is there. Its
+probability is $\beta$:
+
+$$\beta=P(\text{do not reject }H_0\mid H_0\text{ is false}).$$
+
+The **power** of a test is the probability of a **true positive**,
+correctly rejecting a false $H_0$: $\text{power}=1-\beta$.
+:::
+
+```{python}
+#| label: error-table
+error_table()
+```
+
+| | $H_0$ actually true (nothing there) | $H_0$ actually false (something there) |
+|---|---|---|
+| **Courtroom** ($H_0$: innocent) | convict an innocent person: **false positive, Type I** | acquit a guilty person: **false negative, Type II** |
+| **Smoke alarm** ($H_0$: no fire) | alarm sounds, no fire: **false positive, Type I** | fire, no alarm: **false negative, Type II** |
+| **Spam filter** ($H_0$: real mail) | real mail sent to spam: **false positive, Type I** | spam reaches the inbox: **false negative, Type II** |
+| **Audit** ($H_0$: no fraud) | honest account flagged: **false positive, Type I** | fraud goes undetected: **false negative, Type II** |
+
+::: {.charcoal}
+A memory aid: a Type I error is **crying wolf** (an alarm with no wolf); a
+Type II error is **missing the wolf**. "Positive" never means "good"; it
+means the test said *yes, something is here*. A positive cancer screen is
+bad news and a positive drug trial is good news; a *false* positive is a
+wrong "yes" either way.
+:::
+
+::: {.scarlet}
+**Your textbook gets these labels backwards in one place.** The Focus on
+Analytics box on the FDA's drug approvals, at the end of Section 9.5, says
+"a Type I error (false negative)" and "a Type II error (false positive)." It
+is the other way around. With $H_0$: *the drug has no benefit*,
+
++ approving a drug that does not work is rejecting a true $H_0$: a **Type I
+  error, a false positive**;
++ refusing a drug that does work is failing to reject a false $H_0$: a
+  **Type II error, a false negative**.
+
+The box's own definitions and its decision figure are correct; only the two
+parenthetical labels are swapped. Use the definitions above on exams.
+:::
+
+::: {.charcoal}
+The FDA example is still worth reading for its point about costs. A false
+positive (a harmful or useless drug approved) produces identifiable victims
+and headlines, so regulators guard hard against it with a small $\alpha$. A
+false negative (a beneficial drug refused) produces victims nobody can
+name, people who would have been helped, so it gets less attention. A
+small $\alpha$ buys protection against the visible error at the price of a
+larger $\beta$, more of the invisible one. Which error is worse is a
+business or policy judgment, not a statistical one, and it should drive the
+choice of $\alpha$.
+:::
+
+::: {.scarlet}
+$\alpha$ is $P(\text{reject}\mid H_0\text{ true})$, the false positive rate
+*among situations where nothing is there*. It is **not** the probability that
+a rejection is a false positive, $P(H_0\text{ true}\mid\text{reject})$. That
+second number also depends on how often $H_0$ is true to begin with: the
+base-rate problem of the screening-test example in Chapter 4. If a company
+tests 100 marketing ideas and only a few really work, a good share of its
+"significant" results will be false positives even at $\alpha=0.05$.
+:::
+
+In quality control, a Type I error (rejecting a good batch) is sometimes
+called the **producer's risk** and a Type II error (accepting a bad batch)
+the **consumer's risk**. The structure is the same.
+
+$\alpha$ and $\beta$ pull against each other. For a fixed sample size,
+making it harder to cry wolf makes it easier to miss the wolf. The only way
+to reduce both at once is a larger sample. We return to this with numbers
+at the end of the chapter.
+
+## The p-value
+
+::: {.blue}
+The **p-value** is the probability, **computed assuming $H_0$ is true**, of
+getting a test statistic at least as extreme as the one observed, in the
+direction(s) of $H_1$.
+
+**Decision rule:** reject $H_0$ if $p\le\alpha$; otherwise do not reject.
+:::
+
+A small p-value says: *if* $H_0$ were true, data like ours would be rare.
+Either we saw something rare, or $H_0$ is false. Below $\alpha$, we bet on
+the second. This is the same reasoning we used to judge the commute claim in
+Chapter 7. The p-value is simply that tail probability, given a name.
+
+::: {.scarlet}
+**What the p-value is not.**
+
++ It is **not** the probability that $H_0$ is true. It is computed by
+  *assuming* $H_0$ is true, so it cannot also measure whether it is.
++ It is **not** "the confidence you have that your null hypothesis is
+  correct," as your textbook says in Section 9.2. A p-value of 0.30 does not
+  mean we are 30% sure of $H_0$.
++ It is **not** the size or importance of an effect. A tiny, worthless effect
+  can have a tiny p-value if the sample is big enough (see the end of this
+  note).
+:::
+
+Your textbook adds that a p-value "can be computed directly only for $z$."
+That was a limit of printed tables, not of the method. Excel's `T.DIST`,
+`T.DIST.RT`, and `T.DIST.2T` give exact $t$ p-values, and the book itself uses
+them in Section 9.3.
+
+## The six steps
+
+1. State $H_0$ and $H_1$ (before seeing the data).
+2. Choose $\alpha$, by weighing the cost of a false positive against a false
+   negative.
+3. Identify the test statistic and its distribution under $H_0$ (and, if you
+   use them, the critical values).
+4. Compute the test statistic from the sample.
+5. Compute the p-value and compare it with $\alpha$ (equivalently, compare
+   the statistic with the critical value).
+6. State the conclusion **in the words of the problem**, including the
+   direction, and never "accept $H_0$."
+
+For a mean with $\sigma$ unknown, the test statistic is
+
+$$t=\frac{\bar{x}-\mu_0}{s/\sqrt{n}},\qquad\text{df}=n-1,$$
+
+where $\mu_0$ is the value **claimed in $H_0$**. The numerator is not
+$\bar{x}-\mu$: we do not know $\mu$, and the whole calculation asks how far
+$\bar{x}$ is from what $H_0$ says.
+
+## Application: a one-tailed $t$-test
+
+Target pilots self-service checkout kiosks. A cashier checkout averages 5
+minutes, and Target will adopt the kiosks only if they are faster. Twelve
+kiosk checkouts average $\bar{x}=4.2$ minutes with $s=1.42$. Test at
+$\alpha=0.05$.
+
+$$H_0:\mu\ge5\qquad H_1:\mu<5$$
+
+```{python}
+#| label: target
+target = t_test(4.2, 1.42, 12, 5, "less", 0.05)
+numbers(target)
+```
+
+```{python}
+#| label: target-chart
+c_t = critical_value(alpha=0.05, tails=1, df=11)
+_ = test_chart(grid, t_pdf(grid, 11), target["test statistic t"],
+               critical=-c_t, alternative="less",
+               p_value=target["p-value"],
+               title="Kiosks: the t-distribution with 11 df, if H0 is true",
+               xlab="t")
+```
+
+::: {.charcoal}
+$t=$ `{python} f"{target['test statistic t']:.2f}"`, and the p-value is
+`{python} f"{target['p-value']:.4f}"` (Excel:
+`{python} target["Excel p-value"]`). If kiosks really took 5 minutes or
+more on average, a sample of 12 averaging 4.2 or less would turn up only
+about `{python} pct(target["p-value"], 1)` of the time. That is below
+$\alpha=0.05$, so we reject $H_0$: **the data are evidence that average
+kiosk checkout time is less than 5 minutes.** The statistic is also past the
+critical value, `{python} f"{-c_t:.3f}"`; the two comparisons always agree.
+
+Two cautions before Target rips out the registers. With $n=12$ the test
+relies on checkout times being roughly normal, and checkout times are
+usually right-skewed, exactly the case where a one-tailed test misbehaves
+(the simulation above). And "less than 5 minutes" could mean 4.9: the next
+step is a confidence interval for how much faster.
+:::
+
+## Application: a two-tailed $t$-test
+
+Nielsen says the average American watches 34.5 hours of television a week.
+Ten people average $\bar{x}=39.6$ hours with $s=16.4$. Is the claim wrong,
+in either direction? Use $\alpha=0.02$.
+
+$$H_0:\mu=34.5\qquad H_1:\mu\ne34.5$$
+
+```{python}
+#| label: nielsen
+nielsen = t_test(39.6, 16.4, 10, 34.5, "two-sided", 0.02)
+numbers(nielsen)
+```
+
+```{python}
+#| label: nielsen-chart
+c_n = critical_value(alpha=0.02, tails=2, df=9)
+_ = test_chart(grid, t_pdf(grid, 9), nielsen["test statistic t"],
+               critical=c_n, alternative="two-sided",
+               p_value=nielsen["p-value"],
+               title="Nielsen: both tails count in a two-tailed test",
+               xlab="t")
+```
+
+::: {.charcoal}
+$t=$ `{python} f"{nielsen['test statistic t']:.2f}"`. In a two-tailed test,
+a result as far *below* 34.5 would be just as much evidence against $H_0$,
+so the p-value counts both tails:
+`{python} f"{nielsen['p-value']:.3f}"` (Excel:
+`{python} nielsen["Excel p-value"]`, which needs the *absolute value* of
+$t$). That is far above 0.02, so we do not reject $H_0$: **the sample is
+not evidence that Americans' average viewing differs from 34.5 hours.**
+
+It is *not* evidence that the average **is** 34.5. Ten people with a
+standard deviation of 16 hours could hardly contradict any claim within
+several hours of 39.6. The next section makes "several hours" precise.
+:::
+
+## Tests and confidence intervals are the same calculation
+
+::: {.blue}
+A two-tailed test at significance level $\alpha$ rejects $H_0:\mu=\mu_0$
+**exactly when** $\mu_0$ lies outside the $(1-\alpha)$ confidence interval.
+The confidence interval is the set of all claimed values the test would not
+reject.
+:::
+
+```{python}
+#| label: duality
+nielsen_ci = mean_interval(39.6, 16.4, 10, 0.98)
+print(f"98% interval: {nielsen_ci['lower']:.2f} to {nielsen_ci['upper']:.2f}\n")
+interval_test_agreement(39.6, 16.4, 10, [20, 25, 34.5, 50, 55], alpha=0.02).round(4)
+```
+
+::: {.charcoal}
+The 98% interval runs from `{python} f"{nielsen_ci['lower']:.1f}"` to
+`{python} f"{nielsen_ci['upper']:.1f}"` hours. Any claim in that range
+survives a two-tailed test at $\alpha=0.02$; any claim outside it is
+rejected. Notice how wide that is: the same ten people "fail to reject"
+25 hours and 50 hours. That is why failing to reject 34.5 says so little.
+
+This is the most useful fact in these two chapters. **The interval tells you
+everything the two-tailed test does, and more**: not only whether the claim
+survives, but which other values would. When you report a test, report the
+interval too. (Your textbook does this with an iPhone price claim of \$811:
+the 95% interval $797.8\pm1.96(5.41)$ excludes 811, so the claim is
+rejected.)
+:::
+
+::: {.scarlet}
+The match is exact only for a **two-tailed** test with
+$\text{confidence}=1-\alpha$. A one-tailed test at $\alpha=0.05$ matches a
+one-sided 95% bound, or equivalently a two-sided **90%** interval.
+:::
+
+## Application: light bulbs, with the truth known
+
+The old version of this note simulated a light-bulb study so that we would
+know the right answer. A new bulb's life in hours is normal with mean 8,050
+and standard deviation 225, so it *does* last longer than 8,000, and $H_0$
+is false. The lab tests 100 bulbs.
+
+```{python}
+#| label: bulbs
+bulb_rng = np.random.default_rng(20261026)
+bulbs = bulb_rng.normal(8_050, 225, 100)
+bulb = t_test_from_data(bulbs, 8_000, "greater", 0.05)
+numbers(bulb)
+```
+
+```{python}
+#| label: bulbs-stats
+#| include: false
+bulb_rej = bool(bulb["reject H0?"])
+bulb_power = simulate_rejections(
+    lambda rng, shape: rng.normal(8_050, 225, shape), 100, 8_000,
+    "greater", 0.05)["rejection rate"]
+```
+
+::: {.charcoal}
+The sample averages `{python} f"{bulb['x-bar']:,.1f}"` hours, $t=$
+`{python} f"{bulb['test statistic t']:.2f}"`, p-value
+`{python} f"{bulb['p-value']:.4f}"`.
+`{python} ("We reject H0, the correct decision, since we built the population so that the bulbs really do last longer." if bulb_rej else "We do not reject H0, and that is the WRONG decision: we built the population so that the bulbs really do last longer. This is a Type II error, a false negative, caught in the act. Nothing was done incorrectly. The sample simply came in low, and 100 bulbs were not enough to be sure of detecting a 50-hour improvement.")`
+
+How often would this study find the improvement? Run it 20,000 times on
+fresh samples: it rejects $H_0$ `{python} pct(bulb_power, 1)` of the time.
+That is the study's **power**. About `{python} pct(1 - bulb_power, 0)` of
+the time, a perfectly good study of a genuinely better bulb would report
+"no evidence of improvement."
+:::
+
+## Testing a proportion
+
+::: {.blue}
+To test $H_0:p=p_0$ (or $\le$, $\ge$), with $\hat{p}=x/n$,
+
+$$z=\frac{\hat{p}-p_0}{\sqrt{p_0(1-p_0)/n}} ,$$
+
+valid when $np_0\ge5$ and $n(1-p_0)\ge5$. The p-value comes from the
+standard normal.
+:::
+
+::: {.scarlet}
+**The standard error uses $p_0$, the value claimed in $H_0$, not $\hat{p}$.**
+The test asks how surprising $\hat{p}$ would be *if $H_0$ were true*, so it
+uses the spread that $H_0$ implies. The confidence interval, which claims
+nothing, uses $\hat{p}$.
+:::
+
+### Application: women on French corporate boards
+
+France required large companies to move toward 40% women on their boards.
+In 2017, 34% of board members were women. Has the share risen? A sample of
+240 board members finds 96 women. Test at $\alpha=0.05$.
+
+$$H_0:p\le0.34\qquad H_1:p>0.34$$
+
+```{python}
+#| label: france
+france = proportion_test(96, 240, 0.34, "greater", 0.05)
+numbers(france)
+```
+
+```{python}
+#| label: france-chart
+zx = np.linspace(-4, 4, 401)
+_ = test_chart(zx, normal_pdf(zx), france["test statistic z"],
+               critical=critical_value(alpha=0.05, tails=1),
+               alternative="greater", p_value=france["p-value"],
+               title="French boards: standard normal, if H0 is true", xlab="z")
+```
+
+```{python}
+#| label: france-se
+#| include: false
+se_test = sqrt(0.34 * 0.66 / 240)
+se_ci = sqrt(0.40 * 0.60 / 240)
+```
+
+::: {.charcoal}
+$\hat{p}=$ `{python} f"{france['p-hat']:.2f}"`, $z=$
+`{python} f"{france['test statistic z']:.2f}"`, and the p-value is
+`{python} f"{france['p-value']:.4f}"`. Below 0.05, so we reject $H_0$: **the
+data are evidence that the share of women on large French boards has risen
+above 34%.** The standard error was `{python} f"{se_test:.4f}"`, computed
+from $p_0=0.34$; using $\hat{p}=0.40$ would have given
+`{python} f"{se_ci:.4f}"`, a different (and wrong) $z$.
+:::
+
+::: {.brown}
+**Finishing the NFL example.** Suppose the players' union polls 400 randomly
+chosen fans and 186 favor an 18-game season. (These numbers are
+illustrative.) **(a)** State $H_0$ and $H_1$. **(b)** Test at $\alpha=0.05$
+and state the conclusion in words. **(c)** Find a 95% confidence interval for
+the share of fans in favor. Which standard error did you use in (b), and
+which in (c)?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: nfl
+nfl = proportion_test(186, 400, 0.5, "less", 0.05)
+nfl_ci = proportion_interval(186, 400, 0.95)
+numbers(nfl)
+```
+
+**(a)** $H_0:p\ge0.5$ (the commissioner's claim), $H_1:p<0.5$ (what the
+union wants evidence for). **(b)** $\hat{p}=$
+`{python} f"{nfl['p-hat']:.3f}"`, $z=$
+`{python} f"{nfl['test statistic z']:.2f}"`, p-value
+`{python} f"{nfl['p-value']:.4f}"`.
+`{python} ("Reject H0: the poll is evidence that fewer than half of fans favor the change." if nfl["reject H0?"] else "Do not reject H0: although fewer than half of this sample favor the change, the poll is not strong enough evidence that fewer than half of ALL fans do.")`
+**(c)** `{python} f"{nfl_ci['lower']:.3f}"` to
+`{python} f"{nfl_ci['upper']:.3f}"`. The test used $p_0=0.5$ in its
+standard error; the interval used $\hat{p}=$ `{python} f"{nfl['p-hat']:.3f}"`.
+:::
+
+## When $\sigma$ is known: the $z$-test
+
+When the population standard deviation is known, the test statistic is
+$z=(\bar{x}-\mu_0)/(\sigma/\sqrt{n})$ and the p-value comes from the standard
+normal. Everything else is identical. Your textbook works several examples
+this way in Section 9.2; read them for the steps, and use the $t$-test in
+practice.
+
+```{python}
+#| label: cfl
+cfl = z_test(8_120, 500, 36, 8_000, "greater", 0.05)
+numbers(cfl)
+```
+
+::: {.charcoal}
+The textbook's Edalight example: 36 new compact fluorescent bulbs average
+8,120 hours, and $\sigma=500$ hours is taken as known. Testing
+$H_0:\mu\le8{,}000$ against $H_1:\mu>8{,}000$ gives $z=$
+`{python} f"{cfl['test statistic z']:.2f}"` and p-value
+`{python} f"{cfl['p-value']:.4f}"`, which is above $\alpha=0.05$: not
+enough evidence that the new bulb lasts longer than 8,000 hours.
+:::
+
+::: {.scarlet}
+Excel's `Z.TEST(range, mu0, sigma)` returns the **upper-tail** p-value only.
+For a lower-tailed test use `1 - Z.TEST(...)`; for a two-tailed test,
+`2 * MIN(Z.TEST(...), 1 - Z.TEST(...))`. (The textbook's description of its
+arguments calls $\sigma$ "the population mean"; it is the population
+standard deviation.)
+:::
+
+## Type II errors and power
+
+$\alpha$ is chosen. $\beta$ is not: it depends on how wrong $H_0$ actually
+is, on $\alpha$, and on $n$. To compute it we must pick a specific "true"
+value, because "$H_0$ is false" covers infinitely many possibilities.
+
+### Application: the Nissan Leaf battery
+
+Nissan's Leaf averages 151 miles per charge. A new battery is claimed to do
+better. Nissan will test 50 cars, with $\sigma=12$ miles known and
+$\alpha=0.05$:
+
+$$H_0:\mu\le151\qquad H_1:\mu>151 .$$
+
+::: {.blue}
+The **critical sample mean** $\bar{x}_\alpha$ is the value of $\bar{x}$ at the
+edge of the rejection region. For an upper-tailed test,
+
+$$\bar{x}_\alpha=\mu_0+z_\alpha\frac{\sigma}{\sqrt{n}} ,$$
+
+(with $-$ for a lower-tailed test). If the true mean is $\mu_1$,
+
+$$\beta=P\!\left(\bar{x}<\bar{x}_\alpha\ \middle|\ \mu=\mu_1\right),
+\qquad\text{power}=1-\beta .$$
+:::
+
+```{python}
+#| label: leaf
+leaf = power_mean(151, 12, 50, 156, 0.05, "greater")
+numbers(leaf)
+```
+
+```{python}
+#| label: leaf-chart
+leaf_cut = critical_mean(151, 12, 50, 0.05, "greater")
+_ = power_chart(151, 156, 12 / sqrt(50), leaf_cut, "greater",
+                title="Nissan Leaf: alpha, beta, and power on one picture",
+                xlab="Average range of 50 cars (miles), x-bar")
+```
+
+::: {.charcoal}
+Nissan rejects $H_0$ if the 50 cars average more than
+`{python} f"{leaf_cut:.2f}"` miles. If $H_0$ is true (top panel), that
+happens 5% of the time: the false positive rate. Now suppose the new
+battery really averages 156 miles (bottom panel). The test misses it
+whenever the sample mean falls short of `{python} f"{leaf_cut:.2f}"`, which
+happens with probability $\beta=$
+`{python} f"{leaf['beta = P(Type II error)']:.4f}"`. The power, the chance
+of correctly detecting the better battery, is
+`{python} f"{leaf['power = 1 - beta']:.4f}"`.
+
+(The textbook gets 0.0968 and 0.9032 by rounding $z$ to $-1.30$. Its
+version of the calculation is correct.)
+:::
+
+We can check $\beta$ the same way we checked the confidence level: test
+many fresh samples from a world where the mean really is 156, and count.
+
+```{python}
+#| label: leaf-sim
+leaf_sim = simulate_rejections(lambda rng, shape: rng.normal(156, 12, shape),
+                               50, 151, "greater", 0.05, sigma=12)
+numbers(leaf_sim)
+```
+
+::: {.charcoal}
+The simulated studies fail to reject `{python} pct(leaf_sim["failed to reject (rate)"], 2)`
+of the time, against the formula's
+`{python} pct(leaf["beta = P(Type II error)"], 2)`. The formula is not
+magic; it is a shortcut to what would happen if we ran the study over and
+over.
+:::
+
+### Power depends on how big the real effect is
+
+```{python}
+#| label: leaf-curve
+leaf_pt = power_table(151, 12, 50, np.arange(151, 160.5, 0.5))
+_ = line_chart(leaf_pt.index, {"power": leaf_pt["power"]},
+               title="Power curve: the chance of detecting the better battery",
+               xlab="True average range (miles)", ylab="Power = 1 - beta",
+               hlines=[0.05, 0.80], ylim=(0, 1.02))
+leaf_pt.loc[[151, 152, 153, 154, 155, 156, 157, 158]].round(4)
+```
+
+::: {.charcoal}
+If the true mean is barely above 151, the test almost never notices: power
+starts at $\alpha=0.05$ (at exactly 151, rejecting *is* a Type I error) and
+is only `{python} pct(leaf_pt.loc[152, "power"], 0)` at 152 miles. Power
+passes 80% somewhere between 155 and 156. **A test can see large effects
+easily and small ones hardly at all.** Before trusting a "no significant
+difference," ask how large a difference the study could have detected.
+
+(The textbook's Table 9.10 shows 0.0495 at 151, which should be exactly
+0.05; it comes from rounding $z_\alpha$ to 1.65.)
+:::
+
+### Power depends on $\alpha$
+
+```{python}
+#| label: leaf-alpha
+ab = alpha_beta_table(151, 12, 50, 157, alphas=(0.001, 0.005, 0.01, 0.025,
+                                                0.05, 0.10, 0.20))
+ab_curve = alpha_beta_table(151, 12, 50, 157, alphas=np.linspace(0.001, 0.20, 60))
+_ = line_chart(ab_curve.index, {"beta (false negative)": ab_curve["beta"]},
+               title="Lowering alpha raises beta (n = 50, true mean 157)",
+               xlab="alpha (false positive rate)", ylab="beta",
+               vlines=[0.01, 0.05, 0.10], markers=False)
+ab.round(4)
+```
+
+::: {.charcoal}
+At a true mean of 157 miles, cutting $\alpha$ from 0.05 to 0.01 raises
+$\beta$ from `{python} f"{ab.loc[0.05, 'beta']:.4f}"` to
+`{python} f"{ab.loc[0.01, 'beta']:.4f}"`. Fewer false positives, more
+false negatives: there is no free lunch.
+
+The textbook reports $\beta=0.1190$ for this case. It rounds $z_{0.01}$ to
+2.33 and then rounds the critical mean to 155 miles before computing
+$\beta$; unrounded, the critical mean is
+`{python} f"{critical_mean(151, 12, 50, 0.01):.2f}"` and
+$\beta=$ `{python} f"{ab.loc[0.01, 'beta']:.4f}"`. The lesson is the same,
+but if you work in Excel you will match this note, not the book.
+:::
+
+### Power depends on the sample size, which you control
+
+The textbook says the only way to reduce both errors at once is a larger
+sample. Here is how much larger. Suppose the improvement worth detecting is
+3 miles (true mean 154):
+
+```{python}
+#| label: leaf-n
+leaf_n = power_by_n(151, 12, [10, 25, 50, 75, 100, 150, 200], 154)
+need = n_for_power(151, 12, 154, power=0.80)
+leaf_n.round(4)
+```
+
+::: {.charcoal}
+With 50 cars, Nissan would detect a 3-mile improvement only
+`{python} pct(leaf_n.loc[50, "power"], 0)` of the time, close to a coin
+flip. To reach the conventional 80% power it needs
+`{python} f"{need['n (round UP)']:.0f}"` cars, from
+
+$$n=\left(\frac{(z_\alpha+z_\beta)\,\sigma}{\mu_1-\mu_0}\right)^2
+=\left(\frac{(1.645+0.842)\times12}{3}\right)^2 .$$
+
+This is the calculation to do **before** a study, alongside the
+margin-of-error calculation of Chapter 8. A study too small to detect the
+effect that matters is a study designed to say "no evidence," and it will
+usually oblige.
+:::
+
+::: {.brown}
+Explore this yourself in the interactive app below. Change the true mean,
+the hypothesized mean, $\sigma$, and $n$, and watch $\alpha$, $\beta$, and
+the power move.
+
+<a href="https://jcrooker.shinyapps.io/statistical-inference-mean/"
+   target="_blank" rel="noopener noreferrer"
+   style="background-color:#A03123; color:white; padding:12px 20px;
+          text-decoration:none; border-radius:6px; font-weight:bold;">
+   Launch the interactive simulation
+</a>
+:::
+
+::: {.brown}
+Buick owners have averaged 59 years old. After an advertising campaign aimed
+at younger buyers, Buick will survey 41 new owners and test
+$H_0:\mu\ge59$ against $H_1:\mu<59$ at $\alpha=0.10$, with $\sigma=10$
+years. **(a)** Find the critical sample mean. **(b)** If the campaign really
+lowered the average age to 58, what is the power? **(c)** Is this a
+well-designed study? How many owners would give 80% power against a true
+mean of 58?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: buick
+buick = power_mean(59, 10, 41, 58, 0.10, "less")
+buick_n = n_for_power(59, 10, 58, 0.80, 0.10, "less")
+numbers(buick)
+```
+
+**(a)** `{python} f"{critical_mean(59, 10, 41, 0.10, 'less'):.2f}"` years: Buick
+rejects $H_0$ if the sample averages less than that. **(b)**
+`{python} f"{buick['power = 1 - beta']:.4f}"`. **(c)** No. Even at
+$\alpha=0.10$, the survey would detect a one-year drop only about
+`{python} pct(buick['power = 1 - beta'], 0)` of the time. Reaching 80% power
+takes `{python} f"{buick_n['n (round UP)']:,.0f}"` owners. Either survey far
+more people or decide in advance that a one-year change is too small to
+matter.
+:::
+
+## Statistically significant is not the same as important
+
+::: {.blue}
+A result is **statistically significant** when $p\le\alpha$: the data are
+unlikely under $H_0$. It is **practically significant** when the effect is
+large enough to matter for the decision. The first is a statistical
+question; the second is a business one.
+:::
+
+```{python}
+#| label: practical
+big_n = t_test(4.95, 1.42, 20_000, 5, "less", 0.05)
+big_ci = mean_interval(4.95, 1.42, 20_000, 0.95)
+pd.Series({"x-bar (minutes)": f"{4.95:.2f}", "n": f"{20_000:,}",
+           "p-value": f"{big_n['p-value']:.7f}",
+           "95% interval: lower": f"{big_ci['lower']:.3f}",
+           "95% interval: upper": f"{big_ci['upper']:.3f}"}).to_frame("Target, all stores")
+```
+
+::: {.charcoal}
+Suppose Target rolls the kiosks out and logs 20,000 checkouts averaging 4.95
+minutes. The p-value is about
+`{python} f"{big_n['p-value']:.7f}"`, overwhelming evidence that kiosks are
+faster than 5 minutes. By about **three seconds**. That is statistically
+significant and commercially irrelevant. The confidence interval shows it
+at once, which is another reason to report one.
+
+The opposite also happens: a small study of an important effect, like the
+41-owner Buick survey, can easily come back "not significant." **Large
+samples find trivial effects; small samples miss important ones.** Always
+ask *how big* as well as *whether*.
+:::
+
+# Excel at a Glance
+
+```{python}
+#| label: excel
+excel_crosswalk()
+```
+
+# Reading the Textbook: Corrections
+
+Donnelly is a clear guide to the mechanics, and the reading for these
+chapters is assigned. A few statements in it will cost you points if you
+copy them:
+
+::: {.scarlet}
+1. **False positive / false negative (Section 9.5, Focus on Analytics).**
+   The labels are reversed. A Type I error is a **false positive**; a Type
+   II error is a **false negative**.
+2. **"The p-value can also be described as the confidence you have that
+   your null hypothesis is correct" (Section 9.2).** No. It is computed
+   assuming $H_0$ is true and says nothing directly about the probability
+   that $H_0$ is true.
+3. **"The sample supports the original assumption."** After a failure to
+   reject, the data are *consistent with* or *fail to contradict* $H_0$.
+   They do not support it.
+4. **"p-values can be computed directly only for $z$."** Only from the
+   printed table. Excel's `T.DIST` family gives exact $t$ p-values.
+5. **Larger $n$ helps "where the $t$-distribution can be approximated by the
+   normal."** Larger $n$ helps because the Central Limit Theorem makes
+   $\bar{x}$ more normal. For skewed populations $n=30$ may not be enough.
+6. **Rounding.** `NORM.S.INV(0.95)` returns 1.645, not 1.654 as printed.
+   The book's rounded $z$-values (2.33, 1.65) move some sample sizes by one
+   and some $\beta$ values in the second decimal place. Match Excel, and say
+   so.
+:::
+
+# Which Procedure Is It?
+
+::: {.brown}
+For each, name the procedure (interval or test; mean with $z$ or $t$, or
+proportion), write $H_0$ and $H_1$ where there is a test, and say whether
+it is one- or two-tailed.
+
+**(a)** A casino host samples 45 high-limit players' average session length
+to estimate the mean for all such players.
+
+**(b)** A hotel claims at least 90% of guests rate their stay 4 stars or
+better. A consumer group samples 300 reviews and wants evidence that the
+claim overstates satisfaction.
+
+**(c)** A packaging line is supposed to fill 18-ounce boxes. Quality control
+samples 25 boxes an hour and wants to catch under-filling *or*
+over-filling.
+
+**(d)** A marketing director wants to estimate the share of app users who
+would pay for a premium tier to within 3 points.
+
+**(e)** A new call-routing system is adopted only if it cuts average hold
+time below the current 4.5 minutes. Twenty calls are sampled.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+| | Procedure | Hypotheses | Tails |
+|---|---|---|---|
+| (a) | $t$-interval for a mean | none | (two-sided interval) |
+| (b) | $z$-test for a proportion, SE from $p_0=0.90$ | $H_0:p\ge0.90$, $H_1:p<0.90$ | one (lower) |
+| (c) | $t$-test for a mean | $H_0:\mu=18$, $H_1:\mu\ne18$ | two |
+| (d) | sample size for a proportion, then a $z$-interval | none | (two-sided interval) |
+| (e) | $t$-test for a mean (check skewness: $n=20$ and hold times are skewed) | $H_0:\mu\ge4.5$, $H_1:\mu<4.5$ | one (lower) |
+
+In (d), with no prior estimate use $p=0.5$:
+`{python} f"{sample_size_proportion(0.03, 0.95)['n (round UP)']:,.0f}"`
+users at 95% confidence.
+:::
+
+# Laboratory 8–9
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 8–9 pack](../upload_packs/lab-8-chapters-08-09.zip)**
+— one file. Unzip it and you will have a folder holding 9 files. Drag all 9
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 9 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `08_09_confidence_intervals_and_tests.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 8-9 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `08_09_confidence_intervals_and_tests.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+The lab script answers the questions in this note. The skill to practice is
+getting a *new* question answered and checking the answer:
+
+::: {.prompt}
+Prompt
+
+> A Las Vegas restaurant group says its average ticket is \$62. I sampled 40
+> tickets last weekend: the mean was \$67.40 and the standard deviation was
+> \$21.30. By running code, (1) give me a 95% confidence interval for the
+> average ticket, (2) test whether the average differs from \$62 at
+> alpha = 0.05 and give the exact p-value, and (3) tell me whether the two
+> answers agree and why they must. Then state, in one sentence each, what a
+> Type I error and a Type II error would mean here, and label each as a false
+> positive or a false negative. Finally, tell me whether n = 40 is large
+> enough to trust a t-procedure for restaurant tickets, and how you would
+> check.
+:::
+
+Check four things in the reply: the $t$ critical value has 39 degrees of
+freedom; the p-value is two-tailed; the Type I error is labelled a **false
+positive** (concluding the average differs when it does not); and the
+answer to the last question is not simply "yes, because 40 is more than 30."
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook that shows what "95% confidence" means. Sheet 1
+> has input cells for a true mean (100), a true standard deviation (16), a
+> sample size n (30), and a confidence level (0.95). Sheet 2 draws 100
+> samples of size n with =NORM.INV(RAND(), mean, sd), and for each computes
+> x-bar, s, the margin of error with CONFIDENCE.T, the lower and upper
+> limits, and a column that says TRUE if the interval contains the true mean.
+> Report the share of TRUE at the top, and chart the 100 intervals as
+> horizontal error bars against a vertical line at the true mean. Give me the
+> file to download.
+:::
+
+Press F9 a dozen times and note the share each time. Then change the
+confidence level to 0.80 and repeat. In one paragraph: what changed, what
+did not, and what does that tell you about the meaning of the word
+"confidence"?
