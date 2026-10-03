@@ -1,0 +1,1086 @@
+---
+title: "Comparing Two Populations"
+subtitle: "Chapter 10, with a slice of Chapter 11"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (density_chart, density_histogram, test_chart,
+                     line_chart, paired_chart, strip_chart,
+                     UNLV_SCARLET, UNLV_GRAY)
+from _cont import normal_pdf
+from _infer import t_pdf, critical_value
+from _two import (f_pdf, two_sample_t, two_sample_t_from_data, two_sample_z,
+                  welch_df, diff_interval, paired_t, paired_t_from_data,
+                  paired_vs_independent, pairing_variance,
+                  two_proportion_test, two_proportion_interval,
+                  ab_sample_size, ab_power, permutation_test,
+                  familywise_error, simulate_pairwise_false_positives,
+                  one_way_anova, block_anova, two_sample_catalog)
+
+warnings.filterwarnings("ignore")
+np.seterr(all="ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+pd.set_option("display.max_colwidth", 70)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def money(x, decimals=0):
+    """Dollars for prose. Quarto escapes the dollar sign in inline output
+    itself, so it must not be escaped here."""
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x):,.{decimals}f}"
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`."""
+    print(f"$${latex}$$\n")
+
+
+def tidy(obj, digits=4):
+    """Round the numbers in a result for display, leaving text, whole
+    numbers, and True/False alone."""
+    def r(v):
+        if isinstance(v, (bool, np.bool_)):
+            return bool(v)
+        if isinstance(v, (float, np.floating)):
+            return int(v) if float(v).is_integer() and abs(v) >= 1 else round(float(v), digits)
+        return v
+    if isinstance(obj, pd.DataFrame):
+        return obj.astype(object).apply(lambda col: col.map(r))
+    return obj.astype(object).map(r)
+
+
+def numbers(series, digits=4):
+    """A result Series as a one-column table, without the prose fields."""
+    keep = series.drop(labels=[k for k in ("conclusion",) if k in series])
+    return tidy(keep, digits).to_frame("value")
+
+
+def mnum(x, decimals=0):
+    """A number with thousands separators that LaTeX will not mangle."""
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+# Textbook data sets, typed in from Donnelly Chapters 10 and 11.
+MAXIMA_AC = [24.2, 26.1, 28.8, 30.1, 24.6, 29.1, 28.2, 27.4, 28.3, 27.9]
+MAXIMA_WINDOWS = [23.0, 21.7, 32.7, 20.7, 31.1, 19.6, 26.5, 21.1, 20.6, 27.2, 26.8]
+ROCKSTAR_END = [64, 54, 126, 97, 37, 74, 117, 90, 81]
+ROCKSTAR_MIDDLE = [72, 41, 100, 62, 40, 60, 122, 62, 78]
+GOLF_MINE = [201, 228, 256, 233, 248, 255, 239, 220]
+GOLF_THEIRS = [204, 213, 231, 241, 223, 226, 212, 186]
+airfare = pd.DataFrame({
+    "fare": [1063, 1299, 995, 1299, 1406, 1314, 1493, 1443, 1577, 1314,
+             1442, 1413, 1063, 1442, 1575, 1015, 856, 802, 850, 935,
+             1374, 977, 1043, 1070, 1428, 1603, 1531, 1079, 807, 870],
+    "airline": (["United"] * 5 + ["Air France"] * 5 + ["British Airways"] * 5) * 2,
+    "route": ["Chicago-London"] * 15 + ["London-Chicago"] * 15,
+})
+```
+
+## Objectives
+
++ Choose the right two-sample procedure from the **design**: independent
+  samples, paired samples, or two proportions.
++ Compare two means from independent samples with Welch's $t$-test (the
+  default) and know when the pooled test applies.
++ Explain why pairing makes a test more powerful, and analyse matched pairs
+  as a one-sample test on the differences.
++ Compare two proportions with a test (pooled) and an interval (unpooled).
++ Use "does the interval for the difference contain zero?" to read a
+  two-sample result.
++ Size an A/B test, and read its result as a manager should.
++ Tell an experiment from an observational comparison, and say what a
+  significant difference does and does not let you conclude.
++ Explain why testing many pairs of groups inflates false positives, and
+  read a one-way ANOVA table.
+
+::: {.charcoal}
+Week 9 built one engine: an estimate, its standard error, and a reference
+distribution. This week every question compares **two** groups: federal vs.
+private salaries, end-aisle vs. middle-aisle displays, version A of a web
+page vs. version B. The engine does not change. Every test in the chapter
+has the same shape:
+
+$$\frac{(\text{difference in the estimates})-(\text{difference claimed in }H_0)}{\text{standard error of the difference}} .$$
+
+What changes is the standard error, and **the design of the study decides
+which one**. Were the two groups sampled independently? Was the same store
+or customer measured twice? Are we comparing averages or percentages? Get
+the design right and the formula follows. Get it wrong and a real effect can
+vanish, as the Rockstar example shows.
+
+The note ends with a slice of Chapter 11: what goes wrong when you compare
+many groups two at a time, and the one test (ANOVA) built to avoid it.
+:::
+
+# Two Independent Samples
+
+## The sampling distribution of a difference
+
+::: {.blue}
+For two **independent samples**, where what is drawn from one population
+has no bearing on what is drawn from the other, the difference in sample
+means $\bar{x}_1-\bar{x}_2$ has
+
+$$\mu_{\bar{x}_1-\bar{x}_2}=\mu_1-\mu_2,\qquad
+\sigma_{\bar{x}_1-\bar{x}_2}=\sqrt{\frac{\sigma_1^2}{n_1}+\frac{\sigma_2^2}{n_2}} .$$
+
+The second quantity is the **standard error of the difference**. Variances
+add, even though the means subtract: two uncertain numbers make their
+difference *more* uncertain, never less.
+:::
+
+```{python}
+#| label: se-diff-sim
+rng = np.random.default_rng(20261022)
+x1 = rng.normal(8_025, 225, (100_000, 100)).mean(axis=1)
+x2 = rng.normal(8_000, 225, (100_000, 100)).mean(axis=1)
+sim_se = (x1 - x2).std()
+formula_se = sqrt(225 ** 2 / 100 + 225 ** 2 / 100)
+_ = density_histogram(x1 - x2, bins=60,
+                      x=np.linspace(-130, 180, 400),
+                      density=normal_pdf(np.linspace(-130, 180, 400), 25, formula_se),
+                      title="100,000 differences in sample means (n = 100 bulbs per line)",
+                      xlab="x-bar 1 - x-bar 2 (hours)", curve_label="normal, SE from the formula")
+```
+
+::: {.charcoal}
+Two production lines of light bulbs, with true means 8,025 and 8,000 hours
+and $\sigma=225$ on each line. The simulated differences have standard
+deviation `{python} f"{sim_se:.2f}"`; the formula gives
+$\sqrt{225^2/100+225^2/100}=$ `{python} f"{formula_se:.2f}"`. Notice how
+often the difference comes out *negative* even though line 1 really is
+better. A 25-hour edge is barely one standard error, which is why the old
+version of this note found a Type II error with exactly these settings.
+:::
+
+::: {.scarlet}
+**Define population 1 and population 2 before writing any hypothesis.** The
+choice is arbitrary, but every sign that follows depends on it. With
+federal workers as population 1, "federal pays more" is $\mu_1-\mu_2>0$;
+reverse the labels and it becomes $\mu_1-\mu_2<0$. Most sign errors in this
+chapter start here.
+:::
+
+## Sigmas unknown: Welch's test is the default
+
+In practice the population standard deviations are unknown, and the sample
+standard deviations take their place. That brings in the $t$-distribution,
+and a choice.
+
+::: {.blue}
+**Welch's two-sample $t$-test** (unequal variances) uses
+
+$$t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{\dfrac{s_1^2}{n_1}+\dfrac{s_2^2}{n_2}}}$$
+
+with degrees of freedom from the Welch formula (the textbook's Formula
+10.11, which software computes for you). It makes **no assumption** that the
+two populations have the same variance.
+
+The **pooled $t$-test** assumes $\sigma_1=\sigma_2$, combines the two
+sample variances into
+$s_p^2=\dfrac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}$, and uses
+$n_1+n_2-2$ degrees of freedom.
+:::
+
+::: {.charcoal}
+**Use Welch unless you have a reason not to.** When the variances really
+are equal, Welch gives nearly the same answer as the pooled test. When they
+are not, the pooled test can be badly wrong, especially with unequal sample
+sizes. Your textbook gives the same advice ("when in doubt … proceed with
+the unequal variances test"), and it is the default in most modern
+software. Excel offers both, side by side, in **Data → Data Analysis**:
+*t-Test: Two-Sample Assuming Unequal Variances* (Welch) and *… Assuming
+Equal Variances* (pooled).
+:::
+
+### Application: air conditioning or open windows?
+
+A consumer group drives a Nissan Maxima on one tank of highway fuel, 10
+drivers with the air conditioning on and windows up, 11 with the AC off and
+windows down. Is there a difference in fuel economy (mpg)? Population 1 is
+AC on.
+
+$$H_0:\mu_1-\mu_2=0\qquad H_1:\mu_1-\mu_2\ne0\qquad\alpha=0.05$$
+
+```{python}
+#| label: maxima
+maxima = two_sample_t_from_data(MAXIMA_AC, MAXIMA_WINDOWS, 0, "two-sided", 0.05)
+numbers(maxima)
+```
+
+```{python}
+#| label: maxima-both
+#| include: false
+maxima_pooled = two_sample_t_from_data(MAXIMA_AC, MAXIMA_WINDOWS, pooled=True)
+maxima_ci = diff_interval(maxima["x-bar 1"], maxima["s1"], 10,
+                          maxima["x-bar 2"], maxima["s2"], 11, 0.95)
+```
+
+::: {.charcoal}
+The AC-on cars averaged `{python} f"{maxima['difference x-bar1 - x-bar2']:.2f}"`
+mpg more, $t=$ `{python} f"{maxima['test statistic t']:.2f}"` with
+`{python} f"{maxima['df']:.2f}"` degrees of freedom, and the two-tailed
+p-value is `{python} f"{maxima['p-value']:.4f}"`. Above 0.05: **the data are
+not sufficient evidence that fuel economy differs** between the two ways of
+driving. The 95% interval for the difference,
+`{python} f"{maxima_ci['lower']:.2f}"` to
+`{python} f"{maxima_ci['upper']:.2f}"` mpg, contains zero, which says the
+same thing and shows how wide the uncertainty is.
+
+Notice the two standard deviations: `{python} f"{maxima['s1']:.2f}"` and
+`{python} f"{maxima['s2']:.2f}"`. Windows-down mileage is more than twice
+as variable, so assuming equal variances would be hard to defend. (The
+pooled test gives p = `{python} f"{maxima_pooled['p-value']:.4f}"` here,
+the same conclusion.)
+:::
+
+::: {.brown}
+**About those degrees of freedom.** The Welch formula gives a fraction,
+`{python} f"{maxima['df']:.2f}"` here. Software uses the fraction. Excel's
+Data Analysis tool rounds it to the nearest whole number (14). Your textbook
+rounds *down* by hand (13), to be conservative. The three p-values differ
+only in the third decimal place, so any of them is acceptable; on exams,
+read the one the output gives you.
+:::
+
+### Application: a pooled test, in an experiment
+
+In the textbook's rat study, rats from one population were assigned to an
+enriched environment or a barren one, and brain weights were compared after
+three months: enriched $\bar{x}=2.6$, $s=0.6$, $n=20$; barren $\bar{x}=2.1$,
+$s=0.8$, $n=25$. Does enrichment increase brain weight? The book assumes
+equal variances, so we use the pooled test, and show Welch beside it.
+
+$$H_0:\mu_1-\mu_2\le0\qquad H_1:\mu_1-\mu_2>0\qquad\alpha=0.05$$
+
+```{python}
+#| label: rats
+_rp = tidy(two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater", pooled=True))
+rats = pd.DataFrame({
+    "pooled (book)": _rp,
+    "Welch": tidy(two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater")),
+}).reindex(_rp.index).drop(index=["conclusion", "Excel tool", "method"]).fillna("")
+rats
+```
+
+```{python}
+#| label: rats-stats
+#| include: false
+rp = two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater", pooled=True)
+rw = two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater")
+```
+
+::: {.charcoal}
+Pooled: $t=$ `{python} f"{rp['test statistic t']:.2f}"`, $p=$
+`{python} f"{rp['p-value']:.4f}"`. Welch: $t=$
+`{python} f"{rw['test statistic t']:.2f}"`, $p=$
+`{python} f"{rw['p-value']:.4f}"`. Either way we reject $H_0$: **the data
+are evidence that the enriched environment produces heavier brains on
+average.** And because the rats were *randomly assigned* to environments,
+this is a rare case where "produces" is justified. We return to that word
+below.
+:::
+
+## Does the interval for the difference contain zero?
+
+::: {.blue}
+A confidence interval for $\mu_1-\mu_2$ is
+
+$$(\bar{x}_1-\bar{x}_2)\pm(\text{critical value})\times(\text{standard error of the difference}).$$
+
+If it **excludes 0**, a two-tailed test at $\alpha=1-\text{confidence}$
+rejects "no difference"; if it **includes 0**, the test does not. This is
+week 9's interval–test link, applied to a difference.
+:::
+
+When both population standard deviations are known (rare, but it is where
+the textbook starts), the critical value comes from $z$. A sample of 35
+federal jobs averages \$66,700 and 32 comparable private-sector jobs average
+\$60,400, with $\sigma_1=\$12{,}000$ and $\sigma_2=\$11{,}000$ taken as known.
+
+```{python}
+#| label: federal
+fed = two_sample_z(66_700, 12_000, 35, 60_400, 11_000, 32, 0, "two-sided")
+fed_ci = diff_interval(66_700, 12_000, 35, 60_400, 11_000, 32, 0.95, sigma_known=True)
+pd.concat([numbers(fed), numbers(fed_ci).rename(columns={"value": "interval"})], axis=1).fillna("")
+```
+
+::: {.charcoal}
+$z=$ `{python} f"{fed['test statistic z']:.2f}"`, $p=$
+`{python} f"{fed['p-value']:.4f}"`, and the 95% interval for the difference
+is `{python} money(fed_ci['lower'])` to `{python} money(fed_ci['upper'])`.
+It excludes zero, so the test rejects. The interval says more than the
+test: federal salaries are higher on average, by an amount we can pin down
+only to somewhere between about \$800 and \$11,800. That is a wide range for
+a policy argument, and it is the interval, not the p-value, that shows it.
+:::
+
+## Testing a difference other than zero
+
+Sometimes a difference only matters if it exceeds a threshold. A Ruby
+Tuesday manager will change the music only if slow-music evenings raise the
+average bill by **more than \$3.00** per person. Slow music: $\bar{x}=\$45.90$,
+$s=\$5.60$, $n=23$; fast music: $\bar{x}=\$39.25$, $s=\$5.20$, $n=19$.
+
+$$H_0:\mu_1-\mu_2\le3\qquad H_1:\mu_1-\mu_2>3$$
+
+```{python}
+#| label: ruby
+ruby = two_sample_t(45.90, 5.60, 23, 39.25, 5.20, 19, 3.00, "greater", 0.05, pooled=True)
+ruby_w = two_sample_t(45.90, 5.60, 23, 39.25, 5.20, 19, 3.00, "greater", 0.05)
+numbers(ruby)
+```
+
+::: {.charcoal}
+The numerator subtracts the \$3.00 claimed in $H_0$:
+$t=\dfrac{(45.90-39.25)-3.00}{\text{SE}}=$
+`{python} f"{ruby['test statistic t']:.2f}"`, $p=$
+`{python} f"{ruby['p-value']:.4f}"` (Welch:
+`{python} f"{ruby_w['p-value']:.4f}"`). Reject: **the data are evidence
+that slow music raises the average bill by more than \$3.00.** In Excel,
+type 3 into *Hypothesized Mean Difference*.
+:::
+
+# Paired Samples
+
+::: {.blue}
+Two samples are **dependent**, or **paired**, when each observation in one
+is matched to a specific observation in the other: the same store in two
+weeks, the same customer before and after, the same golfer with two balls.
+A **matched-pairs test** works with the differences $d_i=x_{1i}-x_{2i}$ and
+runs a **one-sample $t$-test** on them:
+
+$$t=\frac{\bar{d}-\mu_{d,H_0}}{s_d/\sqrt{n}},\qquad \text{df}=n-1,$$
+
+where $n$ is the number of **pairs**. Hypotheses are about $\mu_d$, the
+population mean difference, never about $\bar{d}$.
+:::
+
+## Application: where to put the energy drinks
+
+Josh, a PepsiCo account manager, wants to know whether Rockstar sells more
+on an end-of-aisle display than on a middle-aisle shelf. In each of nine
+stores he records one week of sales with each placement. Population 1 is
+end-aisle, so $d=\text{end}-\text{middle}$.
+
+$$H_0:\mu_d\le0\qquad H_1:\mu_d>0\qquad\alpha=0.05$$
+
+```{python}
+#| label: rockstar
+rock = paired_t_from_data(ROCKSTAR_END, ROCKSTAR_MIDDLE, 0, "greater", 0.05, level=0.90)
+rock95 = paired_t_from_data(ROCKSTAR_END, ROCKSTAR_MIDDLE, level=0.95)
+pd.DataFrame({"end aisle": ROCKSTAR_END, "middle aisle": ROCKSTAR_MIDDLE,
+              "difference d": np.subtract(ROCKSTAR_END, ROCKSTAR_MIDDLE)},
+             index=pd.RangeIndex(1, 10, name="store")).T
+```
+
+```{python}
+#| label: rockstar-test
+numbers(rock)
+```
+
+::: {.charcoal}
+Across the nine stores, end-aisle displays sold
+`{python} f"{rock['mean difference d-bar']:.2f}"` more units a week on
+average ($s_d=$ `{python} f"{rock['s_d']:.2f}"`), $t=$
+`{python} f"{rock['test statistic t']:.2f}"` with 8 df, $p=$
+`{python} f"{rock['p-value']:.4f}"`. Reject $H_0$: **the data are evidence
+that end-aisle placement sells more on average.** The 90% interval for the
+mean gain is `{python} f"{rock['90% interval for mu_d: lower']:.1f}"` to
+`{python} f"{rock['90% interval for mu_d: upper']:.1f}"` units a week.
+
+Why 90%? Week 9: a one-tailed test at $\alpha=0.05$ matches a two-sided
+**90%** interval, not a 95% one. The 95% interval here,
+`{python} f"{rock95['95% interval for mu_d: lower']:.1f}"` to
+`{python} f"{rock95['95% interval for mu_d: upper']:.1f}"`, just reaches
+below zero. That is not a contradiction; it says the evidence is real but
+modest, and that a two-sided question ("does placement matter in either
+direction?") would not quite clear the bar with nine stores.
+:::
+
+## Why pairing matters: the same numbers, analysed wrongly
+
+Now pretend the 18 numbers came from 18 *different* stores and run Welch's
+independent-samples test on them.
+
+```{python}
+#| label: rockstar-both
+both = paired_vs_independent(ROCKSTAR_END, ROCKSTAR_MIDDLE, "greater")
+both.round(4)
+```
+
+```{python}
+#| label: rockstar-chart
+_ = paired_chart(ROCKSTAR_END, ROCKSTAR_MIDDLE, labels=("end aisle", "middle aisle"),
+                 units=[f"store {i}" for i in range(1, 10)],
+                 title="Each store's two weeks (scarlet: end aisle sold more)",
+                 ylab="Units sold per week")
+```
+
+```{python}
+#| label: rockstar-var
+pv = pairing_variance(ROCKSTAR_END, ROCKSTAR_MIDDLE)
+pv.round(2).to_frame("value")
+```
+
+::: {.charcoal}
+The same difference, `{python} f"{rock['mean difference d-bar']:.2f}"`
+units, gives $p=$ `{python} f"{both.loc['p-value', 'paired (correct design)']:.3f}"`
+analysed as pairs and $p=$
+`{python} f"{both.loc['p-value', 'independent (ignores the pairing)']:.3f}"`
+analysed as independent samples. One analysis finds the effect; the other
+misses it entirely.
+
+The chart shows why. Store 3 sells about 100+ units whatever the placement;
+store 5 sells about 40. That store-to-store spread is huge, and an
+independent-samples test counts all of it as noise. But it is the *same*
+spread in both weeks: the two columns are strongly correlated
+($r=$ `{python} f"{pv['r']:.2f}"`). Taking each store's difference cancels
+it. In numbers,
+
+$$\text{Var}(d)=s_1^2+s_2^2-2rs_1s_2 ,$$
+
+which is `{python} f"{pv['Var(d) = sum']:.0f}"` here, against
+`{python} f"{pv['Var(d) if the pairing is ignored (r = 0)']:.0f}"` if the
+pairing is ignored. **Pairing removes variation you already know about, so
+the variation you care about can show through.** It is the most powerful
+idea in this chapter, and it returns at the end of the note as *blocking*.
+:::
+
+::: {.scarlet}
+**The analysis must match the design.** Paired data analysed as
+independent throws away power, as above. Independent data analysed as
+paired is simply wrong (which observation would you subtract from which?).
+Ask: was each observation in one group matched to a *specific* observation
+in the other? If yes, pair.
+:::
+
+::: {.scarlet}
+**A design flaw worth spotting.** In the Rockstar study, every store ran the
+end-aisle week *first*. If demand was rising (warmer weather, a holiday, a
+promotion), the first week would look better for reasons that have nothing
+to do with placement. A better design flips a coin in each store to decide
+which placement goes first. Statistics can measure a difference; only the
+design can tell you what caused it.
+:::
+
+::: {.brown}
+A golf-ball maker claims its new ball adds **more than 15 yards** to a
+golfer's drive. Eight golfers each hit the new ball and their own ball:
+
+| Golfer | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| New ball | 201 | 228 | 256 | 233 | 248 | 255 | 239 | 220 |
+| Own ball | 204 | 213 | 231 | 241 | 223 | 226 | 212 | 186 |
+
+**(a)** State the hypotheses. **(b)** Test at $\alpha=0.10$. **(c)** Give a
+90% interval for the mean gain. **(d)** What must be assumed with only 8
+pairs?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: golf
+golf = paired_t_from_data(GOLF_MINE, GOLF_THEIRS, 15, "greater", 0.10, level=0.90)
+numbers(golf)
+```
+
+**(a)** $d=\text{new}-\text{own}$; $H_0:\mu_d\le15$, $H_1:\mu_d>15$ (the
+claim needs evidence). **(b)** $\bar{d}=$
+`{python} f"{golf['mean difference d-bar']:.2f}"` yards, $t=$
+`{python} f"{golf['test statistic t']:.2f}"`, $p=$
+`{python} f"{golf['p-value']:.4f}"`.
+`{python} ("Reject H0: the data are evidence that the average gain exceeds 15 yards." if golf["reject H0?"] else "Do not reject H0: the average gain is above 15 yards in this sample, but 8 golfers are not enough evidence that the true average gain exceeds 15.")`
+**(c)** `{python} f"{golf['90% interval for mu_d: lower']:.1f}"` to
+`{python} f"{golf['90% interval for mu_d: upper']:.1f}"` yards. **(d)** The
+differences should be roughly normal, since 8 pairs are far too few for the
+Central Limit Theorem.
+:::
+
+# Comparing Two Proportions
+
+::: {.blue}
+For $x_1$ successes in $n_1$ and $x_2$ in $n_2$, with
+$\hat{p}_1=x_1/n_1$ and $\hat{p}_2=x_2/n_2$:
+
+**Test of $H_0:p_1=p_2$.** $H_0$ says there is one common proportion, so
+estimate it by pooling both samples, $\bar{p}=\dfrac{x_1+x_2}{n_1+n_2}$, and use
+
+$$z=\frac{\hat{p}_1-\hat{p}_2}{\sqrt{\bar{p}(1-\bar{p})\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}} .$$
+
+**Confidence interval for $p_1-p_2$.** The interval claims nothing, so each
+sample keeps its own proportion:
+
+$$(\hat{p}_1-\hat{p}_2)\pm z_{\alpha/2}\sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1}+\frac{\hat{p}_2(1-\hat{p}_2)}{n_2}} .$$
+:::
+
+::: {.charcoal}
+This is the two-sample version of week 9's rule: **the test uses what $H_0$
+claims, the interval uses what the data show.** In week 9 that meant $p_0$
+for the test and $\hat{p}$ for the interval; here it means the pooled
+$\bar{p}$ for the test and the separate $\hat{p}$'s for the interval.
+:::
+
+## Application: homeownership in two regions
+
+105 of 150 sampled southeastern homes and 80 of 125 northeastern homes are
+owner-occupied. Population 1 is the Southeast. Do the rates differ?
+
+```{python}
+#| label: homes
+home_t = two_proportion_test(105, 150, 80, 125, "two-sided", 0.05)
+home_ci = two_proportion_interval(105, 150, 80, 125, 0.95)
+pd.concat([numbers(home_t).rename(columns={"value": "test (pooled)"}),
+           numbers(home_ci).rename(columns={"value": "interval (unpooled)"})],
+          axis=1).fillna("")
+```
+
+::: {.charcoal}
+The sample rates are 70% and 64%. Pooled, $\bar{p}=$
+`{python} f"{home_t['pooled p-bar']:.3f}"`, $z=$
+`{python} f"{home_t['test statistic z']:.2f}"`, $p=$
+`{python} f"{home_t['p-value']:.3f}"`: **no evidence that homeownership
+rates differ** between the regions. The 95% interval,
+`{python} f"{home_ci['lower']:.3f}"` to `{python} f"{home_ci['upper']:.3f}"`,
+contains zero and runs from the Northeast being about 5 points higher to the
+Southeast being about 17 points higher. With samples this size, even a
+6-point gap is within the noise.
+:::
+
+## Application: do good students have fewer accidents?
+
+Liberty Mutual gives young drivers a good-student discount. In one state,
+167 of 1,207 good students had accidents, against 799 of 4,963 other young
+drivers.
+
+$$H_0:p_1-p_2\ge0\qquad H_1:p_1-p_2<0$$
+
+```{python}
+#| label: liberty
+lib = two_proportion_test(167, 1207, 799, 4963, "less", 0.05)
+lib_ci = two_proportion_interval(167, 1207, 799, 4963, 0.95)
+numbers(lib)
+```
+
+::: {.charcoal}
+Accident rates of `{python} pct(lib['p-hat 1'], 1)` and
+`{python} pct(lib['p-hat 2'], 1)`, $z=$
+`{python} f"{lib['test statistic z']:.2f}"`, one-tailed $p=$
+`{python} f"{lib['p-value']:.4f}"`. Reject: **good students have a lower
+accident rate.** The difference is about
+`{python} f"{-100 * lib['difference']:.1f}"` percentage points (95% interval
+`{python} f"{-100 * lib_ci['upper']:.1f}"` to
+`{python} f"{-100 * lib_ci['lower']:.1f}"` points lower).
+
+That justifies the discount as **pricing**: an insurer prices risk, and a
+lower accident rate is lower risk, whatever the reason. It does **not** show
+that good grades make anyone a safer driver. Good students may drive less,
+drive newer cars, or have parents who supervise more. The next section is
+about exactly this difference.
+:::
+
+# Experiments and Observational Comparisons
+
+::: {.blue}
+In an **experiment**, the investigator assigns the units to the groups,
+ideally at random. In an **observational comparison**, the groups come as
+they are: the investigator only records which group each unit belongs to.
+:::
+
+| Example | Who chose the group? | What a significant difference shows |
+|---|---|---|
+| Rats, enriched vs. barren cages | the researchers, at random | enrichment **causes** heavier brains |
+| Rockstar, end vs. middle aisle | Josh, but always end-aisle first | placement *probably* matters; order is a rival explanation |
+| Federal vs. private salaries | the workers themselves | the averages differ; not *why* (education, location, job mix) |
+| Good students vs. others | the students themselves | the accident rates differ; not that grades cause safe driving |
+| A/B test of two web pages | random assignment of visitors | the page version **causes** the difference in conversions |
+
+::: {.scarlet}
+**A two-sample test tells you whether the groups differ, not why.** Random
+assignment is what licenses "causes": it makes the groups alike, on average,
+in every respect except the one you changed, including the ones you never
+measured. Without it, every difference comes with rival explanations, and a
+tiny p-value does nothing to rule them out. This is the most important
+judgment call you will make with this chapter's tools, and it returns in
+the regression weeks as "correlation is not causation."
+:::
+
+# A/B Testing
+
+An **A/B test** is a two-proportion test run as an experiment: visitors are
+randomly shown version A or version B of a page, an email, or an offer, and
+the conversion rates are compared. It is the most common use of this
+chapter in business today, and the random assignment is what makes its
+conclusions causal.
+
+## How many visitors?
+
+The question to answer *before* launch is week 9's power question. Suppose
+the current page converts 10% of visitors and a lift to 12% would be worth
+the redesign.
+
+```{python}
+#| label: ab-n
+ab = ab_sample_size(0.10, 0.12, alpha=0.05, power=0.80)
+tidy(ab).to_frame("10% vs 12%")
+```
+
+```{python}
+#| label: ab-power-chart
+ns = [500, 1000, 2000, 3000, 4000, 5000, 6000, 8000]
+_ = line_chart(ns, {"power to detect 10% -> 12%": [ab_power(0.10, 0.12, n) for n in ns]},
+               title="Power of an A/B test by visitors per arm",
+               xlab="Visitors per arm", ylab="Power", hlines=[0.80], ylim=(0, 1.02))
+```
+
+```{python}
+#| label: ab-stats
+#| include: false
+ab_small = ab_sample_size(0.10, 0.11)
+pw1000 = ab_power(0.10, 0.12, 1000)
+```
+
+::: {.charcoal}
+Detecting a 2-point lift with 80% power takes
+**`{python} f"{ab['n per arm (round UP)']:,}"` visitors per arm**,
+`{python} f"{ab['total visitors']:,}"` in all. With 1,000 per arm the test
+would catch a real lift only `{python} pct(pw1000, 0)` of the time. A
+1-point lift (10% to 11%) needs
+`{python} f"{ab_small['n per arm (round UP)']:,}"` per arm. Small lifts are
+expensive to detect, which is why the size of the lift worth detecting has
+to be decided by the business before the test starts.
+:::
+
+::: {.scarlet}
+**Three rules for reading an A/B test.**
+
+1. **Fix the sample size in advance, and don't stop when $p$ first dips below
+   0.05.** Checking every day and stopping at the first "significant" reading
+   is a way of running many tests and keeping the best one; the false
+   positive rate climbs far above 5%.
+2. **Report the interval for the lift, not just the p-value.** "B converts
+   0.3 to 2.1 points better" supports a decision; "$p=0.03$" does not.
+3. **One primary metric, decided in advance.** Testing ten metrics and
+   reporting the one that "won" is the multiple comparisons problem at the
+   end of this note.
+:::
+
+::: {.brown}
+An online retailer randomly sends 2,400 customers email A and 2,400 email
+B. A produces 168 purchases, B 216. **(a)** Test at $\alpha=0.05$ whether
+the purchase rates differ. **(b)** Give a 95% interval for B's lift over A.
+**(c)** Can the retailer say email B *caused* the extra purchases? Why?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: email
+em = two_proportion_test(216, 2400, 168, 2400, "two-sided", 0.05)
+em_ci = two_proportion_interval(216, 2400, 168, 2400, 0.95)
+pd.concat([numbers(em).rename(columns={"value": "test"}),
+           numbers(em_ci).rename(columns={"value": "interval"})], axis=1).fillna("")
+```
+
+Population 1 is email B. **(a)** Rates `{python} pct(em['p-hat 1'], 1)` vs.
+`{python} pct(em['p-hat 2'], 1)`, $z=$
+`{python} f"{em['test statistic z']:.2f}"`, $p=$
+`{python} f"{em['p-value']:.4f}"`.
+`{python} "Reject H0: the rates differ." if em["reject H0?"] else "Do not reject H0."`
+**(b)** `{python} f"{100 * em_ci['lower']:.1f}"` to
+`{python} f"{100 * em_ci['upper']:.1f}"` percentage points. **(c)** Yes,
+within the limits of the test: customers were *randomly* assigned to the
+emails, so the groups were alike in everything except the email.
+:::
+
+# A Test With No Formula: Shuffling the Labels
+
+If the group labels made no difference, the 21 Maxima mileages could have
+been split into "AC on" and "windows down" in any way at all. So shuffle the
+labels thousands of times, recompute the difference in means each time, and
+see how often chance alone produces a gap as big as the real one.
+
+```{python}
+#| label: perm
+perm = permutation_test(MAXIMA_AC, MAXIMA_WINDOWS, reps=20_000, alternative="two-sided")
+shuffled = perm.attrs["shuffled differences"]
+_ = density_histogram(shuffled, bins=50,
+                      title="20,000 shuffles of the labels (if H0 is true)",
+                      xlab="difference in means after shuffling (mpg)",
+                      bar_label="shuffled differences",
+                      mark=[perm["observed difference"], -perm["observed difference"]])
+tidy(perm).to_frame("Maxima, two-sided")
+```
+
+::: {.charcoal}
+`{python} pct(perm['permutation p-value'], 1)` of the shuffles produce a
+difference at least as large as the observed
+`{python} f"{perm['observed difference']:.2f}"` mpg in either direction.
+That share *is* a p-value, and it agrees closely with Welch's
+`{python} f"{maxima['p-value']:.4f}"`. No formula, no normality
+assumption, no degrees of freedom: just the definition of a p-value, done by
+brute force. When a formula and a permutation test agree, you can trust
+both; when they disagree (small, skewed samples), trust the permutation test.
+:::
+
+# Which Test Is It?
+
+```{python}
+#| label: catalog
+two_sample_catalog()
+```
+
+::: {.brown}
+Name the procedure and write the hypotheses.
+
+**(a)** A casino compares the average weekly play of 60 loyalty members
+before and after a new rewards tier.
+
+**(b)** A bank compares the share of under-40 and over-40 customers who
+bank mainly online, from separate random samples.
+
+**(c)** An HR analyst compares average commute times of 45 Henderson and 38
+Summerlin employees, and the Summerlin times are far more variable.
+
+**(d)** A chain tests three store layouts across 30 stores.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Paired $t$ (the same members twice): $H_0:\mu_d=0$ (or one-sided,
+if the question is whether play rose). **(b)** Two-proportion $z$, pooled
+for the test: $H_0:p_1=p_2$. Observational, so a difference would not show
+that age *causes* online banking. **(c)** Welch two-sample $t$:
+$H_0:\mu_1=\mu_2$. **(d)** Three groups: one-way ANOVA (below), not three
+$t$-tests.
+:::
+
+# Reading the Textbook: Corrections
+
+::: {.scarlet}
+1. **"If the populations are not normally distributed, the $t$-distribution
+   can still be used … if both sample sizes are 30 or more. This is because
+   the shape of the $t$-distribution approaches the normal."** Large samples
+   help because the Central Limit Theorem acts on $\bar{x}_1-\bar{x}_2$, not
+   because $t$ becomes $z$. Strongly skewed data may need more than 30 per
+   group (week 9's income simulation).
+2. **Welch degrees of freedom "rounded up … is a Type I error."** Rounding
+   up would raise the Type I error *rate* slightly; it is not itself an
+   error. Software uses the exact fraction, Excel rounds to the nearest
+   whole number, the book rounds down. Any of the three is acceptable.
+3. **Rockstar's design.** End-aisle always came first, so a trend in demand
+   is a rival explanation (above).
+4. **Causal language on observational data.** The federal-salary and
+   good-student conclusions show that the groups differ, not why.
+5. **"Because α = 0.05 is within this range, we can reject"** (Rockstar,
+   Step 8). The table brackets $p$ between 0.025 and 0.05; the exact value,
+   0.030, settles it. Use exact p-values from Excel.
+:::
+
+# Many Groups: A Slice of Chapter 11
+
+Chapter 11 extends this week's question to three or more groups: three
+store layouts, four suppliers, five ad campaigns. We will not compute its
+sums of squares by hand. Three ideas from it are worth your time.
+
+## Idea 1: comparing many pairs inflates false positives
+
+The obvious approach to four groups is to run a $t$-test on every pair.
+Four groups make six pairs, each tested at $\alpha=0.05$. If all four
+population means are in fact equal, what is the chance that at least one of
+the six tests cries wolf?
+
+```{python}
+#| label: familywise
+fw = familywise_error()
+fw.round(4)
+```
+
+```{python}
+#| label: familywise-sim
+fw_sim = simulate_pairwise_false_positives(k=4, n=20, reps=5_000)
+fw_sim.to_frame("4 identical groups of 20, simulated 5,000 times")
+```
+
+::: {.charcoal}
+Your textbook's arithmetic: with six independent tests, the chance of at
+least one false positive is $1-0.95^6=$
+`{python} f"{fw.loc[4, 'P(at least one false positive)']:.3f}"`. With ten
+groups (45 pairs) it is
+`{python} pct(fw.loc[10, 'P(at least one false positive)'], 0)`. The
+simulation draws four groups from the *same* population, so every
+"significant" difference is false, and still finds at least one significant
+pair `{python} pct(fw_sim["share with >= 1 'significant' pair"], 1)` of the
+time. (The six tests share data, so they are not independent and the rate
+is a little below the formula's.) One ANOVA test on the same data rejects
+`{python} pct(fw_sim['share where ANOVA rejects'], 1)` of the time, as it
+should.
+
+This is week 9's false-positive problem scaled up, and it is everywhere in
+business: dashboards that flag "significant" changes in dozens of metrics,
+A/B tests read segment by segment, "we sliced the data twelve ways and found
+something." **The more comparisons you make, the more false positives you
+should expect.** The remedies are to decide on the comparison in advance,
+to use one test built for many groups (ANOVA), or to demand a stricter
+$\alpha$ for each comparison (the Bonferroni rule divides $\alpha$ by the
+number of tests, the last column above).
+:::
+
+## Idea 2: one-way ANOVA compares many means with one test
+
+::: {.blue}
+**One-way analysis of variance (ANOVA)** tests
+
+$$H_0:\mu_1=\mu_2=\cdots=\mu_k\qquad H_1:\text{not all the means are equal}$$
+
+with a single statistic,
+
+$$F=\frac{\text{variation between the group means (per df)}}{\text{variation within the groups (per df)}}=\frac{MS_{\text{between}}}{MS_{\text{within}}} .$$
+
+If $H_0$ is true, the group means differ only by noise and $F$ is usually
+near 1. A large $F$ says the means differ by more than the noise within the
+groups can explain. The test is always upper-tailed.
+:::
+
+The textbook's airfare data record 30 fares between Chicago and London, 10
+on each of three airlines (half of each airline's fares in each direction). Do average fares differ by airline?
+
+```{python}
+#| label: anova-strip
+_ = strip_chart(airfare, "fare", "airline", title="Thirty fares by airline (black bar = mean)",
+                ylab="Fare (dollars)")
+```
+
+```{python}
+#| label: anova-one
+summ, aov = one_way_anova({a: g["fare"].to_numpy()
+                           for a, g in airfare.groupby("airline", sort=False)})
+summ.round(1)
+```
+
+```{python}
+#| label: anova-table
+aov.round(4).fillna("")
+```
+
+::: {.charcoal}
+This is the layout of Excel's **Data → Data Analysis → Anova: Single
+Factor**. Read it in three steps. **Between groups** is how far the three
+airline means sit from the overall mean; **within groups** is how much fares
+vary inside each airline; $F$ is their ratio per degree of freedom, here
+`{python} f"{aov.loc['Between Groups', 'F']:.2f}"`. The p-value is
+`{python} f"{aov.loc['Between Groups', 'P-value']:.4f}"`, just above 0.05
+(equivalently, $F$ is just below the critical value
+`{python} f"{aov.loc['Between Groups', 'F crit']:.2f}"`). **The data are
+not quite sufficient evidence that average fares differ by airline.**
+
+Two cautions. A rejection says only that *some* means differ, not which
+ones; a follow-up procedure (the textbook's Tukey–Kramer test) answers
+that while holding the overall false positive rate at $\alpha$. And ANOVA
+assumes roughly normal data with similar spreads in each group, the same
+conditions as the pooled $t$-test.
+:::
+
+```{python}
+#| label: anova-t2
+#| include: false
+route_groups = {r: g["fare"].to_numpy() for r, g in airfare.groupby("route")}
+_, aov_route = one_way_anova(route_groups)
+t_route = two_sample_t_from_data(*route_groups.values(), pooled=True)
+```
+
+::: {.brown}
+**ANOVA with two groups is the pooled $t$-test.** Run a one-way ANOVA on the
+same 30 fares grouped by *route* (Chicago–London vs. London–Chicago):
+$F=$ `{python} f"{aov_route.loc['Between Groups', 'F']:.4f}"`. The pooled
+two-sample $t$ on the same data is
+`{python} f"{t_route['test statistic t']:.4f}"`, and $t^2=$
+`{python} f"{t_route['test statistic t'] ** 2:.4f}"`. Same test, same
+p-value (`{python} f"{aov_route.loc['Between Groups', 'P-value']:.4f}"`).
+ANOVA is this week's test, generalized to more than two groups.
+:::
+
+## Idea 3: blocking is pairing for many groups
+
+Look at the strip chart again, now coloured by the direction of travel.
+
+```{python}
+#| label: route-gap
+#| include: false
+_cell = airfare.groupby(["airline", "route"])["fare"].mean().unstack()
+route_gap = _cell["Chicago-London"] - _cell["London-Chicago"]
+```
+
+```{python}
+#| label: block-strip
+_ = strip_chart(airfare, "fare", "airline", color_by="route",
+                title="The same fares, coloured by route", ylab="Fare (dollars)")
+```
+
+::: {.charcoal}
+Inside every airline, the Chicago–London fares average well above the
+London–Chicago fares, by `{python} money(route_gap.min())` to
+`{python} money(route_gap.max())`. One-way ANOVA counted that route-to-route spread as
+noise, exactly as the independent-samples test counted Rockstar's
+store-to-store spread as noise. Treat route as a **block**, a known source
+of variation to be removed, and test airline again:
+:::
+
+```{python}
+#| label: block-table
+blk = block_anova(airfare, "fare", "airline", "route")
+tidy(blk.astype(float).round(4), 4).fillna("")
+```
+
+::: {.charcoal}
+With route removed from the error term, the airline effect has $F=$
+`{python} f"{blk.loc['airline (factor)', 'F']:.2f}"` and $p=$
+`{python} f"{blk.loc['airline (factor)', 'P-value']:.4f}"`: now **the data
+are evidence that average fares differ by airline.** Nothing about the
+airlines changed between the two analyses; the noise got smaller. This is
+the Rockstar lesson again. Pairing compared each store with itself;
+blocking compares each airline within the same route. Your textbook calls
+this design a *randomized block ANOVA*.
+:::
+
+::: {.brown}
+**What we leave for later.** Chapter 11's two-way ANOVA also tests whether
+the *airline* effect depends on the *route* (an **interaction**; here it
+does not, $p\approx0.84$). Interactions are easier to understand as terms
+in a regression model, and that is where we will meet them. The ANOVA
+table itself also returns: every regression output you read in the coming
+weeks begins with one, and its $F$-test asks the same question as here.
+:::
+
+# Laboratory 10
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 10 pack](../upload_packs/lab-10-chapter-10.zip)**
+— one file. Unzip it and you will have a folder holding 7 files. Drag all 7
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 7 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `10_comparing_two_populations.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 10 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `10_comparing_two_populations.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+::: {.prompt}
+Prompt
+
+> A hotel tested a new check-in process. For 12 front-desk agents I have
+> each agent's average check-in time (minutes) in the week before and the
+> week after: before = 6.1, 5.4, 7.2, 4.8, 6.6, 5.9, 7.8, 5.1, 6.4, 5.7,
+> 6.9, 5.5; after = 5.2, 5.0, 6.1, 4.9, 5.5, 5.2, 6.6, 4.6, 5.8, 5.3, 6.0,
+> 5.1. By running code, (1) test whether the new process reduced average
+> check-in time at alpha = 0.05, using the design these data came from,
+> (2) run the WRONG test (treating the weeks as independent samples) and
+> show me how the answer changes and why, and (3) give a 95% interval for
+> the average time saved. Then tell me whether this study shows the new
+> process CAUSED the improvement, and what you would change about the
+> design to make that claim stronger.
+:::
+
+Check four things in the reply: the paired test uses 11 degrees of freedom;
+the explanation of the wrong test mentions the correlation between an
+agent's two weeks; the interval is for the mean *difference*; and the
+answer to the last question raises the before/after design itself (a
+learning curve, a quieter week, or the agents knowing they were watched
+could all produce the improvement).
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook that teaches why pairing matters. Sheet 1 has
+> 20 stores. Column B is each store's "size", =NORM.INV(RAND(), 100, 30).
+> Column C is week-1 sales = B + NORM.INV(RAND(), 0, 8), and column D is
+> week-2 sales = B + 5 + NORM.INV(RAND(), 0, 8), so week 2 is truly 5 units
+> better. At the top, put the paired p-value =T.TEST(C2:C21, D2:D21, 2, 1),
+> the unequal-variance p-value =T.TEST(C2:C21, D2:D21, 2, 3), and the
+> correlation =CORREL(C2:C21, D2:D21) side by side. (Use these formulas
+> rather than the Data Analysis tool, whose output does not recalculate.)
+> Give me the file to download.
+:::
+
+Press F9 ten times and record both p-values each time. Then change the 30
+in column B to 5 and repeat. In one paragraph: when does pairing help a
+lot, when does it hardly matter, and what does the correlation have to do
+with it?

@@ -26,6 +26,7 @@ __all__ = [
     "probability_tree", "convergence_plot", "venn", "pmf_chart",
     "density_chart", "density_histogram", "approximation_chart",
     "interval_chart", "test_chart", "power_chart", "line_chart",
+    "paired_chart", "strip_chart",
     "UNLV_SCARLET", "UNLV_GRAY",
 ]
 
@@ -907,7 +908,7 @@ def density_chart(x, curves, shade=None, area=None, title=None, xlab="x",
 
 def density_histogram(data, x=None, density=None, bins=40, title=None,
                       xlab="x", curve_label="theoretical density",
-                      bar_label="sample", figsize=(9, 4.5)):
+                      bar_label="sample", figsize=(9, 4.5), mark=None):
     """A histogram drawn on the DENSITY scale, so that it can sit under a
     density curve and be compared with it. Bar areas sum to 1, just as the
     area under the curve does.
@@ -922,6 +923,9 @@ def density_histogram(data, x=None, density=None, bins=40, title=None,
     if x is not None and density is not None:
         ax.plot(x, density, color=UNLV_SCARLET, linewidth=2.2,
                 label=curve_label)
+    for i, m in enumerate(mark or []):
+        ax.axvline(m, color=UNLV_SCARLET, linestyle="--", linewidth=1.4,
+                   label="observed" if i == 0 else None)
     ax.legend(frameon=False, fontsize=9)
     _finish(ax, title, xlab, "density")
     fig.tight_layout()
@@ -1123,3 +1127,63 @@ def line_chart(x, series, title=None, xlab=None, ylab=None, hlines=None,
     for label, y in series.items():
         out[label if label is not None else "y"] = list(y)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Two populations and many groups (Chapters 10 and 11)
+# ---------------------------------------------------------------------------
+
+def paired_chart(x1, x2, labels=("1", "2"), units=None, title=None,
+                 ylab=None, figsize=(7, 5)):
+    """Matched pairs as a slope chart: one line per unit (store, customer,
+    golfer) from its first measurement to its second. Lines that sit high
+    stay high: that shared level is what pairing removes. Lines rising
+    left to right are scarlet; falling ones grey."""
+    a = np.asarray(x1, dtype=float)
+    b = np.asarray(x2, dtype=float)
+    fig, ax = plt.subplots(figsize=figsize)
+    for i, (u, v) in enumerate(zip(a, b)):
+        up = u > v
+        ax.plot([0, 1], [u, v], color=UNLV_SCARLET if up else "#9FA1A4",
+                linewidth=2 if up else 1.6, marker="o", markersize=5)
+        if units is not None:
+            ax.text(-0.04, u, str(units[i]), ha="right", va="center",
+                    fontsize=8, color=UNLV_GRAY)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(labels)
+    ax.set_xlim(-0.25, 1.15)
+    _finish(ax, title, None, ylab)
+    fig.tight_layout()
+    plt.show()
+    return pd.DataFrame({labels[0]: a, labels[1]: b, "difference": a - b})
+
+
+def strip_chart(frame, y, group, color_by=None, title=None, ylab=None,
+                figsize=(9, 4.5), seed=1):
+    """Every observation as a dot, one column per group, with the group mean
+    as a black bar. `color_by` colours the dots by a second variable (a
+    block), which makes it visible when that variable explains much of the
+    spread inside each group."""
+    rng = np.random.default_rng(seed)
+    groups = list(dict.fromkeys(frame[group]))
+    fig, ax = plt.subplots(figsize=figsize)
+    palette = [UNLV_SCARLET, "#333333", "#9FA1A4", "#d9822b"]
+    levels = list(dict.fromkeys(frame[color_by])) if color_by else [None]
+    for gi, g in enumerate(groups):
+        sub = frame[frame[group] == g]
+        for li, lev in enumerate(levels):
+            s = sub if lev is None else sub[sub[color_by] == lev]
+            xj = gi + rng.uniform(-0.12, 0.12, len(s))
+            ax.scatter(xj, s[y], s=28, color=palette[li % len(palette)],
+                       alpha=0.85, label=(lev if gi == 0 and lev is not None
+                                          else None))
+        m = sub[y].mean()
+        ax.hlines(m, gi - 0.25, gi + 0.25, color="black", linewidth=2.2)
+    ax.set_xticks(range(len(groups)))
+    ax.set_xticklabels(groups)
+    if color_by:
+        ax.legend(frameon=False, fontsize=9, title=color_by)
+    _finish(ax, title, None, ylab)
+    fig.tight_layout()
+    plt.show()
+    return frame.groupby(group, sort=False)[y].agg(["count", "mean", "std"])

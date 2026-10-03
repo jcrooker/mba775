@@ -148,6 +148,18 @@ LABS = {
                     "_dist.py", "_cont.py", "_samp.py", "_infer.py"],
         "data": ["big9_faculty_1999.csv", "nevada_agi_2016_sample.csv"],
     },
+    "lab-10-chapter-10": {
+        "chapter": 10,
+        "topic": "comparing two populations, with a slice of ANOVA",
+        "run": {"10_comparing_two_populations.py":
+                "Welch and pooled two-sample t-tests, intervals for a "
+                "difference, paired samples and why pairing matters, two "
+                "proportions, A/B test sizing, a permutation test, "
+                "familywise false positives, one-way ANOVA, and blocking"},
+        "scripts": ["10_comparing_two_populations.py", "_course.py",
+                    "_dist.py", "_cont.py", "_infer.py", "_two.py"],
+        "data": [],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

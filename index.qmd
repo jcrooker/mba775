@@ -23,6 +23,7 @@ that produced a number, the number does not go in your submission.
 - [Chapter 6 — Continuous Probability Distributions](notes/lecture-notes-2020-chapter-06-continuous-probability.html)
 - [Chapter 7 — Sampling and Sampling Distributions](notes/lecture-notes-2030-chapter-07-sampling-and-sampling-distributions.html)
 - [Chapters 8 and 9 — Confidence Intervals and Hypothesis Testing](notes/lecture-notes-2040-chapter-08-09-confidence-intervals-and-hypothesis-testing.html)
+- [Chapter 10 — Comparing Two Populations (with a slice of Chapter 11)](notes/lecture-notes-2050-chapter-10-comparing-two-populations.html)
 - [Chapter 16, Part 1 — The Forecasting Challenge](notes/lecture-notes-1005-chapter-16-forecasting-part-1-the-forecasting-challenge.html) (Week 3)
 - [Chapter 16, Part 2 — Exponential Smoothing](notes/lecture-notes-2005-chapter-16-forecasting-part-2-exponential-smoothing.html) (after Exam 1)
 - [Chapter 16, Part 3 — Regression and Seasonality](notes/lecture-notes-3040-chapter-16-forecasting-part-3-regression-and-seasonality.html) (after Exam 2)
@@ -47,6 +48,7 @@ every Claude account, including the free tier.
 | 6 | [Chapter 6 pack](upload_packs/lab-6-chapter-06.zip) | 7 |
 | 7 | [Chapter 7 pack](upload_packs/lab-7-chapter-07.zip) | 8 |
 | 8–9 | [Chapters 8–9 pack](upload_packs/lab-8-chapters-08-09.zip) | 9 |
+| 10 | [Chapter 10 pack](upload_packs/lab-10-chapter-10.zip) | 7 |
 | 16a | [Forecasting 1 pack](upload_packs/lab-16a-forecasting-1.zip) | 6 |
 | 16b | [Forecasting 2 pack](upload_packs/lab-16b-forecasting-2.zip) | 8 |
 | 16c | [Forecasting 3 pack](upload_packs/lab-16c-forecasting-3.zip) | 8 |
