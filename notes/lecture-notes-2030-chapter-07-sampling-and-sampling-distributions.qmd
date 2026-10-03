@@ -1,0 +1,1531 @@
+---
+title: "Sampling and Sampling Distributions"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import comb, sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (pmf_chart, density_chart, density_histogram, bar_chart,
+                     UNLV_SCARLET, UNLV_GRAY)
+from _cont import normal_pdf, normal_cdf, normal_inv, normal_area
+from _dist import binomial_table, probability_of
+from _samp import (simple_random_sample, systematic_sample,
+                   proportional_allocation, stratified_sample,
+                   stratified_estimate, cluster_sample, design_comparison,
+                   all_sample_errors, enumerate_sample_means, fpc, se_mean,
+                   se_proportion, fpc_table, xbar_probability, xbar_interval,
+                   interval_table, proportion_question, simulate_sample_means,
+                   tail_check, bootstrap, bootstrap_interval,
+                   selection_bias_demo)
+
+warnings.filterwarnings("ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def money(x, decimals=0):
+    """Dollars for prose. Quarto escapes the dollar sign in inline output
+    itself, so it must not be escaped here."""
+    sign = "-" if x < 0 else ""
+    return f"{sign}${abs(x):,.{decimals}f}"
+
+
+def mnum(x, decimals=0):
+    """A number with thousands separators that LaTeX will not mangle."""
+    return f"{x:,.{decimals}f}".replace(",", "{,}")
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`."""
+    print(f"$${latex}$$\n")
+
+
+faculty = pd.read_csv("data/big9_faculty_1999.csv")
+agi = pd.read_csv("data/nevada_agi_2016_sample.csv")["AGI"].dropna()
+RANK_COUNTS = faculty["rank"].value_counts().to_dict()
+MU_FAC = float(faculty["salary"].mean())
+SD_FAC = float(faculty["salary"].std(ddof=0))
+```
+
+## Objectives
+
++ Explain why we sample, and distinguish probability from nonprobability
+  samples.
++ Draw and correctly analyse simple random, systematic, stratified, and
+  cluster samples, and say what each design buys.
++ Calculate sampling errors, and identify nonsampling errors that no sample
+  size can fix.
++ Build a sampling distribution of the mean, and use its mean $\mu$ and its
+  standard error $\sigma/\sqrt{n}$.
++ State the Central Limit Theorem with its conditions, and recognize when a
+  sample is not yet large enough.
++ Find probabilities for a sample mean, and the interval that contains 95%
+  of sample means.
++ Use a sampling distribution to judge a claim, and describe the result in
+  the right words.
++ Use the sampling distribution of the proportion, with a stated policy on
+  the continuity correction.
++ Use the finite population correction, and say why it exists.
++ Use the bootstrap to estimate a standard error from the one sample you
+  have.
+
+::: {.charcoal}
+Chapters 5 and 6 described data generating mechanisms: if you know the
+mechanism, what values will it produce? This chapter asks the question a
+manager actually faces, which runs the other way. She has one sample, and
+from it one number: an average order size, a share of satisfied customers.
+How far might that number be from the truth she cannot see?
+
+The answer is another probability distribution. Draw a different sample and
+you get a different average. The distribution of all the averages you could
+have gotten is the **sampling distribution**, and its standard deviation, the
+**standard error**, is the single most important number in the second half of
+this course. Every confidence interval in Chapter 8 and every hypothesis test
+after it is built from one.
+
+As before, you will not compute these by hand on an exam. You will be handed
+output and asked what it means. In this chapter the most important thing it
+can mean is "this sample is (or is not) the kind of sample that claim would
+produce."
+:::
+
+# Why Sample?
+
+::: {.blue}
+A **population** is all possible subjects of interest in a study. A
+**sample** is a subset of the population. A **census** records every member
+of the population.
+:::
+
+Nielsen estimates the viewing habits of roughly 129 million US television
+households from a panel of about 41,000 of them. A cracker maker checks salt
+content by testing crackers, and a tested cracker cannot be sold. A
+university that wants students' views on academic integrity could survey all
+of them, but would spend far more to learn very little more.
+
+Those are the three reasons to sample: a census would be **impossible**
+(the population is too large or keeps changing), **destructive** (measuring
+uses up the item), or **wasteful** (a well-drawn sample answers the question
+almost as well, for a fraction of the cost). The price of sampling is that
+the answer is uncertain. The point of this chapter is that the uncertainty
+can be measured.
+
+# Types of Sampling
+
+::: {.blue}
+A **probability sample** is one in which every member of the population has
+a known, nonzero chance of being selected. The chances need not be equal.
+
+A **nonprobability sample** is one in which the chance of selection is not
+known.
+:::
+
+Only a probability sample supports the calculations in the rest of this
+chapter. If you do not know how members got into the sample, you cannot say
+how far the sample is likely to be from the population.
+
+Throughout this section the population is real: the
+`{python} str(len(faculty))` economics faculty members at nine Big Ten
+universities in 1999, with their salaries (Baser and Pema, 2003). Because we
+have the whole population, we know the true mean salary,
+`{python} money(MU_FAC)`, and can see how well each design recovers it.
+
+```{python}
+#| label: faculty-pop
+pd.DataFrame({
+    "faculty": faculty.groupby("rank")["salary"].size(),
+    "mean salary": faculty.groupby("rank")["salary"].mean().round(0),
+    "sd": faculty.groupby("rank")["salary"].std(ddof=0).round(0),
+}).loc[["Assistant", "Associate", "Professor"]]
+```
+
+## Simple random sampling
+
+::: {.blue}
+In a **simple random sample** every member of the population has the same
+chance of being chosen, and every possible sample of size $n$ is equally
+likely. Members are drawn **without replacement**: nobody is chosen twice.
+:::
+
+```{python}
+#| label: srs
+srs = simple_random_sample(faculty, 30, seed=7)
+print(f"Sample of {len(srs)}: mean salary {money(srs['salary'].mean())},  "
+      f"population mean {money(MU_FAC)},  "
+      f"sampling error {money(srs['salary'].mean() - MU_FAC)}")
+srs.head(8)
+```
+
+::: {.brown}
+Excel's **Data Analysis → Sampling** tool draws *with* replacement, so it can
+hand you the same member twice. To draw a simple random sample in Excel, put
+`=RAND()` in a column beside the list, sort on that column, and take the
+first $n$ rows.
+:::
+
+## Systematic sampling
+
+::: {.blue}
+In **systematic sampling**, every $k$th member of a list is chosen, starting
+from a random position among the first $k$. The **systematic sampling
+constant** is
+
+$$k=\frac{N}{n},$$
+
+where $N$ is the population size and $n$ the sample size.
+:::
+
+Systematic sampling is easy to carry out by hand: every fifth customer
+through the door, every hundredth file in the cabinet. It behaves like a
+simple random sample as long as the list has no pattern that lines up with
+$k$.
+
+::: {.blue}
+**Periodicity** is a pattern in the list that repeats with the same spacing
+as $k$. It can make a systematic sample unrepresentative.
+:::
+
+Here is periodicity on purpose. A Summerlin restaurant's daily covers over a
+year have a weekly cycle, quiet on weekdays and busy on weekends. (The
+numbers are an illustration, not data.) Sample every 7th day and you sample
+the *same weekday* every time:
+
+```{python}
+#| label: periodicity
+rng = np.random.default_rng(20261003)
+days = pd.date_range("2025-01-06", periods=364, freq="D")
+weekday_level = {0: 210, 1: 200, 2: 215, 3: 240, 4: 340, 5: 380, 6: 300}
+covers = pd.Series([weekday_level[d.dayofweek] + rng.normal(0, 25)
+                    for d in days], index=days, name="covers")
+true_mean = covers.mean()
+
+rows = []
+for k_label, n in [("k = 7 (every 7th day)", 52), ("k = 5 (every 5th day)", 72)]:
+    for start in range(7 if n == 52 else 5):
+        s = systematic_sample(covers, n, start=start)
+        rows.append({"design": k_label,
+                     "first day": s.index[0].day_name(),
+                     "sample mean": s.mean()})
+per = pd.DataFrame(rows)
+print(f"True mean daily covers: {true_mean:.1f}\n")
+tab = per.round(1).pivot_table(index="first day", columns="design",
+                              values="sample mean", aggfunc="first")
+order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+tab.reindex(order).fillna("(no such start)")
+```
+
+```{python}
+#| label: periodicity-stats
+#| include: false
+k7 = per[per["design"].str.startswith("k = 7")]["sample mean"]
+k5 = per[per["design"].str.startswith("k = 5")]["sample mean"]
+```
+
+With $k=7$, the answer depends entirely on the starting day: from
+`{python} f"{k7.min():.0f}"` covers if you start on a quiet weekday to
+`{python} f"{k7.max():.0f}"` if you start on a Saturday, against a true mean of
+`{python} f"{true_mean:.0f}"`. With $k=5$, the sample cycles through every
+weekday and all five possible samples land between
+`{python} f"{k5.min():.0f}"` and `{python} f"{k5.max():.0f}"`. Before using
+systematic sampling, ask what order the list is in.
+
+## Stratified sampling
+
+::: {.blue}
+In a **stratified sample**, the population is divided into mutually exclusive
+groups, or **strata**, and a random sample is taken from each. The strata are
+chosen because the variable of interest differs across them.
+:::
+
+Faculty salaries differ sharply by rank, so rank is a natural stratum. There
+are two ways to set the stratum sample sizes.
+
+**Proportional allocation** makes the sample mirror the population. For a
+sample of 30:
+
+```{python}
+#| label: prop-alloc
+alloc = proportional_allocation(RANK_COUNTS, 30)
+alloc.round(3)
+```
+
+With proportional allocation the ordinary sample mean is already the right
+estimate, because each stratum appears in its population share.
+
+**Disproportionate allocation** samples some strata more heavily, usually to
+learn enough about a small group. With only
+`{python} str(RANK_COUNTS["Assistant"])` assistant professors, proportional
+allocation gives us
+`{python} str(int(alloc.loc["Assistant", "sample size"]))` of them, too few to
+say anything about assistant professors. Sampling 10 from each rank fixes
+that, but now the sample over-represents the lower-paid ranks, and its plain
+average is biased.
+
+::: {.blue}
+The **stratified estimate** of the population mean weights each *stratum
+mean* by that stratum's share of the population, $W_h=N_h/N$:
+
+$$\bar{x}_{\text{strat}}=\sum_h W_h\,\bar{x}_h .$$
+
+Equivalently, each sampled observation from stratum $h$ gets weight
+$W_h/n_h$.
+:::
+
+```{python}
+#| label: strat-one
+EQUAL = {"Assistant": 10, "Associate": 10, "Professor": 10}
+strat = stratified_sample(faculty, "rank", EQUAL, seed=11)
+st = stratified_estimate(strat, "rank", "salary", RANK_COUNTS)
+st.round(3)
+```
+
+```{python}
+#| label: strat-one-stats
+#| include: false
+st_est = st.attrs["stratified estimate"]
+st_raw = st.attrs["unweighted sample mean"]
+```
+
+The plain average of these 30 salaries is `{python} money(st_raw)`; the
+stratified estimate is `{python} money(st_est)`; the truth is
+`{python} money(MU_FAC)`. One sample proves little, so here is each design run
+1,000 times:
+
+```{python}
+#| label: strat-compare
+PROP = alloc["sample size"].to_dict()
+UNEQUAL = {"Assistant": 6, "Associate": 9, "Professor": 15}
+prop_label = "/".join(str(PROP[r]) for r in ["Assistant", "Associate", "Professor"])
+designs = {
+    "simple random sample, n = 30":
+        lambda fr, s: simple_random_sample(fr, 30, s)["salary"].mean(),
+    f"stratified, proportional ({prop_label})":
+        lambda fr, s: stratified_sample(fr, "rank", PROP, s)["salary"].mean(),
+    "stratified 10/10/10, plain average":
+        lambda fr, s: stratified_sample(fr, "rank", EQUAL, s)["salary"].mean(),
+    "stratified 10/10/10, weighted by W_h":
+        lambda fr, s: stratified_estimate(stratified_sample(fr, "rank", EQUAL, s),
+                                          "rank", "salary", RANK_COUNTS
+                                          ).attrs["stratified estimate"],
+    "stratified 6/9/15, each observation weighted W_h (wrong)":
+        lambda fr, s: stratified_estimate(stratified_sample(fr, "rank", UNEQUAL, s),
+                                          "rank", "salary", RANK_COUNTS
+                                          ).attrs["W_h per observation (wrong)"],
+}
+cmp = design_comparison(faculty, "salary", designs, reps=1_000)
+print(f"True mean salary: {money(cmp.attrs['population mean'])}\n")
+cmp.round(0)
+```
+
+```{python}
+#| label: strat-compare-stats
+#| include: false
+b_plain = float(cmp.loc["stratified 10/10/10, plain average", "bias"])
+b_wrong = float(cmp.loc["stratified 6/9/15, each observation weighted W_h (wrong)", "bias"])
+se_srs = float(cmp.loc["simple random sample, n = 30", "standard error"])
+se_prop = float(cmp.iloc[1]["standard error"])
+```
+
+::: {.charcoal}
+Read the `bias` and `standard error` columns together. **Bias** is how far the
+design's estimates sit from the truth *on average*; the **standard error** is
+how much they scatter from sample to sample. RMSE combines the two.
+
+- Proportional stratification beats a simple random sample of the same
+  size: a standard error of `{python} money(se_prop)` against
+  `{python} money(se_srs)`. Making sure every rank is represented in its
+  proper share removes the luck of drawing too many or too few full
+  professors. That is what stratification is for.
+- The 10/10/10 sample's plain average is too low by
+  `{python} money(abs(b_plain))` on average. It is not a bad sample; it is a bad *estimate*, because it ignores
+  how the sample was drawn. Weighting by $W_h$ removes the bias.
+- Weighting each *observation* by $W_h$, instead of each *stratum mean*, is
+  a tempting mistake. With unequal stratum sample sizes it leaves a bias of
+  `{python} money(b_wrong)`, because it counts the heavily sampled strata
+  twice: once through $n_h$ and again through $W_h$.
+:::
+
+## Cluster sampling
+
+::: {.blue}
+In **cluster sampling**, the population is divided into mutually exclusive
+groups, or **clusters**, each of which is ideally a small version of the
+whole population. A random sample of *clusters* is chosen, and everyone
+(or a random sample) within the chosen clusters is measured. Clusters are
+often geographic.
+:::
+
+The nine universities are natural clusters. A researcher who must travel to
+collect data could visit **3 of the 9 campuses**, chosen at random, and record
+every economist there. Note what that is *not*: visiting all nine campuses and
+sampling within each is *stratified* sampling, with campuses as strata.
+
+```{python}
+#| label: cluster
+one_cluster = cluster_sample(faculty, "institution", 3, seed=5)
+print(f"Campuses drawn: {', '.join(one_cluster.attrs['clusters chosen'])};  "
+      f"{len(one_cluster)} faculty;  mean {money(one_cluster['salary'].mean())}\n")
+cl = design_comparison(faculty, "salary", {
+    "cluster: 3 of 9 campuses, everyone":
+        lambda fr, s: cluster_sample(fr, "institution", 3, s)["salary"].mean(),
+    "simple random sample, n = 72":
+        lambda fr, s: simple_random_sample(fr, 72, s)["salary"].mean(),
+}, reps=1_000)
+cl.round(0)
+```
+
+```{python}
+#| label: cluster-stats
+#| include: false
+se_cl = float(cl.iloc[0]["standard error"])
+se_cl_srs = float(cl.iloc[1]["standard error"])
+```
+
+Three random campuses average about 72 faculty, so the comparison is with a
+simple random sample of 72. The cluster sample's standard error is
+`{python} money(se_cl)` against `{python} money(se_cl_srs)`. Members of a
+cluster resemble each other (Michigan pays more than Purdue), so 72
+economists from three campuses carry less information than 72 drawn from all
+nine.
+
+::: {.brown}
+**Stratified versus cluster.** The two are easy to confuse, because both
+divide the population into groups.
+
+| | Stratified | Cluster |
+|---|---|---|
+| Groups are | internally alike (all full professors) | mixed, each a mini-population |
+| You sample | from **every** group | **some** groups, entirely |
+| Purpose | more **accuracy** | lower **cost** |
+| Precision vs. a simple random sample of the same size | usually better | usually worse |
+
+A cluster sample is the right choice when the cost saved (three trips instead
+of nine) buys a larger sample than the precision lost.
+:::
+
+## Nonprobability sampling
+
+::: {.blue}
+A **convenience sample** is one whose members are chosen because they are
+easy to reach.
+:::
+
+Customers who happen to walk in, your own students, an online poll, people
+who choose to write a review: all are convenience samples. They are fine for
+a quick reaction to a new product. They do not support the probability
+calculations in the rest of this chapter, because nobody knows how members
+got in.
+
+::: {.scarlet}
+**A bigger convenience sample is not a better one.** In 1936 the *Literary
+Digest* mailed ballots to names drawn from telephone directories and
+automobile registrations, people who in the Depression were disproportionately
+well off and Republican. About 2.4 million responded, and the *Digest*
+predicted that Alf Landon would beat Franklin Roosevelt. Roosevelt won in a
+landslide. Gallup, using a far smaller sample chosen to represent the
+electorate, called the winner.
+
+The error had nothing to do with sample size and everything to do with *who*
+could be sampled. Twelve years later, in 1948, the major polls predicted
+Thomas Dewey would beat Harry Truman, in part because they used quota
+samples (interviewers filled demographic quotas with whomever they chose)
+and stopped polling weeks before an electorate that was still moving.
+:::
+
+::: {.brown}
+Identify the sampling technique in each case.
+
+**(a)** The first Monday of each month, customers who come into a store are
+asked to complete a satisfaction survey.
+
+**(b)** Four stores in a mall are chosen at random, and every customer in
+those four stores is asked about a new parking policy.
+
+**(c)** An interviewer stands at a busy corner on Fremont Street and asks
+passers-by about the Golden Knights.
+
+**(d)** 60% of a college's students are women. A random sample is built that
+is 60% women, drawn at random from the women and from the men separately.
+
+**(e)** Software picks 20 employees at random from the payroll file for a job
+satisfaction survey.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Systematic (a fixed interval in time), with a periodicity worry:
+first Mondays may not be typical days. **(b)** Cluster. **(c)** Convenience.
+**(d)** Stratified, with proportional allocation. **(e)** Simple random.
+:::
+
+# Sampling and Nonsampling Errors
+
+::: {.blue}
+A **parameter** is a number that describes a population, such as its mean
+$\mu$. A **statistic** is a number calculated from a sample, such as the
+sample mean $\bar{x}$. Statistics are used to estimate parameters.
+
+The **sampling error** of the sample mean is the difference between the
+statistic and the parameter:
+
+$$\text{sampling error}=\bar{x}-\mu .$$
+:::
+
+A small population makes sampling error something you can see completely. A
+Henderson marketing office has ten employees, with these ages:
+
+```{python}
+#| label: ages
+AGES = [24, 33, 28, 41, 38, 29, 26, 33, 37, 31]
+mu_age = float(np.mean(AGES))
+print("Ages:", AGES, f"   mu = {mu_age:.1f}")
+```
+
+Take the first two employees as a sample: $\bar{x}=(24+33)/2=28.5$, a
+sampling error of $28.5-32.0=-3.5$ years. The last two give
+$(37+31)/2=34.0$, an error of $+2.0$. But there is no need to pick samples
+one at a time. With ten people there are only `{python} str(comb(10, 2))`
+possible samples of two and `{python} str(comb(10, 5))` samples of five, and
+we can look at all of them:
+
+```{python}
+#| label: all-errors
+err2 = all_sample_errors(AGES, 2)
+err5 = all_sample_errors(AGES, 5)
+summary = pd.DataFrame({
+    "possible samples": [len(err2), len(err5)],
+    "mean of the sample means": [err2["sample mean"].mean(), err5["sample mean"].mean()],
+    "share with |error| <= 2 years": [(err2["sampling error"].abs() <= 2).mean(),
+                                      (err5["sampling error"].abs() <= 2).mean()],
+    "largest negative error": [err2["sampling error"].min(), err5["sampling error"].min()],
+    "largest positive error": [err2["sampling error"].max(), err5["sampling error"].max()],
+}, index=["n = 2", "n = 5"])
+summary.round(3)
+```
+
+```{python}
+#| label: all-errors-chart
+#| layout-ncol: 2
+for e, n, w in [(err2, 2, 0.4), (err5, 5, 0.16)]:
+    c = e["sampling error"].round(1).value_counts().sort_index()
+    _ = pmf_chart(c.index, c.values, title=f"Every sampling error, n = {n}",
+                  xlab="Sampling error (years)", ylab="Number of samples",
+                  width=w, ticks=False, figsize=(5.5, 3.8))
+```
+
+```{python}
+#| label: all-errors-stats
+#| include: false
+w2 = float((err2["sampling error"].abs() <= 2).mean())
+w5 = float((err5["sampling error"].abs() <= 2).mean())
+worst5 = err5.loc[err5["sampling error"].idxmax()]
+```
+
+::: {.brown}
+Three lessons, each visible in the table:
+
+1. **Sampling errors vary from sample to sample, and can be positive or
+   negative.** Which one you get is luck.
+2. **They average out.** The mean of all possible sample means is exactly
+   $\mu=$ `{python} f"{mu_age:.1f}"`, for both sample sizes.
+3. **Larger samples make small errors more likely, not certain.**
+   `{python} pct(w2, 0)` of samples of two land within two years of $\mu$;
+   `{python} pct(w5, 0)` of samples of five do. But the unluckiest sample of
+   five, {`{python} worst5["sample"]`}, is still off by
+   `{python} f"{worst5['sampling error']:+.1f}"` years.
+:::
+
+In practice $\mu$ is unknown, so we never know the sampling error of the
+sample we actually drew. What we can know, as the rest of this chapter shows,
+is how *large* sampling errors tend to be.
+
+## Nonsampling errors
+
+::: {.blue}
+**Nonsampling errors** arise from how data are collected rather than from
+which members happened to be sampled: ambiguous or leading questions, a
+sampling frame that leaves people out, people who choose whether to respond,
+recording mistakes, faulty instruments.
+:::
+
+::: {.scarlet}
+Sampling error shrinks as the sample grows. **Nonsampling error does not.**
+Asking a biased question of 10,000 people gives a more precise estimate of
+the wrong thing.
+:::
+
+### Application: what online reviews can and cannot tell you
+
+A product has 25,596 online ratings: 88% five stars, 8% four, 2% three, 1% two,
+and 1% one. Treating these as a sample of customers, the average and its
+standard error are easy to compute:
+
+```{python}
+#| label: reviews
+N_REV = 25_596
+shares = {5: 0.88, 4: 0.08, 3: 0.02, 2: 0.01, 1: 0.01}
+ratings = np.repeat(list(shares), [round(N_REV * s) for s in shares.values()])
+m_r, s_r = ratings.mean(), ratings.std(ddof=1)
+print(f"{len(ratings):,} ratings: mean = {m_r:.3f}, s = {s_r:.3f}, "
+      f"standard error s/sqrt(n) = {s_r / sqrt(len(ratings)):.4f}")
+```
+
+With a standard error of a few thousandths of a star, the sampling error is
+negligible. The real question is whether reviewers are a random sample of
+customers, and they are not: people choose whether to review, and the
+delighted and the furious are the most likely to bother. Suppose, for
+illustration, that among *all* customers the ratings would be spread
+35/30/15/10/10% from five stars to one, and that a five-star customer writes a
+review 25% of the time, a one-star customer 15%, and everyone else 3–5%:
+
+```{python}
+#| label: self-selection
+population_ratings = np.repeat([5, 4, 3, 2, 1], [35, 30, 15, 10, 10])
+review_prob = {5: 0.25, 4: 0.05, 3: 0.03, 2: 0.05, 1: 0.15}
+sel = selection_bias_demo(population_ratings, review_prob, [100, 1_000, 10_000])
+sel.round(3)
+```
+
+```{python}
+#| label: self-selection-stats
+#| include: false
+bias_big = float(sel["bias"].iloc[-1])
+se_big = float(sel["standard error s/sqrt(n)"].iloc[-1])
+```
+
+As the number of reviews grows from 100 to 10,000, the standard error falls
+to `{python} f"{se_big:.3f}"` and the bias stays at about
+`{python} f"{bias_big:+.2f}"` stars. A thousand times more reviews buys a
+thousand times more confidence in a number that is still wrong.
+
+::: {.scarlet}
+One more caution about that example. Star ratings are **ordinal** data: the
+gap between two and three stars need not equal the gap between four and five.
+Averaging them treats them as interval data. It is universal practice, and
+your textbook does it too, but know that you are doing it.
+:::
+
+# The Sampling Distribution of the Mean
+
+## Every possible sample
+
+A restaurant offers four entrées: vegetarian \$12, chicken \$14, fish \$16,
+and steak \$18. A diner picks one at random, so the price is a discrete
+distribution with each value equally likely.
+
+```{python}
+#| label: entree-pop
+PRICES = [12, 14, 16, 18]
+one = enumerate_sample_means(PRICES, 1)
+print(f"Population: mu = {one.attrs['mu']:.2f}, sigma = {one.attrs['sigma']:.4f}")
+_ = pmf_chart(PRICES, [0.25] * 4, title="Price of one randomly chosen entrée",
+              xlab="Price ($)", ymax=0.42, figsize=(7, 3.6))
+```
+
+You and a friend each choose an entrée at random. That is a random sample of
+size $n=2$ drawn *with replacement* (you may both choose fish). There are
+$4\times4=16$ equally likely samples. Here is the average price for every one
+of them, and the resulting distribution of the sample mean:
+
+```{python}
+#| label: entree-two
+grid = pd.DataFrame([[(a + b) / 2 for b in PRICES] for a in PRICES],
+                    index=pd.Index([f"you: ${a}" for a in PRICES]),
+                    columns=[f"friend: ${b}" for b in PRICES])
+print("Average price for each of the 16 samples:\n")
+print(grid.to_string(), "\n")
+two = enumerate_sample_means(PRICES, 2)
+two.round(4)
+```
+
+```{python}
+#| label: entree-charts
+#| layout-ncol: 2
+_ = pmf_chart(two.index, two["P(x-bar)"], title="Sampling distribution of x-bar, n = 2",
+              xlab="Average price ($)", mean=15, ymax=0.42, figsize=(5.5, 3.8))
+three = enumerate_sample_means(PRICES, 3)
+_ = pmf_chart(three.index.round(2), three["P(x-bar)"],
+              title="Sampling distribution of x-bar, n = 3",
+              xlab="Average price ($)", mean=15, ymax=0.42, figsize=(5.5, 3.8), width=0.5)
+```
+
+::: {.blue}
+The **sampling distribution of the mean** is the probability distribution of
+$\bar{x}$ over all possible samples of size $n$ from a population.
+:::
+
+Look at what happened. The population is flat: every price equally likely.
+The sampling distribution of $\bar{x}$ for two diners is already peaked at
+\$15, because an average of \$15 can happen four ways and an average of \$12
+only one. With three diners
+(`{python} str(three.attrs['samples'])` samples), it is starting to look like a
+bell. Averaging pulls values toward the middle. That is the Central Limit
+Theorem beginning to work, and we will meet it formally in a moment.
+
+Now compute the mean and standard deviation of the sampling distribution,
+exactly as for any discrete distribution in Chapter 5:
+
+```{python}
+#| label: entree-moments
+pd.DataFrame({
+    "population (n = 1)": [one.attrs["mean of x-bar"], one.attrs["sd of x-bar"], np.nan],
+    "x-bar, n = 2": [two.attrs["mean of x-bar"], two.attrs["sd of x-bar"], two.attrs["sigma / sqrt(n)"]],
+    "x-bar, n = 3": [three.attrs["mean of x-bar"], three.attrs["sd of x-bar"], three.attrs["sigma / sqrt(n)"]],
+}, index=["mean", "standard deviation", "sigma / sqrt(n)"]).round(4)
+```
+
+The mean of the sample means equals the population mean, \$15, every time.
+The standard deviation of the sample means shrinks, and it equals
+$\sigma/\sqrt{n}$ exactly: `{python} f"{one.attrs['sigma']:.4f}"` divided by
+$\sqrt{2}$ is `{python} f"{two.attrs['sigma / sqrt(n)']:.4f}"`.
+
+::: {.blue}
+For samples of size $n$ from a population with mean $\mu$ and standard
+deviation $\sigma$:
+
+$$\mu_{\bar{x}}=\mu \qquad\text{and}\qquad \sigma_{\bar{x}}=\frac{\sigma}{\sqrt{n}} .$$
+
+$\sigma_{\bar{x}}$ is the **standard error of the mean**: the standard
+deviation of the sampling distribution of $\bar{x}$. It measures how far a
+sample mean typically lands from $\mu$.
+:::
+
+::: {.charcoal}
+Two consequences worth saying out loud.
+
+The sample mean is **unbiased**: it is not systematically too high or too
+low. Any single sample can miss, but the misses average to zero.
+
+The standard error shrinks with the **square root** of $n$. Quadrupling the
+sample halves the standard error; to cut it by a factor of ten, you need a
+hundred times the data. Precision gets expensive, which is why sample size is
+a business decision and not only a statistical one.
+:::
+
+## Probabilities for a sample mean
+
+::: {.blue}
+When the sampling distribution of $\bar{x}$ is normal, probabilities for a
+sample mean come from the $z$-score of $\bar{x}$:
+
+$$z=\frac{\bar{x}-\mu_{\bar{x}}}{\sigma_{\bar{x}}}=\frac{\bar{x}-\mu}{\sigma/\sqrt{n}} .$$
+:::
+
+::: {.scarlet}
+The denominator is the **standard error**, $\sigma/\sqrt{n}$, not $\sigma$.
+Dividing by $\sigma$ answers a question about *one person*. Dividing by
+$\sigma/\sqrt{n}$ answers a question about the *average of n people*. This is
+the most common mistake in the chapter, and it produces an answer that looks
+perfectly reasonable.
+:::
+
+### Application: text messages
+
+Americans aged 18 to 54 send and receive an average of 551 text messages a
+month. Suppose the population standard deviation is 87. What is the
+probability that a random sample of 72 people averages more than 565?
+
+```{python}
+#| label: texts
+texts = xbar_probability(551, 87, 72, 565, None, explain=True)
+texts.to_frame("72 people")
+```
+
+```{python}
+#| label: texts-math
+#| echo: false
+#| output: asis
+se_t = se_mean(87, 72)
+show_math(rf"\sigma_{{\bar{{x}}}}=\frac{{87}}{{\sqrt{{72}}}}={se_t:.4f}\qquad "
+          rf"z=\frac{{565-551}}{{{se_t:.4f}}}={(565 - 551) / se_t:.4f}\qquad "
+          rf"P(\bar{{x}}>565)={xbar_probability(551, 87, 72, 565, None):.4f}")
+```
+
+```{python}
+#| label: texts-chart
+tg = np.linspace(551 - 4 * se_t, 551 + 4 * se_t, 601)
+_ = density_chart(tg, normal_pdf(tg, 551, se_t), shade=(565, None),
+                  area=xbar_probability(551, 87, 72, 565, None),
+                  title="Sampling distribution of the mean, n = 72",
+                  xlab="Average texts per month, x-bar", z_scale=(551, se_t))
+```
+
+```{python}
+#| label: texts-wrong
+#| include: false
+p_one = normal_area(551, 87, 565, None)
+```
+
+The probability is about
+`{python} pct(xbar_probability(551, 87, 72, 565, None), 1)`. Had we divided by $\sigma$ instead of the standard error, we would
+have reported `{python} pct(p_one, 1)`, which is the probability that *one
+person* exceeds 565 (and only if individual texting were normal, which
+nobody has claimed). Notice that we did not need to know the shape of the
+population. The next section explains why.
+
+# The Central Limit Theorem
+
+::: {.blue}
+**The Central Limit Theorem (CLT).** For samples of size $n$ drawn from any
+population with mean $\mu$ and standard deviation $\sigma$, the sampling
+distribution of $\bar{x}$ is **approximately normal** with mean $\mu$ and
+standard error $\sigma/\sqrt{n}$, and the approximation improves as $n$
+grows.
+
+- If the population is itself **normal**, $\bar{x}$ is exactly normal for
+  **any** $n$.
+- Otherwise, $n\ge 30$ is the usual **rule of thumb** for "large enough." The
+  more skewed the population, the larger $n$ must be.
+:::
+
+This is the reason statistics is a required course. It says that averages
+behave predictably even when individuals do not, so a manager can make
+probability statements about an average without knowing the shape of the
+population it came from.
+
+## Watching it happen
+
+Three populations: a flat one (the entrées), a right-skewed one (exponential
+waiting times from Chapter 6, mean 4 minutes), and Nevada adjusted gross
+income, which is strongly right-skewed. For each, we draw 5,000 *fresh*
+samples of each size from the population and plot the sample means, with the
+normal curve the CLT predicts on top.
+
+```{python}
+#| label: clt-pops
+rng = np.random.default_rng(20261003)
+POPS = {
+    "Entrée prices (flat)": np.repeat(PRICES, 2_500),
+    "Waiting times (exponential)": rng.exponential(4.0, 100_000),
+    "Nevada AGI (right-skewed)": agi.to_numpy(),
+}
+pd.DataFrame({name: {"mean": p.mean(), "sd": p.std(),
+                     "median": np.median(p)}
+              for name, p in POPS.items()}).T.round(3)
+```
+
+```{python}
+#| label: clt-grid
+#| layout-ncol: 3
+for name, pop in POPS.items():
+    mu_p, sd_p = pop.mean(), pop.std()
+    for n in (2, 10, 30):
+        means = simulate_sample_means(pop, n, reps=5_000)
+        se_p = sd_p / sqrt(n)
+        gx = np.linspace(mu_p - 4 * se_p, mu_p + 4 * se_p, 400)
+        if name.startswith("Entr"):
+            # Averages of $2-spaced prices sit on a grid of step 2/n: one bar per
+            # possible value, so the bar areas are probabilities.
+            step = 2 / n
+            bins = np.arange(12 - step / 2, 18 + step, step)
+        else:
+            bins = 40
+        _ = density_histogram(means, gx, normal_pdf(gx, mu_p, se_p), bins=bins,
+                              title=f"{name.split(' (')[0]}, n = {n}",
+                              xlab="sample mean", curve_label="CLT normal",
+                              bar_label="5,000 sample means", figsize=(4.2, 3.2))
+```
+
+Read down each column. The flat population's means are close to normal by
+$n=10$. The waiting times need more: at $n=2$ the means are still skewed,
+and by $n=30$ the histogram and the curve nearly agree. Nevada income is the
+hardest case.
+
+## When $n=30$ is not enough
+
+The normal model says 2.5% of sample means fall more than 1.96 standard
+errors above $\mu$, and 2.5% more than 1.96 below. For Nevada AGI, here is
+what actually happens:
+
+```{python}
+#| label: agi-tails
+mu_a, sd_a = float(agi.mean()), float(agi.std(ddof=0))
+agi_rows = {}
+for n in (30, 100, 400, 1_600):
+    m = simulate_sample_means(agi, n, reps=5_000)
+    agi_rows[f"n = {n}"] = tail_check(m, mu_a, sd_a / sqrt(n))
+agi_tail = pd.DataFrame(agi_rows).T
+agi_tail.round(4)
+```
+
+```{python}
+#| label: agi-tails-stats
+#| include: false
+lo30, hi30 = agi_tail.loc["n = 30", ["below mu - 1.96 SE", "above mu + 1.96 SE"]]
+```
+
+::: {.charcoal}
+At $n=30$, `{python} pct(hi30, 1)` of sample means land above the upper cut-off
+and only `{python} pct(lo30, 1)` below the lower one. The normal model says
+2.5% each. A skewed population produces a skewed sampling distribution at
+moderate $n$: occasional samples catch a few very high incomes and their
+averages jump up, while no sample can catch incomes below zero. The tails
+even out by a few hundred.
+
+The practical rule: $n\ge30$ is a starting point, not a guarantee. For
+incomes, insurance claims, hospital bills, order sizes, and anything else
+with a long right tail, look at the data and expect to need more. (The AGI
+file is simulated from IRS zip-code counts; its shape is real, its rows are
+not. See `data/README.md`.)
+:::
+
+::: {.scarlet}
+The CLT is about **averages**, not individuals. It says nothing about the
+probability that *one* Nevada household earns more than a given amount;
+that depends entirely on the skewed population. It lets you say how the
+*average of n households* behaves.
+:::
+
+# How Much Do Sample Means Vary?
+
+## The interval that contains 95% of sample means
+
+::: {.blue}
+If $\bar{x}$ is normal with mean $\mu$ and standard error
+$\sigma_{\bar{x}}$, then 95% of all sample means fall within
+
+$$\mu\pm1.96\,\sigma_{\bar{x}}=\mu\pm1.96\,\frac{\sigma}{\sqrt{n}} .$$
+
+The 1.96 is `NORM.S.INV(0.975)`: it leaves 2.5% in each tail.
+:::
+
+A navigation app claims the average morning commute on a route is 50 minutes,
+with a standard deviation of 14 minutes. If the claim is true, where should
+the average of 42 trips fall?
+
+```{python}
+#| label: drive-interval
+drive = xbar_interval(50, 14, 42)
+drive.to_frame("n = 42").round(4)
+```
+
+```{python}
+#| label: drive-interval-chart
+se_d = float(drive["standard error"])
+dg = np.linspace(50 - 4 * se_d, 50 + 4 * se_d, 601)
+_ = density_chart(dg, normal_pdf(dg, 50, se_d),
+                  shade=(drive["lower"], drive["upper"]), area=0.95,
+                  title="95% of sample means of 42 trips, if the claim is true",
+                  xlab="Average commute (minutes), x-bar", mark=[50])
+```
+
+If the claim is true, 95% of samples of 42 trips will average between
+`{python} f"{drive['lower']:.1f}"` and `{python} f"{drive['upper']:.1f}"`
+minutes.
+
+## The effect of sample size
+
+```{python}
+#| label: drive-sizes
+sizes = interval_table(50, 14, [42, 100, 168, 400])
+sizes.round(2)
+```
+
+```{python}
+#| label: drive-sizes-chart
+curves = {f"n = {n}": normal_pdf(dg, 50, 14 / sqrt(n)) for n in (42, 100, 400)}
+_ = density_chart(dg, curves, title="Larger samples, narrower sampling distributions",
+                  xlab="Average commute (minutes), x-bar")
+```
+
+Going from 42 trips to 168, four times the data, cuts the standard error and
+the interval's width exactly in half. The sampling distribution gets taller
+and narrower: sample means crowd around $\mu$.
+
+::: {.brown}
+**Toward Chapter 8.** In practice we do not know $\mu$; we know $\bar{x}$.
+But if $\bar{x}$ is within $1.96\,\sigma_{\bar{x}}$ of $\mu$ in 95% of samples,
+then $\mu$ is within $1.96\,\sigma_{\bar{x}}$ of $\bar{x}$ in 95% of samples.
+Turn this interval around and it becomes a **confidence interval**, the
+subject of Chapter 8.
+:::
+
+## Taking it to the limit: a census
+
+As the sample grows toward the whole population, the sample mean closes in
+on $\mu$. Measure everyone and $\bar{x}=\mu$: the sampling error is zero. The
+formula $\sigma/\sqrt{n}$ does not quite know this, because it assumes an
+infinite population. The fix is in the next section.
+
+# Using a Sampling Distribution to Judge a Claim
+
+Back to the commute. You time 42 trips and they average **45 minutes**. Is
+the app's claim of 50 minutes believable?
+
+The argument is the one from Chapters 5 and 6: **assume the claim, then ask
+how surprising the data would be.**
+
+```{python}
+#| label: drive-claim
+claim = xbar_probability(50, 14, 42, None, 45, explain=True)
+claim.to_frame("45-minute sample average")
+```
+
+```{python}
+#| label: drive-claim-chart
+p45 = xbar_probability(50, 14, 42, None, 45)
+_ = density_chart(dg, normal_pdf(dg, 50, se_d), shade=(None, 45), area=p45,
+                  title="If the claim is true, how often would 42 trips average 45 or less?",
+                  xlab="Average commute (minutes), x-bar", mark=[50],
+                  z_scale=(50, se_d))
+```
+
+::: {.charcoal}
+If the true mean were 50 minutes, a sample of 42 trips would average 45
+minutes or less only `{python} pct(p45, 2)` of the time, about once in
+`{python} f"{1 / p45:.0f}"` samples. Either we drew a very unusual sample, or
+the claim is wrong. The sensible conclusion is that the average commute is
+probably *less* than 50 minutes. The 45 is also outside the 95% interval,
+`{python} f"{drive['lower']:.1f}"` to `{python} f"{drive['upper']:.1f}"`,
+which is the same conclusion read a different way.
+:::
+
+::: {.scarlet}
+**Mind the words.** Had the sample averaged 48 minutes, inside the 95%
+interval, the right conclusion would be that the data are **consistent with**
+the claim, or **fail to contradict** it. Not that they "support" or "prove"
+it. A sample mean of 48 is also consistent with a true mean of 47 or 49; the
+data cannot single out 50. Your textbook says "support the claim" in several
+places. In Chapter 9 the distinction becomes the difference between
+"reject" and "fail to reject," and it is easier to learn it right now than
+to unlearn it then.
+:::
+
+::: {.brown}
+Kellogg's says boxes of Frosted Flakes average 18 ounces. A sample of 30
+boxes averages 18.2 ounces. The filling process has a standard deviation of
+0.32 ounces.
+
+**(a)** If the claim is true, what is the interval that contains 95% of
+sample means for $n=30$?
+
+**(b)** How likely is a sample mean of 18.2 or more if the claim is true?
+
+**(c)** Is the filling process working as Kellogg's says? If not, in which
+direction, and who should care?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: flakes
+print(xbar_interval(18, 0.32, 30).round(4).to_string(), "\n")
+xbar_probability(18, 0.32, 30, 18.2, None, explain=True).to_frame("x-bar >= 18.2")
+```
+
+```{python}
+#| label: flakes-stats
+#| include: false
+fl = xbar_interval(18, 0.32, 30)
+p_fl = xbar_probability(18, 0.32, 30, 18.2, None)
+```
+
+**(a)** `{python} f"{fl['lower']:.3f}"` to `{python} f"{fl['upper']:.3f}"`
+ounces.
+
+**(b)** `{python} f"{p_fl:.4f}"`, about once in
+`{python} f"{1 / p_fl:,.0f}"` samples.
+
+**(c)** No: 18.2 is far outside the interval. The process is over-filling.
+Customers are not complaining; Kellogg's cost accountants should be, since
+every box carries about 0.2 ounces of free cereal. A claim can be wrong in a
+direction that only one party cares about.
+:::
+
+# Sampling from a Finite Population
+
+So far the population has been effectively infinite: Nielsen's 41,000
+households are a sliver of 129 million. When the sample is a sizeable share
+of the population, the standard error formula needs an adjustment.
+
+::: {.blue}
+When sampling **without replacement** from a population of size $N$, the
+standard error of the mean is
+
+$$\sigma_{\bar{x}}=\frac{\sigma}{\sqrt{n}}\sqrt{\frac{N-n}{N-1}} .$$
+
+The factor $\sqrt{(N-n)/(N-1)}$ is the **finite population correction
+(FPC)**. Use it when the sample is more than 5% of the population,
+$n/N>0.05$.
+:::
+
+You have seen this factor before. In Chapter 5 it was the "shrink factor"
+that made the hypergeometric distribution less spread out than the binomial:
+every member you draw is one you cannot draw again, so a sample without
+replacement from a small population tells you more than the same-sized
+sample from a large one.
+
+## Why the correction exists
+
+A pool-service company in Henderson has 100 residential customers. Their
+service ratings have historically averaged 7.2 on a 10-point scale, with a
+standard deviation of 0.7. Here is the standard error for several sample
+sizes, with and without the correction:
+
+```{python}
+#| label: fpc-table
+fpc_tab = fpc_table(0.7, 100, [10, 40, 60, 80, 100])
+fpc_tab.round(4)
+```
+
+Look at the last row. A sample of all 100 customers is a census: its mean
+*is* $\mu$, and its sampling error is zero. The uncorrected formula still
+reports a standard error of 0.07. The correction brings it to exactly zero,
+and scales it down smoothly in between. Without it, you would overstate the
+uncertainty in a large sample from a small population.
+
+```{python}
+#| label: fpc-sim
+#| include: false
+rng = np.random.default_rng(20261003)
+pool_pop = np.clip(rng.normal(7.2, 0.7, 100), 1, 10)
+pool_pop = (pool_pop - pool_pop.mean()) / pool_pop.std() * 0.7 + 7.2
+sim_means = simulate_sample_means(pool_pop, 40, reps=10_000, replace=False)
+```
+
+A check by simulation: drawing 10,000 samples of 40 *without replacement*
+from a made-up population of 100 ratings with $\sigma=0.7$, the sample means
+have a standard deviation of `{python} f"{sim_means.std():.4f}"`. The
+corrected formula says `{python} f"{se_mean(0.7, 40, 100):.4f}"`; the
+uncorrected one says `{python} f"{0.7 / sqrt(40):.4f}"`.
+
+And when the population is large, the correction disappears on its own. For
+$n=30$ from $N=10{,}000$ it is `{python} f"{fpc(30, 10_000):.4f}"`, which is
+why it can be dropped below the 5% threshold.
+
+## Application: has service improved?
+
+A recent survey of 40 of the 100 customers averaged 7.5. If the true mean is
+still 7.2, how surprising is that?
+
+```{python}
+#| label: pool
+pool = xbar_probability(7.2, 0.7, 40, 7.5, None, N=100, explain=True)
+pool.to_frame("40 of 100 customers")
+```
+
+```{python}
+#| label: pool-stats
+#| include: false
+p_pool = xbar_probability(7.2, 0.7, 40, 7.5, None, N=100)
+p_pool_nofpc = xbar_probability(7.2, 0.7, 40, 7.5, None)
+```
+
+A sample average of 7.5 or more would happen about
+`{python} pct(p_pool, 2)` of the time if nothing had changed. That is strong
+evidence that ratings across the customer base have risen. (Without the
+correction, the probability would be `{python} pct(p_pool_nofpc, 2)`; both say
+"rare," but the corrected one is the right number.) The ordinal-data caution
+from the reviews example applies here too.
+
+# The Sampling Distribution of the Proportion
+
+Many business questions are about a **share**: the share of households that
+watched, of graduates who found jobs, of orders that shipped late.
+
+::: {.blue}
+The **sample proportion** is
+
+$$\hat{p}=\frac{x}{n},$$
+
+where $x$ is the number of successes in a sample of $n$. For samples from a
+population with proportion $p$, the sampling distribution of $\hat{p}$ has
+
+$$\mu_{\hat{p}}=p \qquad\text{and}\qquad \sigma_{\hat{p}}=\sqrt{\frac{p(1-p)}{n}},$$
+
+where $\sigma_{\hat{p}}$ is the **standard error of the proportion**. It is
+approximately normal when $np\ge5$ and $n(1-p)\ge5$, the same conditions as
+in Chapter 6, and
+
+$$z=\frac{\hat{p}-p}{\sigma_{\hat{p}}} .$$
+
+For a finite population with $n/N>0.05$, multiply $\sigma_{\hat{p}}$ by the
+finite population correction.
+:::
+
+This is not a new idea. The number of successes $x$ is binomial, and Chapter
+6 showed it is approximately normal with mean $np$ and standard deviation
+$\sqrt{np(1-p)}$. Divide everything by $n$ and you have the formulas above. A
+proportion is a count on a different scale. (Your textbook writes the sample
+proportion as $\bar{p}$; these notes use $\hat{p}$, which is what Chapter 8
+and most software use.)
+
+## Application: Super Bowl viewership
+
+A network sold advertising on the claim that 45% of US households would watch
+the Super Bowl. An advertiser surveys 200 households afterwards and finds 84
+watched, $\hat{p}=0.42$. How surprising is 84 or fewer, if the claim is true?
+
+```{python}
+#| label: superbowl-cond
+n_sb, p_sb = 200, 0.45
+print(f"np = {n_sb * p_sb:.0f},  n(1 - p) = {n_sb * (1 - p_sb):.0f}:  "
+      f"both at least 5, so the normal approximation is licensed.")
+print(f"standard error = sqrt(0.45 x 0.55 / 200) = {se_proportion(p_sb, n_sb):.4f}")
+```
+
+```{python}
+#| label: superbowl
+sb = proportion_question(p_sb, n_sb, "at most", 84)
+sb.to_frame("84 or fewer of 200")
+```
+
+```{python}
+#| label: superbowl-stats
+#| include: false
+sb_exact = float(sb.iloc[4])
+sb_cc = float(sb["normal, with continuity correction"])
+sb_no = float(sb["normal, no correction"])
+```
+
+::: {.scarlet}
+**The continuity correction still matters.** Your textbook drops it in this
+chapter, saying samples are large enough for it not to matter. For this very
+example it matters: the exact binomial answer is
+`{python} f"{sb_exact:.4f}"`, the normal approximation *with* the correction
+is `{python} f"{sb_cc:.4f}"`, and without it `{python} f"{sb_no:.4f}"`, two
+percentage points off.
+
+The policy in these notes:
+
+- When the question is about a **count** ("84 or fewer households," "more than
+  58 buyers"), apply the continuity correction exactly as in Chapter 6.
+  On the proportion scale, half a count is $0.5/n$.
+- When the question is about a **proportion or percentage** ("less than 40% of
+  the sample"), use the normal curve directly.
+- When software can compute the exact binomial, as it always can, that is
+  the number to report. The approximation is for understanding.
+:::
+
+::: {.charcoal}
+Now interpret. If 45% of households really watched, a sample showing 42% or
+less would turn up about `{python} pct(sb_exact, 0)` of the time, roughly one
+sample in five. That is not surprising. The sample **fails to contradict** the
+network's claim.
+
+That is all it does. Your textbook says this result "supports" the claim, and
+it does not: 42% is also perfectly consistent with a true share of 40% or
+43%. A large tail probability means the data have not given you a reason to
+doubt the claim. It does not mean they have given you a reason to believe it.
+:::
+
+## Application: a finite population of graduates
+
+A college with 770 graduates claims 70% landed jobs in their field. A
+random survey of 120 graduates finds 97 did, $\hat{p}=0.808$. The sample is
+`{python} pct(120 / 770, 1)` of the population, above 5%, so the finite
+population correction applies.
+
+```{python}
+#| label: gbc
+gbc = proportion_question(0.70, 120, "at least", 97, N=770)
+gbc.to_frame("97 or more of 120, N = 770")
+```
+
+```{python}
+#| label: gbc-stats
+#| include: false
+gbc_exact = float(gbc.iloc[4])
+```
+
+The exact answer, which for sampling without replacement from 770 graduates
+is hypergeometric, is `{python} f"{gbc_exact:.4f}"`: a result this good would
+almost never happen if the true rate were 70%. The college is, if anything,
+understating its placement rate. All three methods agree on "very rare,"
+though in a tail this far out they differ in the details; that is a reason to
+report the exact number.
+
+## Exercise
+
+::: {.brown}
+In a 2016 survey, 43% of US adults said they had looked at maps on their
+phones while driving. In a random sample of 125 adults:
+
+**(a)** What are the mean and standard error of $\hat{p}$?
+
+**(b)** What is the probability that 46 or more say they do?
+
+**(c)** What is the probability that less than 40% of the sample say they do?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: maps
+print(f"(a) mean = 0.43, standard error = sqrt(0.43 x 0.57 / 125) = "
+      f"{se_proportion(0.43, 125):.4f}\n")
+proportion_question(0.43, 125, "at least", 46).to_frame("(b) 46 or more")
+```
+
+```{python}
+#| label: maps-c
+p_c = normal_area(0.43, se_proportion(0.43, 125), None, 0.40)
+print(f"(c) P(p-hat < 0.40) = NORM.DIST(0.40, 0.43, {se_proportion(0.43, 125):.4f}, TRUE) = {p_c:.4f}")
+```
+
+**(b)** is about a count, so it gets the continuity correction: 46 or more
+starts at 45.5, which is $45.5/125$ on the proportion scale. **(c)** is about
+a percentage, so it uses the normal curve directly.
+:::
+
+# The Bootstrap: A Standard Error from One Sample
+
+Every calculation so far needed $\sigma$ or $p$, the population's own
+parameters. In practice you rarely know them. The **bootstrap** estimates a
+standard error from the one sample you have.
+
+::: {.blue}
+The **bootstrap** treats the sample as a stand-in for the population. It
+draws many **resamples** of the same size *from the sample*, with
+replacement, computes the statistic for each, and uses the spread of those
+statistics to estimate the standard error.
+:::
+
+::: {.scarlet}
+The bootstrap is not a way of collecting data, and it is not a fifth kind of
+probability sample, although your textbook lists it beside the sampling
+designs. It is a way of **analysing** a sample you already have. Every
+resample comes from that one sample, never from the population.
+:::
+
+## Application: female shoppers
+
+A store manager examines a random sample of 100 transactions and finds 58
+were made by women. How precise is $\hat{p}=0.58$?
+
+```{python}
+#| label: boot-prop
+shoppers = np.array([1] * 58 + [0] * 42)
+boot_p = bootstrap(shoppers, np.mean, reps=10_000)
+bi = bootstrap_interval(boot_p)
+print(f"bootstrap standard error = {bi['bootstrap standard error']:.4f}")
+print(f"formula sqrt(p-hat (1 - p-hat) / n) = {sqrt(0.58 * 0.42 / 100):.4f}")
+print(f"middle 95% of bootstrap proportions: {bi['lower']:.3f} to {bi['upper']:.3f}")
+```
+
+```{python}
+#| label: boot-prop-chart
+bg = np.linspace(0.38, 0.78, 400)
+_ = density_histogram(boot_p, bg, normal_pdf(bg, 0.58, sqrt(0.58 * 0.42 / 100)),
+                      bins=30, title="10,000 bootstrap proportions",
+                      xlab="Share of transactions by women", curve_label="normal, formula SE",
+                      bar_label="bootstrap resamples")
+```
+
+The bootstrap standard error matches the formula, with no formula needed.
+That is the point: the same resampling works for a median, a ratio, a 90th
+percentile, or any statistic that has no tidy standard error formula. The
+middle 95% of the bootstrap proportions is a first look at the confidence
+interval of Chapter 8.
+
+## Application: faculty salaries
+
+Take one simple random sample of 30 faculty, and pretend it is all we have.
+
+```{python}
+#| label: boot-mean
+one_srs = simple_random_sample(faculty, 30, seed=21)["salary"].to_numpy()
+boot_m = bootstrap(one_srs, np.mean, reps=10_000)
+bm = bootstrap_interval(boot_m)
+pd.Series({
+    "sample mean": one_srs.mean(),
+    "bootstrap standard error": bm["bootstrap standard error"],
+    "s / sqrt(n), from the sample": one_srs.std(ddof=1) / sqrt(30),
+    "true standard error, sigma / sqrt(n) x FPC": se_mean(SD_FAC, 30, len(faculty)),
+    "bootstrap 95%: lower": bm["lower"],
+    "bootstrap 95%: upper": bm["upper"],
+    "true population mean": MU_FAC,
+}).round(0).to_frame("one sample of 30")
+```
+
+```{python}
+#| label: boot-mean-stats
+#| include: false
+covers_truth = bm["lower"] <= MU_FAC <= bm["upper"]
+```
+
+From one sample of 30, the bootstrap recovers a standard error in the right
+neighbourhood of the true one, `{python} money(bm["bootstrap standard error"])`
+against `{python} money(se_mean(SD_FAC, 30, len(faculty)))`, which we can check
+only because we happen to have the whole population.
+`{python} ("Its 95% interval also contains the true mean." if covers_truth else "Notice, though, that this particular sample drew high: its mean is " + money(one_srs.mean()) + ", and its 95% interval just misses the true mean of " + money(MU_FAC) + ". That is not a bug. About one sample in twenty will do this, and Chapter 8 is about living with that fact.")`
+
+# Which Formula Is It?
+
+| The question is about | Center | Standard error | Correction if $n/N>0.05$ |
+|---|---|---|---|
+| one individual value $x$ | $\mu$ | $\sigma$ (not a standard error) | none |
+| a sample mean $\bar{x}$ | $\mu$ | $\sigma/\sqrt{n}$ | $\times\sqrt{(N-n)/(N-1)}$ |
+| a sample proportion $\hat{p}$ | $p$ | $\sqrt{p(1-p)/n}$ | $\times\sqrt{(N-n)/(N-1)}$ |
+| a count of successes $x$ | $np$ | $\sqrt{np(1-p)}$ | continuity correction $\pm0.5$ |
+
+::: {.brown}
+For each, name the row of the table and the standard error.
+
+**(a)** Hotel room rates average \$155 with a standard deviation of \$26.
+What is the probability that a randomly chosen hotel charges more than \$163?
+
+**(b)** Same rates. What is the probability that the average of 35 randomly
+chosen hotels exceeds \$163?
+
+**(c)** 58% of Generation Y pay their bills on time. In a sample of 200, what
+is the probability that 125 or fewer do?
+
+**(d)** A college has 240 employees on its health plan, with mean
+out-of-pocket cost \$1,880 and standard deviation \$515. An audit samples 30.
+What is the probability the sample mean is below \$1,825?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: which
+which = pd.DataFrame({
+    "row": ["one value", "sample mean", "count", "sample mean, finite"],
+    "standard error": [26, se_mean(26, 35), sqrt(200 * 0.58 * 0.42),
+                       se_mean(515, 30, 240)],
+    "probability": [
+        normal_area(155, 26, 163, None),
+        xbar_probability(155, 26, 35, 163, None),
+        float(proportion_question(0.58, 200, "at most", 125).iloc[4]),
+        xbar_probability(1880, 515, 30, None, 1825, N=240),
+    ],
+}, index=list("abcd"))
+which.round(4)
+```
+
+**(a)** and **(b)** ask about the same \$163, and the answers differ by a
+factor of more than ten. **(a)** is also the one question here that the CLT
+cannot answer unless room rates themselves are normal. **(c)** is a count, so
+the exact binomial is reported (the corrected normal gives nearly the same).
+**(d)** samples 30 of 240, which is 12.5%, so the finite population
+correction applies.
+:::
+
+# Laboratory 7
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 7 pack](../upload_packs/lab-7-chapter-07.zip)** — one
+file. Unzip it and you will have a folder holding 8 files. Drag all 8
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 8 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `07_sampling_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 7 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `07_sampling_distributions.py` and show me its actual output, verbatim. Walk me through
+> what each section does and what the results mean. Do not report any number
+> you did not compute, and if anything fails, show me the error rather than
+> describing what the output would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+The lab script answers the questions in this note. The skill to practice is
+getting a *new* question answered and checking the answer. Try this, with your
+own numbers in place of mine:
+
+::: {.prompt}
+Prompt
+
+> A casino's slot floor averages \$42 of net win per machine-hour, with a
+> standard deviation of \$65. A manager will audit a random sample of 50
+> machine-hours. By running code, find (1) the standard error of the sample
+> mean, (2) the probability that the sample averages less than \$30, and
+> (3) the interval that contains 95% of sample means. Before computing, tell
+> me which standard deviation goes in the denominator of the z-score and why.
+> Then tell me whether n = 50 is large enough for the Central Limit Theorem
+> here, given what net win per machine-hour probably looks like, and how you
+> would check.
+:::
+
+Check three things in the reply: that the $z$-score divides by
+$65/\sqrt{50}$ and not by 65, that the numbers came from executed code, and
+that the answer to the last question is not simply "yes, because 50 is more
+than 30." Net win is skewed and can be negative; a good answer says so and
+proposes a simulation like the Nevada AGI one.
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook that demonstrates the Central Limit Theorem.
+> Sheet 1 holds a skewed population of 2,000 values (use =-LN(RAND())*4 so
+> they are exponential with mean 4). Sheet 2 draws 500 samples of size n,
+> where n is an editable input cell, using INDEX and RANDBETWEEN, and
+> computes each sample's mean. Report the mean and standard deviation of the
+> 500 sample means beside mu and sigma / SQRT(n), and draw histograms of the
+> population and of the sample means with the vertical axis titled "count".
+> Give me the file to download.
+:::
+
+Set $n$ to 2, then 10, then 30, pressing F9 a few times at each to redraw.
+Answer in one paragraph: at what $n$ would *you* be comfortable treating the
+sample means as normal for this population, and what did you look at to
+decide?

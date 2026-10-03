@@ -1,0 +1,216 @@
+id,institution,rank,sex,salary
+101,Indiana,Professor,Male,107100
+102,Indiana,Professor,Male,100450
+103,Indiana,Professor,Male,108290
+104,Indiana,Associate,Male,82000
+105,Indiana,Associate,Male,63610
+106,Indiana,Professor,Male,68440
+107,Indiana,Professor,Male,71170
+108,Indiana,Professor,Male,109200
+109,Indiana,Professor,Male,77510
+110,Indiana,Professor,Male,72570
+111,Indiana,Professor,Male,96470
+112,Indiana,Assistant,Female,58710
+113,Indiana,Associate,Male,64900
+114,Indiana,Associate,Female,87200
+116,Indiana,Associate,Male,60690
+118,Indiana,Professor,Male,104120
+119,Indiana,Professor,Male,92160
+120,Indiana,Professor,Male,191000
+121,Indiana,Professor,Female,139660
+201,Iowa,Professor,Male,104444
+202,Iowa,Associate,Male,57000
+203,Iowa,Associate,Male,77000
+204,Iowa,Professor,Female,73618
+205,Iowa,Professor,Male,160314
+206,Iowa,Professor,Male,66594
+207,Iowa,Professor,Male,113000
+208,Iowa,Associate,Female,81250
+209,Iowa,Professor,Male,55650
+210,Iowa,Professor,Female,115700
+211,Iowa,Professor,Male,85500
+212,Iowa,Professor,Male,113500
+214,Iowa,Associate,Male,74000
+215,Iowa,Associate,Male,76000
+216,Iowa,Professor,Male,96000
+217,Iowa,Professor,Male,91500
+218,Iowa,Professor,Male,135000
+220,Iowa,Professor,Male,68000
+221,Iowa,Associate,Male,65000
+222,Iowa,Assistant,Male,66000
+223,Iowa,Professor,Male,120733
+224,Iowa,Professor,Male,108000
+301,Michigan State,Professor,Male,63204
+302,Michigan State,Associate,Female,50209
+303,Michigan State,Professor,Male,113307
+304,Michigan State,Professor,Male,77345
+305,Michigan State,Professor,Male,74603
+306,Michigan State,Professor,Male,80799
+307,Michigan State,Professor,Male,73262
+308,Michigan State,Associate,Female,49156
+309,Michigan State,Associate,Male,60401
+310,Michigan State,Professor,Male,97563
+311,Michigan State,Assistant,Male,61200
+313,Michigan State,Associate,Male,71576
+314,Michigan State,Professor,Male,94915
+315,Michigan State,Professor,Male,99990
+316,Michigan State,Associate,Male,59772
+317,Michigan State,Professor,Male,134532
+318,Michigan State,Professor,Male,104089
+319,Michigan State,Professor,Female,66512
+321,Michigan State,Professor,Male,66491
+322,Michigan State,Professor,Male,73182
+323,Michigan State,Professor,Male,88063
+324,Michigan State,Professor,Male,91443
+325,Michigan State,Assistant,Male,57553
+326,Michigan State,Professor,Male,55562
+328,Michigan State,Associate,Female,71139
+329,Michigan State,Professor,Female,73557
+331,Michigan State,Professor,Male,140178
+332,Michigan State,Associate,Male,71732
+333,Michigan State,Professor,Male,95992
+334,Michigan State,Professor,Male,130000
+335,Michigan State,Professor,Male,71754
+336,Michigan State,Professor,Male,102345
+401,Ohio State,Associate,Male,54283
+402,Ohio State,Associate,Male,54336
+403,Ohio State,Professor,Male,134544
+404,Ohio State,Professor,Male,87948
+405,Ohio State,Professor,Female,98064
+406,Ohio State,Professor,Male,117060
+407,Ohio State,Associate,Male,74364
+408,Ohio State,Professor,Male,81972
+409,Ohio State,Assistant,Female,60288
+410,Ohio State,Professor,Male,96817
+411,Ohio State,Professor,Male,114192
+412,Ohio State,Professor,Male,160296
+413,Ohio State,Professor,Male,181104
+414,Ohio State,Professor,Male,91056
+416,Ohio State,Assistant,Female,62640
+417,Ohio State,Professor,Male,110736
+418,Ohio State,Professor,Male,110712
+419,Ohio State,Professor,Male,73704
+420,Ohio State,Professor,Male,100916
+421,Ohio State,Professor,Male,81000
+422,Ohio State,Associate,Male,58404
+423,Ohio State,Associate,Male,80508
+424,Ohio State,Professor,Male,108060
+426,Ohio State,Professor,Male,177504
+428,Ohio State,Professor,Male,73884
+429,Ohio State,Professor,Male,116016
+430,Ohio State,Assistant,Male,59136
+431,Ohio State,Assistant,Male,58244
+501,Purdue,Professor,Male,73993
+502,Purdue,Professor,Male,94401
+503,Purdue,Associate,Male,63961
+504,Purdue,Associate,Male,74659
+505,Purdue,Associate,Female,55172
+506,Purdue,Professor,Male,110552
+507,Purdue,Professor,Male,95206
+508,Purdue,Professor,Male,90769
+509,Purdue,Associate,Male,57253
+512,Purdue,Assistant,Male,75000
+517,Purdue,Professor,Male,108500
+519,Purdue,Professor,Male,94401
+520,Purdue,Associate,Male,58294
+601,Minnesota,Professor,Male,164265
+602,Minnesota,Professor,Male,189631
+603,Minnesota,Professor,Male,132229
+604,Minnesota,Professor,Male,130379
+605,Minnesota,Professor,Male,101044
+606,Minnesota,Professor,Male,190412
+607,Minnesota,Assistant,Male,56818
+609,Minnesota,Associate,Male,97037
+610,Minnesota,Professor,Male,48293
+614,Minnesota,Assistant,Male,33128
+615,Minnesota,Associate,Male,51640
+616,Minnesota,Assistant,Male,41618
+618,Minnesota,Professor,Male,102495
+624,Minnesota,Professor,Male,126568
+626,Minnesota,Associate,Male,79891
+627,Minnesota,Professor,Male,117629
+701,Illinois,Professor,Male,99500
+702,Illinois,Associate,Female,81310
+703,Illinois,Professor,Male,77875
+705,Illinois,Professor,Male,119400
+706,Illinois,Professor,Male,109000
+707,Illinois,Assistant,Female,59280
+708,Illinois,Professor,Male,99008
+710,Illinois,Professor,Male,93200
+711,Illinois,Assistant,Male,57570
+712,Illinois,Associate,Male,60450
+713,Illinois,Professor,Male,94300
+714,Illinois,Professor,Male,111300
+715,Illinois,Professor,Female,87800
+716,Illinois,Associate,Male,67000
+717,Illinois,Assistant,Male,60300
+719,Illinois,Associate,Male,60215
+720,Illinois,Professor,Male,103800
+721,Illinois,Professor,Male,74125
+722,Illinois,Professor,Male,109000
+723,Illinois,Professor,Male,125000
+725,Illinois,Professor,Male,51400
+726,Illinois,Professor,Male,111500
+727,Illinois,Professor,Male,83736
+728,Illinois,Professor,Male,86400
+729,Illinois,Associate,Male,65500
+730,Illinois,Associate,Male,84750
+731,Illinois,Professor,Male,96400
+732,Illinois,Professor,Male,128400
+733,Illinois,Professor,Male,118500
+801,Michigan,Professor,Male,86115
+802,Michigan,Associate,Male,82600
+803,Michigan,Professor,Male,93100
+804,Michigan,Professor,Male,143674
+806,Michigan,Assistant,Male,63900
+807,Michigan,Assistant,Male,65950
+808,Michigan,Professor,Male,164320
+809,Michigan,Professor,Male,128500
+811,Michigan,Professor,Male,134400
+812,Michigan,Professor,Male,150300
+813,Michigan,Assistant,Male,61650
+814,Michigan,Professor,Male,88700
+815,Michigan,Professor,Male,95700
+816,Michigan,Professor,Male,97300
+817,Michigan,Professor,Male,89500
+818,Michigan,Associate,Male,95000
+819,Michigan,Professor,Male,97600
+820,Michigan,Professor,Male,91900
+821,Michigan,Professor,Male,118800
+822,Michigan,Professor,Male,93040
+823,Michigan,Professor,Male,91000
+824,Michigan,Professor,Male,103200
+825,Michigan,Professor,Male,102000
+826,Michigan,Professor,Male,108200
+827,Michigan,Professor,Male,85000
+828,Michigan,Professor,Male,123600
+829,Michigan,Professor,Male,100500
+830,Michigan,Assistant,Male,67600
+831,Michigan,Professor,Male,119700
+832,Michigan,Professor,Male,132782
+833,Michigan,Professor,Male,102280
+834,Michigan,Professor,Male,80850
+835,Michigan,Professor,Male,75700
+836,Michigan,Professor,Male,107400
+837,Michigan,Professor,Male,122700
+902,Wisconsin,Professor,Male,129550
+904,Wisconsin,Professor,Male,111655
+905,Wisconsin,Professor,Male,100000
+911,Wisconsin,Professor,Male,129295
+913,Wisconsin,Professor,Male,98930
+914,Wisconsin,Professor,Male,110000
+916,Wisconsin,Professor,Male,107360
+917,Wisconsin,Professor,Male,86155
+918,Wisconsin,Assistant,Male,52900
+920,Wisconsin,Professor,Male,121430
+921,Wisconsin,Professor,Male,116725
+922,Wisconsin,Professor,Male,68180
+923,Wisconsin,Professor,Male,93204
+925,Wisconsin,Professor,Male,123099
+926,Wisconsin,Professor,Male,105000
+927,Wisconsin,Professor,Male,126875
+929,Wisconsin,Professor,Male,92500
+930,Wisconsin,Professor,Male,90000
+931,Wisconsin,Professor,Male,124225
+932,Wisconsin,Professor,Female,122397
+933,Wisconsin,Associate,Male,69630

@@ -779,7 +779,8 @@ def venn(a="A", b="B", shade="intersection", disjoint=False, title=None,
 
 def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
               highlight=None, overlay=None, overlay_label=None,
-              bar_label=None, mean=None, ymax=None, figsize=(9, 4.5)):
+              bar_label=None, mean=None, ymax=None, figsize=(9, 4.5),
+              width=0.8, ticks=True):
     """A discrete probability distribution, drawn as one bar per value.
 
     `highlight` is a collection of x values to draw in scarlet while the rest
@@ -788,7 +789,10 @@ def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
     points, for putting one distribution on top of another. `mean` marks the
     expected value with a dashed line. Set `ymax` to the same value on two
     charts that will be compared side by side, so that equal heights mean
-    equal probabilities.
+    equal probabilities. Set `width` below the spacing of the x values when
+    they are closer together than 1 (sample means, for instance), and
+    `ticks=False` to let matplotlib choose the axis labels when there are too
+    many values to label each one.
     """
     x = list(x)
     p = list(probabilities)
@@ -798,7 +802,7 @@ def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
     else:
         chosen = set(highlight)
         colors = [UNLV_SCARLET if v in chosen else "#c9c9c9" for v in x]
-    ax.bar(x, p, color=colors, alpha=0.9, width=0.8, label=bar_label)
+    ax.bar(x, p, color=colors, alpha=0.9, width=width, label=bar_label)
     if overlay is not None:
         ax.plot(x, list(overlay), linestyle="none", marker="o", markersize=6,
                 markerfacecolor="white", markeredgecolor="black",
@@ -808,7 +812,7 @@ def pmf_chart(x, probabilities, title=None, xlab="x", ylab="Probability",
                    label=f"mean = {mean:.2f}")
     if bar_label or overlay_label or mean is not None:
         ax.legend(frameon=False, fontsize=9)
-    if len(x) <= 25:
+    if ticks and len(x) <= 25:
         ax.set_xticks(x)
     if ymax is not None:
         ax.set_ylim(0, ymax)

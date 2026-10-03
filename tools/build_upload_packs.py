@@ -124,6 +124,18 @@ LABS = {
                     "_stats.py", "_dist.py", "_cont.py"],
         "data": ["nevada_economy.csv"],
     },
+    "lab-7-chapter-07": {
+        "chapter": 7,
+        "topic": "sampling and sampling distributions",
+        "run": {"07_sampling_distributions.py":
+                "sampling designs and weighting, sampling and nonsampling "
+                "error, the sampling distribution of the mean and the Central "
+                "Limit Theorem, judging a claim, the finite population "
+                "correction, proportions, and the bootstrap"},
+        "scripts": ["07_sampling_distributions.py", "_course.py", "_dist.py",
+                    "_cont.py", "_samp.py"],
+        "data": ["big9_faculty_1999.csv", "nevada_agi_2016_sample.csv"],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

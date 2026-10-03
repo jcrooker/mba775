@@ -297,3 +297,28 @@ version of the course's old `LIB_LVCVA_Utilities.R`. Recent months are
 revised by the LVCVA (the workbook flags them with an `r`); re-run the tool
 before relying on the newest observation. April 2020 is 106,900 visitors.
 That is not a typo.
+
+# Chapter 7 files
+
+## big9_faculty_1999.csv
+
+| | |
+|---|---|
+| Source | `big9salary` in Wooldridge, *Introductory Econometrics*; originally O. Baser and E. Pema (2003), "The Return of Publications for Economics Faculty," *Economics Bulletin* 1, 1–13 |
+| Obtained via | the `wooldridge` Python package (`wooldridge.data("big9salary")`) |
+| Units | Annual salary in dollars, 1999 |
+| Rows | 215 |
+| Missing values | 0 |
+
+Columns: `id`, `institution`, `rank` (Assistant, Associate, Professor), `sex`,
+`salary`.
+
+Economics faculty at nine Big Ten universities in 1999. The original file
+covers 1992, 1995 and 1999 with institution and rank as dummy variables; this
+file keeps 1999 only, turns the dummies into `institution` and `rank`, and
+drops the 47 faculty records missing a salary, a rank, or sex. Salaries are
+rounded to whole dollars; no other values were changed.
+
+The Chapter 7 note treats these 215 people as a **population**, so that every
+sampling design can be checked against the true mean.
+
