@@ -1,0 +1,85 @@
+<div style="max-width: 900px; margin: 0 auto; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2d2d2d; line-height: 1.5;">
+<div style="background: #B10202; background-image: linear-gradient(135deg, #B10202 0%, #E31837 100%); color: #ffffff; padding: 28px 30px; border-radius: 8px 8px 0 0;">
+<p style="margin: 0 0 6px 0; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #ffffff; opacity: 0.85;">MBA 775 &middot; Week 04 &middot; Chapter 4</p>
+<h2 style="margin: 0; font-size: 30px; font-weight: bold; color: #ffffff;">Solving Bayes&rsquo; Theorem Style Problems</h2>
+<p style="margin: 10px 0 0 0; font-size: 16px; color: #ffffff;">Six practice problems, by popular request, with a video walkthrough of every solution.</p>
+</div>
+<div style="background: #f4f4f4; border: 1px solid #dddddd; border-top: none; padding: 18px 30px; border-radius: 0 0 8px 8px; margin-bottom: 24px;">
+<p style="margin: 0 0 14px 0;"><strong style="color: #B10202;">Start here:</strong> download the problem set and try each problem <em>before</em> you watch its video. Reading a solution you haven&rsquo;t attempted feels like learning, and it isn&rsquo;t.</p>
+<p style="margin: 0;"><a href="https://crooker.faculty.unlv.edu/mba775/homework/Bayes-Theorem-Practice-Problems.pdf" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#128196; Bayes&rsquo; Theorem Practice Problems (PDF)</a></p>
+</div>
+<div style="border: 1px solid #dddddd; border-top: 4px solid #6A737B; border-radius: 6px; padding: 16px 22px; margin: 0 0 26px 0; background: #ffffff;">
+<p style="margin: 0 0 8px 0; font-weight: bold; color: #B10202; font-size: 17px;">The method in one table</p>
+<p style="margin: 0 0 10px 0; font-size: 15px;">Every problem below gives you a conditional probability in one direction and asks for it in the other. Use the same four columns each time:</p>
+<table style="border-collapse: collapse; width: 100%; font-size: 14px; margin: 0 0 10px 0;"><tbody>
+<tr style="background: #B10202; color: #ffffff;"><td style="padding: 6px 10px; border: 1px solid #B10202; font-weight: bold;">State of the world</td><td style="padding: 6px 10px; border: 1px solid #B10202; font-weight: bold;">Prior P(A<sub>i</sub>)</td><td style="padding: 6px 10px; border: 1px solid #B10202; font-weight: bold;">Likelihood P(B | A<sub>i</sub>)</td><td style="padding: 6px 10px; border: 1px solid #B10202; font-weight: bold;">Joint = prior &times; likelihood</td><td style="padding: 6px 10px; border: 1px solid #B10202; font-weight: bold;">Posterior = joint &divide; total</td></tr>
+<tr><td style="padding: 6px 10px; border: 1px solid #dddddd;">A<sub>1</sub>, A<sub>2</sub>, &hellip;</td><td style="padding: 6px 10px; border: 1px solid #dddddd;">sums to 1</td><td style="padding: 6px 10px; border: 1px solid #dddddd;">given in the problem</td><td style="padding: 6px 10px; border: 1px solid #dddddd;">total = P(B)</td><td style="padding: 6px 10px; border: 1px solid #dddddd;">sums to 1</td></tr>
+</tbody></table>
+<p style="margin: 0; font-size: 14px; color: #666666;">Common mistake: P(B | A) and P(A | B) are different numbers. The event you were <em>told</em> happened goes in the denominator. See the Bayes&rsquo; Theorem section of the <a href="https://crooker.faculty.unlv.edu/mba775/fall2026/notes/lecture-notes-1030-chapter-04-introducing-probabilities.html" target="_blank" rel="noopener" style="color: #B10202;">Chapter 4 lecture notes</a>.</p>
+</div>
+<h3 style="margin: 0 0 14px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Video Solutions</h3>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P1</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 1: Flagged credit card transactions</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Is a flag really fraud?</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">A fraud screen flags a transaction. How likely is it that the charge is actually fraudulent? The screen&rsquo;s accuracy is not the answer. When the base rate is small, the prior does a lot of the work, and the gap between P(flag | fraud) and P(fraud | flag) is the whole lesson.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=59ff3b36-142e-4fc0-91f7-b4ca00f86883" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 1</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P2</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 2: Webinar attendance and lead conversions</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Two routes, same answer</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Marketing knows how often webinar attendees and non-attendees convert. A lead converts: what is the probability they attended? Video 2 solves it with the formula. Video 3 solves it again with the four-column Bayes table (prior, likelihood, joint, posterior). Watch both and confirm they agree.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=f4e5443b-849e-43ee-b734-b4ca00f86a19" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 2</a><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=b184fdcb-10c9-4970-ae7c-b4ca00f8607f" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 3 &middot; Bayes table</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P3</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 3: Tracing a defective part to its supplier</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">More than two states of the world</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Parts come from several suppliers, each with its own share of the volume and its own defect rate. A part fails inspection. Which supplier most likely made it? The denominator, P(defective), sums over every supplier that could have produced the part.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=3d3bb45d-efba-4d78-bac6-b4ca00f86077" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 4</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P4</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 4: Loyalty members and redemption offers</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Reverse the conditional</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">The data says how often loyalty members and non-members redeem an offer. The manager wants the other direction: given a customer redeemed, how likely is it they are a loyalty member? This is the move Bayes&rsquo; Theorem exists to make.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=f0d4cccf-0512-4e71-a73b-b4ca00f86075" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 5</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P5</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 5: Unfavorable test markets and product success</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Revising a subjective prior</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Management has a prior belief that a new product will succeed. Then a test market comes back unfavorable. How much should that one piece of imperfect evidence lower the odds? The prior is subjective here, but the update follows the same rules.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=bf654a9f-cc35-4ae9-ad96-b4ca00f8608a" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 6</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px 8px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; text-align: center; width: 50px; height: 50px; border-radius: 50%; font-weight: bold; font-size: 18px; line-height: 50px;">P6</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold; color: #2d2d2d;">Problem 6: AI detectors and academic dishonesty</p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">When a false positive is costly</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">An AI detector flags a student&rsquo;s essay. What is the probability the student actually cheated? Even an accurate-sounding detector can produce many false accusations when most students are honest, and here a false positive has real consequences for a person.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=28b81b8f-7ab6-4548-9381-b4ca00f8661b" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none; margin: 0 8px 6px 0;">&#9654; Watch Video 7</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="margin-top: 30px; padding: 18px 24px; background: #f4f4f4; border-top: 4px solid #9FA1A4; border-radius: 6px;">
+<p style="margin: 0 0 6px 0; font-weight: bold; color: #B10202;">Ready for the homework?</p>
+<p style="margin: 0;">Once you can solve all six without the videos, move on to <a href="/courses/214006/modules/items/9068142" style="color: #B10202; font-weight: bold;">Homework Set 4 (Chapter 04)</a>.</p>
+</div>
+</div>

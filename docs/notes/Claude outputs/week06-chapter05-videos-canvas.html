@@ -1,0 +1,215 @@
+<div style="max-width: 900px; margin: 0 auto; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2d2d2d; line-height: 1.5;">
+<div style="background: #B10202; background-image: linear-gradient(135deg, #B10202 0%, #E31837 100%); color: #ffffff; padding: 28px 30px; border-radius: 8px 8px 0 0;">
+<p style="margin: 0 0 6px 0; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #ffffff; opacity: 0.85;">MBA 775 &middot; Week 06 &middot; Chapter 5</p>
+<h2 style="margin: 0; font-size: 30px; font-weight: bold; color: #ffffff;">Discrete Probability Distributions: Video Lectures</h2>
+<p style="margin: 10px 0 0 0; font-size: 16px; color: #ffffff;">19 short videos, from the rules of a distribution to the binomial, Poisson, and hypergeometric models.</p>
+</div>
+<div style="background: #f4f4f4; border: 1px solid #dddddd; border-top: none; padding: 18px 30px; border-radius: 0 0 8px 8px; margin-bottom: 24px;">
+<p style="margin: 0 0 10px 0;"><strong style="color: #B10202;">Before you start:</strong> open the <a href="https://crooker.faculty.unlv.edu/mba775/fall2026/notes/lecture-notes-2010-chapter-05-discrete-probability.html" target="_blank" rel="noopener" style="color: #B10202; font-weight: bold;">Chapter 5 Lecture Notes</a> in another tab and follow along. You won't grind these formulas by hand on an exam &mdash; you'll be handed output tables and asked which number answers the question and what a manager should conclude. Read the tables closely. They are the skill.</p>
+<p style="margin: 0; font-size: 14px; color: #666666;"><strong>Jump to:</strong> <a href="#part1" style="color: #B10202; text-decoration: none;">Distributions</a> &nbsp;|&nbsp; <a href="#part2" style="color: #B10202; text-decoration: none;">EMV</a> &nbsp;|&nbsp; <a href="#part3" style="color: #B10202; text-decoration: none;">Binomial</a> &nbsp;|&nbsp; <a href="#part4" style="color: #B10202; text-decoration: none;">Poisson</a> &nbsp;|&nbsp; <a href="#part5" style="color: #B10202; text-decoration: none;">Hypergeometric</a></p>
+</div>
+<h3 id="part1" style="margin: 30px 0 4px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Part 1 &middot; Discrete Probability Distributions</h3>
+<p style="margin: 0 0 14px 0; color: #6A737B; font-style: italic;">Rules, mean, variance, and comparing distributions</p>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">01</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=2028c480-3743-4740-a474-b4cb000e534a" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Rules of a Discrete Probability Distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Three rules, every time</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">A random variable is either counted (discrete) or measured (continuous). Every discrete probability distribution obeys three rules: outcomes are mutually exclusive, each P(x) lies between 0 and 1, and the probabilities sum to 1. Watch for the bakery's candidate C &mdash; it sums to 1, but one entry is negative.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=2028c480-3743-4740-a474-b4cb000e534a" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 01</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">02</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=373e2919-7b8b-46aa-99a1-b4cb000e4b39" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Application: Defective units and the probability distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Where distributions come from</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">We build the distribution of defective units in a sample of 1,000 from the production line and check it against the rules. Along the way: the three sources of a distribution &mdash; empirical, classical (from a model), and subjective.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=373e2919-7b8b-46aa-99a1-b4cb000e4b39" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 02</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">03</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=336e6aaa-3df6-4cf6-a43c-b4cb000e4b3a" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The mean of a discrete probability distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">&mu; = &Sigma; x P(x)</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">The mean is a weighted average with the probabilities as weights. For the production line it is 2.43 defective units &mdash; a value no sample will ever contain. It describes the long run, and a 100,000-draw simulation shows the law of large numbers pulling the running average to it.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=336e6aaa-3df6-4cf6-a43c-b4cb000e4b3a" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 03</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">04</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=00553e8f-2df6-496d-b55f-b4cb000e4b37" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The variance and standard deviation of a discrete probability distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">&sigma;&sup2; = &Sigma;(x&minus;&mu;)&sup2; P(x)</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Two routes to the same variance (1.7051): the definition and the shortcut &Sigma;x&sup2;P(x) &minus; &mu;&sup2;. Report the standard deviation, 1.31 defective units, because it is in the units of the data. Includes the Excel SUMPRODUCT setup.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=00553e8f-2df6-496d-b55f-b4cb000e4b37" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 04</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">05</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=554299d0-a7df-4c4d-b735-b4cb000e4b2c" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Comparing two discrete probability distributions</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Same mean, different story</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Henderson and Summerlin have similar mean star ratings (4.06 vs. 3.85), but standard deviations of 1.05 vs. 1.62 reveal that Summerlin is a store customers either love or leave. Plus a caution: averaging ordinal ratings treats them as interval data.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=554299d0-a7df-4c4d-b735-b4cb000e4b2c" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 05</a></p>
+</td></tr></tbody></table>
+</div>
+<h3 id="part2" style="margin: 30px 0 4px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Part 2 &middot; Expected Monetary Value</h3>
+<p style="margin: 0 0 14px 0; color: #6A737B; font-style: italic;">Decisions in dollars &mdash; and the risk behind them</p>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">06</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4f17b7ad-989e-40c6-8683-b4cb000e50a6" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Application: Expected monetary value</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">EMV = the mean in dollars</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">RAD Construction's Pike Creek Road bridge pays $120K early, $100K on time, $90K late. Its expected monetary value is $103,500 &mdash; a profit RAD will never actually earn. What does that number mean for a firm that bids on many projects?</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4f17b7ad-989e-40c6-8683-b4cb000e50a6" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 06</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">07</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=22d1015e-03a5-4541-95de-b4cb000e5216" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Choosing among project alternatives and the Coefficient of Variation</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Reward vs. risk</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">When the state's modified contract has the same EMV but a larger spread, the coefficient of variation (CV = &sigma;/&mu;) breaks the tie. We also choose how many croissants a coffee cart should stock: the highest EMV is not the smoothest ride, and insurance shows when a worse EMV can be the right call.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=22d1015e-03a5-4541-95de-b4cb000e5216" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 07</a></p>
+</td></tr></tbody></table>
+</div>
+<h3 id="part3" style="margin: 30px 0 4px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Part 3 &middot; The Binomial Distribution</h3>
+<p style="margin: 0 0 14px 0; color: #6A737B; font-style: italic;">Counting successes in n independent trials</p>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">08</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=b60c059b-d5f7-4671-a49d-b4cb016eb15f" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The Binomial Distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Fixed n, two outcomes, constant p, independence</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">The four characteristics of a binomial experiment &mdash; and why &ldquo;success&rdquo; is a label, not a compliment. We build the formula from Chapter 4: three customers, p = 0.4, and the number of arrangements times the probability of each.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=b60c059b-d5f7-4671-a49d-b4cb016eb15f" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 08</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">09</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=39496da9-cd11-4d5d-bf7e-b4cb016eb165" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Applications with the Binomial Distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Translate the English first</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Most binomial mistakes happen before any math. &ldquo;Fewer than 4,&rdquo; &ldquo;at most 4,&rdquo; and &ldquo;at least 4&rdquo; are different events, and &ldquo;at least 4&rdquo; is 1 &minus; P(X &le; 3), not 1 &minus; P(X &le; 4). Practice reading answers straight off a cumulative table.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=39496da9-cd11-4d5d-bf7e-b4cb016eb165" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 09</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">10</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=7af3e8b1-f595-4e66-9a35-b4cb016eb186" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The mean, variance and standard deviation of a binomial distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">&mu; = np, &sigma; = &radic;(npq)</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">The general formulas collapse into two short ones. With 50 customers and p = 0.4, we expect 20 big spenders, give or take 3.46 &mdash; the benchmark for judging whether an observed count is surprising.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=7af3e8b1-f595-4e66-9a35-b4cb016eb186" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 10</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">11</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=5dd96877-8009-4af4-be77-b4cb016eb180" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Analyzing customer behavior with a Binomial Distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Your first hypothesis test</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Headquarters says 40% of customers spend $100 or more. Yesterday, only 5 of 50 did. P(X &le; 5) is about 1 in 370,000. Either it was a freak day, or Headquarters is wrong &mdash; and we see why we use the tail (&ldquo;5 or fewer&rdquo;) rather than &ldquo;exactly 5.&rdquo;</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=5dd96877-8009-4af4-be77-b4cb016eb180" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 11</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">12</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4dd1ded2-ac14-4ae8-be3e-b4cb016eb80b" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Further applications with the binomial distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Reading the output</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">A bank mails credit-line offers to 15 customers (p = 0.30). Using only the table: exactly, at most, fewer than, at least, more than, and &ldquo;between 3 and 6 inclusive.&rdquo; Complements must sum to 1 &mdash; run that check every time. Excel's BINOM.DIST reproduces it all.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4dd1ded2-ac14-4ae8-be3e-b4cb016eb80b" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 12</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">13</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=d591a79e-854a-451e-b7b7-b4cb016eba5b" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Shapes of the binomial distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Skew depends on p</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">With p below 0.5 the distribution skews right; above 0.5 it skews left; at 0.5 it is symmetric. As n grows, the binomial starts to look like the bell curve &mdash; a preview of Chapter 6.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=d591a79e-854a-451e-b7b7-b4cb016eba5b" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 13</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">14</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=23edad9e-895a-4cc9-9cba-b4cb01747f10" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Can we use the binomial distribution to model Nevada economic health?</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Testing the independence assumption</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Is the number of low-growth quarters in a Nevada year binomial with n = 4, p = 0.25? The means match, but the observed variance (1.80) is more than double npq (0.75). Bad quarters arrive in clumps &mdash; and a binomial model quietly understates the extremes that sink a business.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=23edad9e-895a-4cc9-9cba-b4cb01747f10" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 14</a></p>
+</td></tr></tbody></table>
+</div>
+<h3 id="part4" style="margin: 30px 0 4px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Part 4 &middot; The Poisson Distribution</h3>
+<p style="margin: 0 0 14px 0; color: #6A737B; font-style: italic;">Counting occurrences over an interval</p>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">15</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=dc33a984-0c3f-4fe2-af05-b4cb0174790d" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The Poisson Distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Counts over an interval, not trials</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">Customers per hour, calls per ten minutes, flaws per square yard. The Poisson is set by a single number, &lambda;: the mean and the variance are both &lambda;, the mean need not be a whole number, and there is no upper limit on x.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=dc33a984-0c3f-4fe2-af05-b4cb0174790d" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 15</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">16</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=29ad4ba9-5113-442c-9bf9-b4cb0174790c" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Application: Customers arriving to the store in the next hour</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">&ldquo;More than&rdquo; needs the complement</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">If 4 extra customers are expected in an added hour, P(more than 8) = 1 &minus; P(X &le; 8) = 0.0214. Don't forget x = 0: it is an outcome too, and leaving it out costs almost 2 percentage points.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=29ad4ba9-5113-442c-9bf9-b4cb0174790c" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 16</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">17</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=ff28f262-eb62-4281-8452-b4cb01747921" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Application: Changing the interval for a Poisson data generating process</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Rescale &lambda;, never the probability</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">At 4 customers an hour, P(exactly 4 in an hour) = 0.1954 but P(exactly 2 in 30 minutes) = 0.2707. Half the time is not half the probability. When the interval changes, the first line of your work is a new &lambda;.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=ff28f262-eb62-4281-8452-b4cb01747921" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 17</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">18</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=a606b201-6e38-4874-b53d-b4cb01747912" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">Approximating the binomial distribution with the Poisson</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">n &ge; 20 and p &le; 0.05 &rArr; &lambda; = np</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">A warehouse mis-packs 3% of orders; 40 are inspected. The binomial gives 0.2206 for exactly 2, the Poisson 0.2169. The real payoff is the idea: rare events (typos, fraud, warranty claims) are Poisson because they are binomials with a huge n and a tiny p.</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=a606b201-6e38-4874-b53d-b4cb01747912" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 18</a></p>
+</td></tr></tbody></table>
+</div>
+<h3 id="part5" style="margin: 30px 0 4px 0; padding-bottom: 6px; border-bottom: 3px solid #B10202; color: #B10202; font-size: 22px;">Part 5 &middot; The Hypergeometric Distribution</h3>
+<p style="margin: 0 0 14px 0; color: #6A737B; font-style: italic;">Small populations, no replacement</p>
+<div style="border: 1px solid #dddddd; border-left: 6px solid #B10202; border-radius: 6px; padding: 14px 18px; margin: 0 0 14px 0; background: #ffffff;">
+<table style="border-collapse: collapse; border: none; width: 100%;"><tbody><tr>
+<td style="border: none; vertical-align: top; width: 62px; padding: 0 12px 0 0;"><div style="background: #B10202; color: #ffffff; font-weight: bold; font-size: 18px; text-align: center; width: 50px; height: 50px; line-height: 50px; border-radius: 50%;">19</div></td>
+<td style="border: none; vertical-align: top; padding: 0;">
+<p style="margin: 0 0 2px 0; font-size: 18px; font-weight: bold;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=df8a60ed-0b37-49eb-9462-b4cb01747e28" target="_blank" rel="noopener" style="color: #2d2d2d; text-decoration: none;">The Hypergeometric distribution</a></p>
+<p style="margin: 0 0 8px 0;"><span style="display: inline-block; background: #f1e3e3; color: #B10202; font-size: 12px; font-weight: bold; padding: 2px 10px; border-radius: 12px;">Sampling without replacement</span></p>
+<p style="margin: 0 0 10px 0; color: #3a3a3a; font-size: 15px;">When you sample from a small population, p changes with every draw. Pick 3 of 12 store managers: P(none inexperienced) = 0.5455. Then a casino audits 6 of 25 cabinets and 5 belong to one vendor &mdash; a 1-in-180 result. Does the vendor have a case?</p>
+<p style="margin: 0;"><a href="https://unlv.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=df8a60ed-0b37-49eb-9462-b4cb01747e28" target="_blank" rel="noopener" style="display: inline-block; background: #B10202; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 14px; font-weight: bold; text-decoration: none;">&#9654; Watch Video 19</a></p>
+</td></tr></tbody></table>
+</div>
+<div style="margin-top: 30px; padding: 18px 24px; background: #f4f4f4; border-top: 4px solid #9FA1A4; border-radius: 6px;">
+<p style="margin: 0 0 6px 0; font-weight: bold; color: #B10202;">When you've finished the videos</p>
+<p style="margin: 0;">Complete <a href="/courses/214006/modules/items/9144873" style="color: #B10202; font-weight: bold;">Homework Set 5 (Chapter 05)</a>. The Which Distribution Is It? and Applications sections at the end of the <a href="https://crooker.faculty.unlv.edu/mba775/fall2026/notes/lecture-notes-2010-chapter-05-discrete-probability.html" target="_blank" rel="noopener" style="color: #B10202;">lecture notes</a> are good practice first.</p>
+</div>
+</div>
