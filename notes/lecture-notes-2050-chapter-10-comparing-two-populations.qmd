@@ -209,10 +209,20 @@ variance. The df always falls between the smaller of $n_1-1$ and $n_2-1$
 and the pooled test's $n_1+n_2-2$; it is closer to the low end when one
 sample is much noisier or much smaller than the other.
 
-The **pooled $t$-test** assumes $\sigma_1=\sigma_2$, combines the two
-sample variances into
-$s_p^2=\dfrac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}$, and uses
-$n_1+n_2-2$ degrees of freedom.
+The **pooled $t$-test** assumes $\sigma_1=\sigma_2$ and combines the two
+sample variances into one estimate of the common variance, the **pooled
+variance**
+
+$$s_p^2=\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2} .$$
+
+Its standard error of the difference and test statistic are
+
+$$\text{SE}_{\bar{x}_1-\bar{x}_2}=\sqrt{s_p^2}\,\sqrt{\frac{1}{n_1}+\frac{1}{n_2}},\qquad
+t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}{n_1}+\dfrac{1}{n_2}}},$$
+
+with $n_1+n_2-2$ degrees of freedom. This is Welch's standard error with
+$s_p^2$ in place of both $s_1^2$ and $s_2^2$:
+$\sqrt{s_p^2/n_1+s_p^2/n_2}=\sqrt{s_p^2}\sqrt{1/n_1+1/n_2}$.
 :::
 
 ::: {.charcoal}
@@ -283,9 +293,9 @@ show_math(rf"\text{{df}}=\frac{{({_a:.4f}+{_b:.4f})^2}}"
 **About those degrees of freedom.** For the Maxima data, $s_1^2/n_1=$
 `{python} f"{_a:.4f}"` and $s_2^2/n_2=$ `{python} f"{_b:.4f}"`, and the
 Welch–Satterthwaite formula above gives a fraction,
-`{python} f"{maxima['df']:.2f}"`. It lands near the windows-down sample's
-own $n_2-1=10$ rather than the pooled 19, because that noisier sample
-X Software uses the fraction. Excel's
+`{python} f"{maxima['df']:.2f}"`. That is closer to the windows-down
+sample's own $n_2-1=10$ than to the pooled test's 19, because the noisier
+sample contributes most of the standard error. Software uses the fraction. Excel's
 Data Analysis tool rounds it to the nearest whole number (14). Your textbook
 rounds *down* by hand (13), to be conservative. The three p-values differ
 only in the third decimal place, so any of them is acceptable; on exams,
@@ -317,6 +327,19 @@ rats
 #| include: false
 rp = two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater", pooled=True)
 rw = two_sample_t(2.6, 0.6, 20, 2.1, 0.8, 25, 0, "greater")
+```
+
+```{python}
+#| label: rats-math
+#| echo: false
+#| output: asis
+show_math(rf"s_p^2=\frac{{(20-1)(0.6)^2+(25-1)(0.8)^2}}{{20+25-2}}"
+          rf"=\frac{{6.84+15.36}}{{43}}={rp['pooled variance']:.4f}")
+show_math(rf"\text{{SE}}=\sqrt{{{rp['pooled variance']:.4f}}}\,\sqrt{{\frac{{1}}{{20}}+\frac{{1}}{{25}}}}"
+          rf"={sqrt(rp['pooled variance']):.4f}\times{sqrt(1 / 20 + 1 / 25):.4f}"
+          rf"={rp['standard error of the difference']:.4f}")
+show_math(rf"t=\frac{{(2.6-2.1)-0}}{{{rp['standard error of the difference']:.4f}}}"
+          rf"={rp['test statistic t']:.4f},\qquad \text{{df}}=20+25-2=43")
 ```
 
 ::: {.charcoal}
