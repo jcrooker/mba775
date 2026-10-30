@@ -41,7 +41,7 @@ __all__ = [
     "paired_t", "paired_t_from_data", "paired_vs_independent",
     "pairing_variance",
     "two_proportion_test", "two_proportion_interval",
-    "ab_sample_size", "ab_power",
+    "ab_sample_size", "ab_power", "ab_min_detectable_lift",
     "permutation_test",
     "familywise_error", "simulate_pairwise_false_positives",
     "one_way_anova", "block_anova", "pairwise_comparisons",
@@ -388,6 +388,25 @@ def ab_power(p1: float, p2: float, n: int, alpha: float = 0.05,
     se1 = sqrt((p1 * (1 - p1) + p2 * (1 - p2)) / n)
     d = abs(p2 - p1)
     return 1 - normal_cdf((za * se0 - d) / se1)
+
+
+def ab_min_detectable_lift(p1: float, n: int, alpha: float = 0.05,
+                           power: float = 0.80, two_sided: bool = True
+                           ) -> float:
+    """The smallest lift p2 - p1 that n visitors per arm can detect with the
+    given power: the sample-size formula run backwards. Fix any three of
+    (alpha, power, lift, n) and the fourth is determined."""
+    lo, hi = 1e-6, 1 - p1 - 1e-6
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        raw = ab_sample_size(p1, p1 + mid, alpha, power, two_sided)["raw n per arm"]
+        if raw > n:
+            lo = mid
+        else:
+            hi = mid
+        if hi - lo < 1e-10:
+            break
+    return (lo + hi) / 2
 
 
 # ---------------------------------------------------------------------------

@@ -29,12 +29,14 @@ from _charts import (density_chart, density_histogram, test_chart,
                      line_chart, paired_chart, strip_chart,
                      UNLV_SCARLET, UNLV_GRAY)
 from _cont import normal_pdf
-from _infer import t_pdf, critical_value
+from _infer import (t_pdf, critical_value, sample_size_proportion,
+                    n_for_power)
 from _two import (f_pdf, two_sample_t, two_sample_t_from_data, two_sample_z,
                   welch_df, diff_interval, paired_t, paired_t_from_data,
                   paired_vs_independent, pairing_variance,
                   two_proportion_test, two_proportion_interval,
-                  ab_sample_size, ab_power, permutation_test,
+                  ab_sample_size, ab_power, ab_min_detectable_lift,
+                  permutation_test,
                   familywise_error, simulate_pairwise_false_positives,
                   one_way_anova, block_anova, two_sample_catalog)
 
@@ -693,6 +695,40 @@ The question to answer *before* launch is week 9's power question. Suppose
 the current page converts 10% of visitors and a lift to 12% would be worth
 the redesign.
 
+::: {.blue}
+**Sample size per arm for an A/B test** (a two-sided, two-proportion test):
+
+$$n=\frac{\left(z_{\alpha/2}\sqrt{2\bar{p}(1-\bar{p})}+z_{\beta}\sqrt{p_1(1-p_1)+p_2(1-p_2)}\right)^2}{(p_2-p_1)^2},
+\qquad \bar{p}=\frac{p_1+p_2}{2},$$
+
+rounded **up**. This is a *planning* calculation, done before any data are
+collected, so none of its inputs come from the test's samples:
+
++ $p_1$ is the **baseline** rate, known from the page's history;
++ $p_2$ is the baseline plus the **smallest lift worth detecting**, chosen by
+  the business, so $\delta=p_2-p_1$ is a choice, not a measurement;
++ $z_{\alpha/2}$ sets the false positive rate $\alpha$, and $z_\beta$ sets
+  the power $1-\beta$ (the chance of detecting a lift of size $\delta$ if
+  it is really there).
+
+The first term in the numerator is the noise in $\hat{p}_1-\hat{p}_2$ if
+$H_0$ is true; the second is the noise if the lift is real.
+:::
+
+```{python}
+#| label: ab-formula
+#| echo: false
+#| output: asis
+from _cont import normal_inv as _ninv
+_za = critical_value(alpha=0.05, tails=2)
+_zb = _ninv(0.80)
+_pb = 0.11
+_t1 = _za * sqrt(2 * _pb * (1 - _pb))
+_t2 = _zb * sqrt(0.10 * 0.90 + 0.12 * 0.88)
+show_math(rf"n=\frac{{\left({_za:.4f}\sqrt{{2(0.11)(0.89)}}+{_zb:.4f}\sqrt{{0.10(0.90)+0.12(0.88)}}\right)^2}}{{(0.12-0.10)^2}}"
+          rf"=\frac{{({_t1:.5f}+{_t2:.5f})^2}}{{0.0004}}=\frac{{{(_t1 + _t2) ** 2:.5f}}}{{0.0004}}={(_t1 + _t2) ** 2 / 0.0004:,.2f}".replace(",", "{,}"))
+```
+
 ```{python}
 #| label: ab-n
 ab = ab_sample_size(0.10, 0.12, alpha=0.05, power=0.80)
@@ -723,6 +759,84 @@ would catch a real lift only `{python} pct(pw1000, 0)` of the time. A
 `{python} f"{ab_small['n per arm (round UP)']:,}"` per arm. Small lifts are
 expensive to detect, which is why the size of the lift worth detecting has
 to be decided by the business before the test starts.
+:::
+
+## Why 80% power, and what it implies
+
+::: {.charcoal}
+**Eighty percent power is the conventional choice**: if the lift is really
+there, the test has an 80% chance of rejecting $H_0$ and a 20% chance
+($\beta$) of missing it. Paired with $\alpha=0.05$, it treats a false
+positive as about four times as costly as a false negative, which suits the
+usual situation: a false positive commits money to a redesign that does not
+work, while a false negative only means the idea gets tested again later. It
+is a convention, not a law. Raise it to 90% when missing a real gain is
+expensive, and remember that every step up in power costs visitors.
+
+**Four quantities are tied together: $\alpha$, power, the lift $\delta$,
+and $n$. Fix any three and the formula determines the fourth.** Above we
+fixed $\alpha$, power, and $\delta$, and solved for $n$. Run it the other
+way and a sample size you can afford *implies* the smallest lift you can
+reliably detect, the **minimum detectable effect**:
+:::
+
+```{python}
+#| label: ab-mde
+mde = pd.DataFrame({"visitors per arm": [1_000, 2_000, 3_841, 8_000, 15_000]})
+mde["smallest detectable lift (points), 80% power"] = [
+    100 * ab_min_detectable_lift(0.10, n, 0.05, 0.80) for n in mde["visitors per arm"]]
+mde["smallest detectable lift (points), 90% power"] = [
+    100 * ab_min_detectable_lift(0.10, n, 0.05, 0.90) for n in mde["visitors per arm"]]
+mde.set_index("visitors per arm").round(2)
+```
+
+```{python}
+#| label: ab-mde-stats
+#| include: false
+mde1000 = 100 * ab_min_detectable_lift(0.10, 1_000)
+```
+
+::: {.charcoal}
+With 1,000 visitors per arm, a test at $\alpha=0.05$ with 80% power can
+reliably detect only a lift of about
+`{python} f"{mde1000:.1f}"` points (10% to
+`{python} f"{10 + mde1000:.1f}"`%). A smaller real lift may well be there;
+this test would usually miss it. So $\alpha$ and power alone do *not*
+pin down $\delta$: it is $\alpha$, power, **and $n$** together that
+imply the detectable lift. The business decides which one to solve for.
+:::
+
+```{python}
+#| label: ab-ladder
+#| include: false
+_ch8 = sample_size_proportion(0.02, 0.95, 0.10)["n (round UP)"]
+_ch8b = sample_size_proportion(0.02, 0.95, 0.12)["n (round UP)"]
+_ch9 = n_for_power(0.10, sqrt(0.10 * 0.90), 0.12, 0.80, 0.05, "two-sided")["n (round UP)"]
+_nopow = ab_sample_size(0.10, 0.12, 0.05, power=0.50)["n per arm (round UP)"]
+_ab = ab_sample_size(0.10, 0.12, 0.05, power=0.80)["n per arm (round UP)"]
+```
+
+::: {.gray}
+**The sample size depends on the question you ask.** Each chapter added a
+requirement, and each requirement costs visitors. All rows use a 10%
+baseline, a 2-point difference, and 95% confidence ($\alpha=0.05$,
+two-sided).
+
+| Chapter | Formula | Question it answers | $n$ (per arm in Ch 10) |
+|---|---|---|---|
+| 8 | $z^2p(1-p)/E^2$, $p=0.10$ | Estimate **one** rate to within $\pm2$ points | `{python} f"{_ch8:,}"` |
+| 8 | same, $p=0.12$ | Same, planning with the higher rate | `{python} f"{_ch8b:,}"` |
+| 9 | $\left((z_{\alpha/2}+z_\beta)\sigma/\delta\right)^2$, $\sigma=\sqrt{0.1(0.9)}$ | Test **one** sample against a **known** 10%, 80% power | `{python} f"{_ch9:,}"` |
+| 10 | A/B formula with $z_\beta=0$ | Compare **two estimated** rates, 50% power | `{python} f"{_nopow:,}"` |
+| 10 | A/B formula above | Compare two estimated rates, **80% power** | **`{python} f"{_ab:,}"`** |
+
+Two steps account for the jump. **Estimating both rates** roughly doubles
+the variance of the difference: in Chapters 8 and 9 the 10% baseline was
+treated as a known number, but in an A/B test the control group's rate is
+just as noisy as the variant's. **Requiring power** adds the $z_\beta$
+term: a study sized only so that a 2-point difference would be
+"significant" detects a real 2-point lift about half the time. None of the
+earlier formulas is wrong; each answers a smaller question.
 :::
 
 ::: {.scarlet}
