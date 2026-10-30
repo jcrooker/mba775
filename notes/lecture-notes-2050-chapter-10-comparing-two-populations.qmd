@@ -689,6 +689,30 @@ the conversion rates are compared. It is the most common use of this
 chapter in business today, and the random assignment is what makes its
 conclusions causal.
 
+::: {.blue}
+Each group in an experiment is called an **arm**, a term borrowed from
+clinical trials. A drug trial randomly assigns patients to a **treatment
+arm**, which gets the new drug, and a **control arm**, which gets a placebo
+or the current standard of care. An A/B test has the same structure:
+
++ the **control arm** (A) sees the current page;
++ the **treatment arm** (B) sees the new design.
+
+Sample sizes are stated **per arm**: the number of visitors who must see
+*each* page. A test that needs 3,841 per arm needs 3,841 on page A **and**
+3,841 on page B, 7,682 in all.
+:::
+
+::: {.charcoal}
+Thinking of an A/B test as a small clinical trial is a good habit. A trial
+asks the questions this chapter has been building toward: Who decides which
+patient gets the drug? (A coin, not the doctor, so the arms are alike in
+everything else.) How many patients does each arm need to detect a benefit
+worth having? (A power calculation, done in advance.) When is the trial
+over? (When the planned number is reached, not when the results first look
+good.) Ask the same three questions of any A/B test you are shown.
+:::
+
 ## How many visitors?
 
 The question to answer *before* launch is week 9's power question. Suppose
