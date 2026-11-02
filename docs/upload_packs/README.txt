@@ -13,6 +13,7 @@ into a Claude conversation.
     lab-7-chapter-07/   Chapter 7 - sampling and sampling distributions
     lab-8-chapters-08-09/   Chapter 8-9 - confidence intervals and hypothesis testing
     lab-10-chapter-10/   Chapter 10 - comparing two populations, with a slice of ANOVA
+    lab-12-chapters-12-13/   Chapter 12-13 - chi-square tests and tests for a population variance
     lab-16a-forecasting-1/   Chapter 16a - forecasting 1 - naive, moving averages, MAD
     lab-16b-forecasting-2/   Chapter 16b - forecasting 2 - exponential smoothing
     lab-16-data-tools/   Chapter 16 - getting the forecasting-challenge data

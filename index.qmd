@@ -15,19 +15,23 @@ that produced a number, the number does not go in your submission.
 
 ## Lecture notes
 
-- [Chapter 1 — Introduction to Data Analytics and Modeling](notes/lecture-notes-1000-chapter-01-uses-of-data-analytics-and-modeling.html)
-- [Chapter 2 — Displaying Descriptive Statistics](notes/lecture-notes-1010-chapter-02-displaying-descriptive-statistics.html)
-- [Chapter 3 — Calculating Descriptive Statistics](notes/lecture-notes-1020-chapter-03-calculating-descriptive-statistics.html)
-- [Chapter 4 — Introducing Probabilities](notes/lecture-notes-1030-chapter-04-introducing-probabilities.html)
-- [Chapter 5 — Discrete Probability Distributions](notes/lecture-notes-2010-chapter-05-discrete-probability.html)
-- [Chapter 6 — Continuous Probability Distributions](notes/lecture-notes-2020-chapter-06-continuous-probability.html)
-- [Chapter 7 — Sampling and Sampling Distributions](notes/lecture-notes-2030-chapter-07-sampling-and-sampling-distributions.html)
-- [Chapters 8 and 9 — Confidence Intervals and Hypothesis Testing](notes/lecture-notes-2040-chapter-08-09-confidence-intervals-and-hypothesis-testing.html)
-- [Chapter 10 — Comparing Two Populations (with a slice of Chapter 11)](notes/lecture-notes-2050-chapter-10-comparing-two-populations.html)
-- [Chapter 16, Part 1 — The Forecasting Challenge](notes/lecture-notes-1005-chapter-16-forecasting-part-1-the-forecasting-challenge.html) (Week 3)
-- [Chapter 16, Part 2 — Exponential Smoothing](notes/lecture-notes-2005-chapter-16-forecasting-part-2-exponential-smoothing.html) (after Exam 1)
-- [Chapter 16, Part 3 — Regression and Seasonality](notes/lecture-notes-3040-chapter-16-forecasting-part-3-regression-and-seasonality.html) (after Exam 2)
-- [Models with Economic Indicators](notes/lecture_notes-4050-models-with-economic-indicators.html)
+Each note has a printable PDF beside it. Use the PDF to print or annotate;
+use the web page for the interactive table of contents and copyable code.
+
+- [Chapter 1 — Introduction to Data Analytics and Modeling](notes/lecture-notes-1000-chapter-01-uses-of-data-analytics-and-modeling.html) · [PDF](pdf/notes/lecture-notes-1000-chapter-01-uses-of-data-analytics-and-modeling.pdf)
+- [Chapter 2 — Displaying Descriptive Statistics](notes/lecture-notes-1010-chapter-02-displaying-descriptive-statistics.html) · [PDF](pdf/notes/lecture-notes-1010-chapter-02-displaying-descriptive-statistics.pdf)
+- [Chapter 3 — Calculating Descriptive Statistics](notes/lecture-notes-1020-chapter-03-calculating-descriptive-statistics.html) · [PDF](pdf/notes/lecture-notes-1020-chapter-03-calculating-descriptive-statistics.pdf)
+- [Chapter 4 — Introducing Probabilities](notes/lecture-notes-1030-chapter-04-introducing-probabilities.html) · [PDF](pdf/notes/lecture-notes-1030-chapter-04-introducing-probabilities.pdf)
+- [Chapter 5 — Discrete Probability Distributions](notes/lecture-notes-2010-chapter-05-discrete-probability.html) · [PDF](pdf/notes/lecture-notes-2010-chapter-05-discrete-probability.pdf)
+- [Chapter 6 — Continuous Probability Distributions](notes/lecture-notes-2020-chapter-06-continuous-probability.html) · [PDF](pdf/notes/lecture-notes-2020-chapter-06-continuous-probability.pdf)
+- [Chapter 7 — Sampling and Sampling Distributions](notes/lecture-notes-2030-chapter-07-sampling-and-sampling-distributions.html) · [PDF](pdf/notes/lecture-notes-2030-chapter-07-sampling-and-sampling-distributions.pdf)
+- [Chapters 8 and 9 — Confidence Intervals and Hypothesis Testing](notes/lecture-notes-2040-chapter-08-09-confidence-intervals-and-hypothesis-testing.html) · [PDF](pdf/notes/lecture-notes-2040-chapter-08-09-confidence-intervals-and-hypothesis-testing.pdf)
+- [Chapter 10 — Comparing Two Populations (with a slice of Chapter 11)](notes/lecture-notes-2050-chapter-10-comparing-two-populations.html) · [PDF](pdf/notes/lecture-notes-2050-chapter-10-comparing-two-populations.pdf)
+- [Chapters 12 and 13 — Chi-Square Tests and Tests for a Population Variance](notes/lecture-notes-3010-chapter-12-13-chi-square-and-variance-tests.html) · [PDF](pdf/notes/lecture-notes-3010-chapter-12-13-chi-square-and-variance-tests.pdf)
+- [Chapter 16, Part 1 — The Forecasting Challenge](notes/lecture-notes-1005-chapter-16-forecasting-part-1-the-forecasting-challenge.html) · [PDF](pdf/notes/lecture-notes-1005-chapter-16-forecasting-part-1-the-forecasting-challenge.pdf) (Week 3)
+- [Chapter 16, Part 2 — Exponential Smoothing](notes/lecture-notes-2005-chapter-16-forecasting-part-2-exponential-smoothing.html) · [PDF](pdf/notes/lecture-notes-2005-chapter-16-forecasting-part-2-exponential-smoothing.pdf) (after Exam 1)
+- [Chapter 16, Part 3 — Regression and Seasonality](notes/lecture-notes-3040-chapter-16-forecasting-part-3-regression-and-seasonality.html) · [PDF](pdf/notes/lecture-notes-3040-chapter-16-forecasting-part-3-regression-and-seasonality.pdf) (after Exam 2)
+- [Models with Economic Indicators](notes/lecture_notes-4050-models-with-economic-indicators.html) · [PDF](pdf/notes/lecture_notes-4050-models-with-economic-indicators.pdf)
 
 ## How to run the course code
 
@@ -49,6 +53,7 @@ every Claude account, including the free tier.
 | 7 | [Chapter 7 pack](upload_packs/lab-7-chapter-07.zip) | 8 |
 | 8–9 | [Chapters 8–9 pack](upload_packs/lab-8-chapters-08-09.zip) | 9 |
 | 10 | [Chapter 10 pack](upload_packs/lab-10-chapter-10.zip) | 7 |
+| 12–13 | [Chapters 12–13 pack](upload_packs/lab-12-chapters-12-13.zip) | 11 |
 | 16a | [Forecasting 1 pack](upload_packs/lab-16a-forecasting-1.zip) | 6 |
 | 16b | [Forecasting 2 pack](upload_packs/lab-16b-forecasting-2.zip) | 8 |
 | 16c | [Forecasting 3 pack](upload_packs/lab-16c-forecasting-3.zip) | 8 |

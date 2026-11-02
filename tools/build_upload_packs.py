@@ -160,6 +160,21 @@ LABS = {
                     "_dist.py", "_cont.py", "_infer.py", "_two.py"],
         "data": [],
     },
+    "lab-12-chapters-12-13": {
+        "chapter": "12-13",
+        "topic": "chi-square tests and tests for a population variance",
+        "run": {"12_13_chi_square_and_variance_tests.py":
+                "the chi-square statistic simulated under H0, k proportions on "
+                "ten years of S&P 500 up days, 2 x 2 = z^2, goodness of fit "
+                "(stated and Poisson), independence with residuals and "
+                "Cramer's V, combining small cells, one- and two-variance "
+                "tests, an interval for sigma, and why variance tests need "
+                "normal data"},
+        "scripts": ["12_13_chi_square_and_variance_tests.py", "_course.py",
+                    "_dist.py", "_cont.py", "_infer.py", "_two.py", "_chisq.py"],
+        "data": ["sp500_daily.csv", "big9_faculty_1999.csv",
+                 "nevada_agi_2016_sample.csv"],
+    },
     # Chapter 16 is taught in three parts across the semester (Week 3, after
     # Exam 1, after Exam 2), so it has three packs. The chapter label is a
     # string on purpose; it appears in the README as "Laboratory 16a".

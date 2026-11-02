@@ -1,0 +1,1285 @@
+---
+title: "Chi-Square Tests and Tests for a Population Variance"
+subtitle: "Chapters 12 and 13"
+author:
+  - "Dr. Skip Crooker"
+  - "MBA 775"
+  - "University of Nevada, Las Vegas"
+date: today
+date-format: "dddd, MMMM D, YYYY"
+jupyter: python3
+code-fold: true
+code-summary: "Show the code"
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+sys.path.insert(0, "scripts")
+
+import warnings
+from math import sqrt
+
+import numpy as np
+import pandas as pd
+
+from _charts import (density_chart, density_histogram, test_chart,
+                     line_chart, bar_chart, UNLV_SCARLET, UNLV_GRAY)
+from _two import two_proportion_test, f_pdf
+from _chisq import (chi2_pdf, chi2_cdf, chi2_inv, chi_square_table,
+                    k_proportions_test, gof_test, poisson_gof, binomial_gof,
+                    independence_test, cramers_v, variance_test,
+                    variance_test_from_data, sigma_interval,
+                    f_test_variances, f_test_from_data, simulate_chi2_null,
+                    variance_test_error_rate, chisq_crosswalk)
+
+warnings.filterwarnings("ignore")
+np.seterr(all="ignore")
+pd.set_option("display.max_rows", 80)
+pd.set_option("display.width", 120)
+pd.set_option("display.max_colwidth", 80)
+
+
+def pct(x, decimals=2):
+    return f"{100 * x:.{decimals}f}%"
+
+
+def show_math(latex):
+    """Print a display equation from a chunk marked `output: asis`."""
+    print(f"$${latex}$$\n")
+
+
+def tidy(obj, digits=4):
+    """Round the numbers in a result for display, leaving text, whole
+    numbers, and True/False alone."""
+    def r(v):
+        if isinstance(v, (bool, np.bool_)):
+            return bool(v)
+        if isinstance(v, (float, np.floating)):
+            if np.isnan(v):
+                return ""
+            return int(v) if float(v).is_integer() and abs(v) >= 1 else round(float(v), digits)
+        return v
+    if isinstance(obj, pd.DataFrame):
+        return obj.astype(object).apply(lambda col: col.map(r))
+    return obj.astype(object).map(r)
+
+
+def numbers(series, digits=4):
+    """A result Series as a one-column table."""
+    return tidy(series, digits).to_frame("value")
+
+
+faculty = pd.read_csv("data/big9_faculty_1999.csv")
+agi = pd.read_csv("data/nevada_agi_2016_sample.csv")["AGI"].dropna()
+sp = pd.read_csv("data/sp500_daily.csv", parse_dates=["date"]).dropna()
+
+# Textbook data, typed in from Donnelly Chapters 12 and 13.
+CHECKOUT = [4.4, 3.9, 4.2, 4.5, 2.3, 2.7, 4.2, 6.0, 6.2, 6.0, 5.0, 5.1,
+            1.9, 1.8, 5.6, 4.3, 3.6, 5.3, 4.0, 6.1, 6.1, 3.4, 1.3, 5.0]
+AMANA = [38.2, 37.5, 29.7, 42.5, 43.4, 41.5, 41.0, 41.2, 40.0, 41.4,
+         39.5, 39.8, 44.6, 42.2, 34.9, 28.5, 38.5, 34.7, 36.6, 37.0,
+         32.0, 34.9, 36.9, 36.6, 34.9, 35.6, 45.6, 34.1, 45.2, 33.5]
+ON_SITE = [105, 125, 60, 184, 189, 126, 211, 176, 149, 79, 122, 175]
+OUTSOURCED = [163, 158, 153, 174, 138, 140, 195, 138, 189, 142, 182, 138, 175, 91]
+```
+
+## Objectives
+
++ Explain the chi-square statistic as a measure of how far observed counts
+  sit from the counts a hypothesis predicts, and find its p-value.
++ Test whether **k proportions** are equal, and recognize the $2\times2$
+  case as last week's two-proportion test.
++ Test whether counts follow a stated distribution (**goodness of fit**),
+  including the degrees-of-freedom cost of estimating a parameter.
++ Test whether two categorical variables are **independent**, find which
+  cells drive a rejection, and measure how strong the association is.
++ Know when expected counts are too small, and how to combine categories.
++ Test a single population variance, and build an interval for $\sigma$.
++ Compare two population variances with the $F$ test.
++ Explain why the variance tests need normal data much more than the
+  $t$-test does, and what to do instead of pretesting variances.
+
+::: {.charcoal}
+Weeks 9 and 10 tested claims about **means and proportions**. This week has
+two new questions.
+
+**Chapter 12: do counts match a hypothesis?** Is the share of "up" days the
+same every weekday? Do absences follow a Poisson model? Does the brand a
+customer buys depend on age? Every one of these is answered with one
+statistic,
+
+$$\chi^2=\sum_{\text{cells}}\frac{(\text{observed}-\text{expected})^2}{\text{expected}},$$
+
+and the three tests in the chapter differ only in **where the expected counts
+come from**. Learn the statistic once, then learn three ways of filling in
+"expected."
+
+**Chapter 13: is the spread what was claimed?** A refrigerator can average
+37°F and still freeze the lettuce. A checkout process can average 4 minutes
+and still leave some customers waiting 10. Here the parameter of interest is
+the variance $\sigma^2$, and the test has an important catch that the
+$t$-test does not.
+:::
+
+# Part I: Chi-Square Tests (Chapter 12)
+
+## The chi-square statistic
+
+::: {.blue}
+For counts in $k$ cells, the **chi-square statistic** is
+
+$$\chi^2=\sum\frac{(f_o-f_e)^2}{f_e},$$
+
+where $f_o$ is the **observed** count in a cell and $f_e$ is the
+**expected** count if $H_0$ is true. Expected counts need not be whole
+numbers; they are averages.
+
+If $H_0$ is true, $\chi^2$ follows (approximately) a **chi-square
+distribution**, which is right-skewed, never negative, and has mean equal to
+its degrees of freedom. The approximation needs **every expected count to be
+at least 5**; if one is not, combine categories.
+:::
+
+```{python}
+#| label: chi2-curves
+cx = np.linspace(0.01, 20, 600)
+_ = density_chart(cx, {"df = 1": chi2_pdf(cx, 1), "df = 2": chi2_pdf(cx, 2),
+                       "df = 4": chi2_pdf(cx, 4), "df = 8": chi2_pdf(cx, 8)},
+                  title="Chi-square distributions: right-skewed, mean = df",
+                  xlab="chi-square", ymax=0.5)
+```
+
+::: {.charcoal}
+Three things follow from the formula.
+
++ **Every test is upper-tailed.** Squaring makes a cell count too high and a
+  cell count too low both add to $\chi^2$. Only a *large* $\chi^2$ is
+  evidence against $H_0$, so the p-value is always the right-tail area,
+  Excel's `=CHISQ.DIST.RT(x, df)`.
++ **Each cell's contribution is scaled by what was expected.** Being 10 off
+  when 20 were expected matters more than being 10 off when 200 were.
++ **A quick sanity check:** since the mean is the df, a $\chi^2$ near its df is
+  entirely ordinary. A value of 5 with 4 df is nothing; a value of 30 with 4
+  df is a lot.
+:::
+
+We can check that the chi-square distribution really describes the
+statistic. Below, a model with six categories is assumed true, 240
+observations are drawn from it 20,000 times, and $\chi^2$ is computed each
+time.
+
+```{python}
+#| label: chi2-sim
+drive_p = [0.20, 0.10, 0.10, 0.15, 0.25, 0.20]
+sim = simulate_chi2_null(drive_p, 240, reps=20_000)
+_ = density_histogram(sim[sim < 20], x=cx, density=chi2_pdf(cx, 5), bins=60,
+                      title="20,000 chi-square statistics when H0 is true (k = 6)",
+                      xlab="chi-square", curve_label="chi-square, df = 5",
+                      bar_label="simulated")
+```
+
+```{python}
+#| label: chi2-sim-stats
+#| include: false
+sim_mean = sim.mean()
+sim_tail = (sim > chi2_inv(0.95, 5)).mean()
+```
+
+::: {.charcoal}
+The simulated statistics average `{python} f"{sim_mean:.2f}"`, against the
+df of 5, and `{python} pct(sim_tail, 1)` of them exceed the 5% critical
+value. The formula's distribution is the right one, provided the expected
+counts are large enough. Here the smallest is 24.
+:::
+
+## Test 1: are k proportions equal?
+
+::: {.blue}
+To test $H_0:p_1=p_2=\cdots=p_k$, pool all the groups to estimate the common
+proportion $\bar{p}$, and expect $\bar{p}\times n_j$ successes (and
+$(1-\bar{p})\times n_j$ failures) in group $j$. The statistic has
+$\text{df}=k-1$.
+:::
+
+### Application: is Monday the best day on Wall Street?
+
+A 2010 *Bloomberg BusinessWeek* article declared that "on Wall Street,
+Monday is the best day of the week": over six months, the S&P 500 rose on
+80% of Mondays, more than on any other weekday. Your textbook tests the
+article's own data.
+
+```{python}
+#| label: sp-book
+book_up = [20, 15, 17, 14, 12]
+book_n = [25, 26, 26, 25, 23]
+days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+sp_tab, sp_res = k_proportions_test(book_up, book_n, days)
+tidy(sp_tab, 3)
+```
+
+```{python}
+#| label: sp-book-res
+numbers(sp_res)
+```
+
+```{python}
+#| label: sp-book-chart
+_ = test_chart(cx, chi2_pdf(cx, 4), sp_res["chi-square statistic"],
+               critical=sp_res["critical value"], alternative="greater",
+               p_value=sp_res["p-value"],
+               title="Six months of S&P days: chi-square with 4 df, if H0 is true",
+               xlab="chi-square")
+```
+
+::: {.charcoal}
+$\chi^2=$ `{python} f"{sp_res['chi-square statistic']:.2f}"` with 4 df, a
+perfectly ordinary value, and $p=$ `{python} f"{sp_res['p-value']:.3f}"`. The
+80% of Mondays sounds impressive, but with about 25 days per weekday, a gap
+that size turns up by chance more than a quarter of the time. **The data are
+not evidence that the share of up days differs by weekday.** (Your textbook
+gets 5.09; it rounds each expected count before adding.)
+:::
+
+The course repository has ten years of daily S&P 500 closes from FRED,
+August 2016 to August 2026. An up day is a close above the previous day's
+close.
+
+```{python}
+#| label: sp-fred
+spd = sp.sort_values("date").copy()
+spd["up"] = spd["sp500_close"].diff() > 0
+spd = spd.iloc[1:]
+spd["weekday"] = pd.Categorical(spd["date"].dt.day_name(), days, ordered=True)
+counts = spd.groupby("weekday", observed=True)["up"].agg(["sum", "size"])
+counts.columns = ["up days", "trading days"]
+counts["share up"] = counts["up days"] / counts["trading days"]
+fred_tab, fred_res = k_proportions_test(counts["up days"], counts["trading days"], days)
+counts.round(3)
+```
+
+```{python}
+#| label: sp-fred-res
+numbers(fred_res)
+```
+
+::: {.charcoal}
+Over `{python} f"{int(counts['trading days'].sum()):,}"` trading days,
+Monday again has the highest share of up days,
+`{python} pct(counts.loc['Monday', 'share up'], 1)`, against
+`{python} pct(counts['share up'].min(), 1)` for the lowest weekday. With twenty
+times the data, $\chi^2=$ `{python} f"{fred_res['chi-square statistic']:.2f}"`
+and $p=$ `{python} f"{fred_res['p-value']:.3f}"`. Still no evidence of a
+weekday effect. A pattern that "everyone knows" and that a reputable
+magazine printed is, as far as these data can tell, noise. This is the use
+of statistics most worth taking into a business career.
+:::
+
+### The $2\times2$ case is last week's test
+
+With only two groups, the chi-square test of equal proportions **is** the
+two-proportion $z$-test of Chapter 10: $\chi^2=z^2$, with the same p-value.
+Take last week's email A/B test (216 of 2,400 bought after email B, 168 of
+2,400 after email A):
+
+```{python}
+#| label: chi-z
+ab_tab, ab_chi = k_proportions_test([216, 168], [2400, 2400], ["email B", "email A"])
+ab_z = two_proportion_test(216, 2400, 168, 2400)
+pd.Series({"z (Chapter 10)": ab_z["test statistic z"],
+           "z squared": ab_z["test statistic z"] ** 2,
+           "chi-square (this week)": ab_chi["chi-square statistic"],
+           "p-value, z test": ab_z["p-value"],
+           "p-value, chi-square": ab_chi["p-value"]}).round(4).to_frame("value")
+```
+
+::: {.charcoal}
+Same test, same answer. The chi-square version extends to any number of
+groups; the $z$ version can also be one-tailed ("B is *better*"), which a
+chi-square test cannot, because squaring throws the direction away.
+:::
+
+## Test 2: goodness of fit
+
+::: {.blue}
+A **goodness-of-fit test** asks whether observed counts follow a stated
+probability distribution. $H_0$ says they do. The expected count in each
+category is $n\times$ the probability the model gives it, and
+
+$$\text{df}=k-m-1,$$
+
+where $k$ is the number of categories and $m$ is the number of parameters
+**estimated from the sample** to compute those probabilities ($m=0$ if $H_0$
+states the model completely). Each estimated parameter lets the model
+bend toward the data, and costs one degree of freedom.
+:::
+
+### Application: a fully stated distribution
+
+A bank's managers believe drive-through demand is spread across the week as
+20%, 10%, 10%, 15%, 25%, 20% (Monday to Saturday). One week brings 240
+customers. Test at $\alpha=0.10$.
+
+```{python}
+#| label: drive
+drive_tab, drive_res = gof_test([58, 21, 27, 20, 71, 43], drive_p,
+                                ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                                m=0, alpha=0.10)
+tidy(drive_tab, 3)
+```
+
+```{python}
+#| label: drive-res
+numbers(drive_res.drop(labels=["CHISQ.TEST"]))
+```
+
+::: {.charcoal}
+$\chi^2=$ `{python} f"{drive_res['chi-square statistic']:.2f}"` with
+$6-0-1=5$ df, $p=$ `{python} f"{drive_res['p-value']:.4f}"`: **the data are
+evidence that demand does not follow the stated pattern.** The working table
+shows where: Thursday contributes more than half of the statistic on its own
+(20 customers against 36 expected). That is the staffing question to take
+back to the managers.
+:::
+
+### Application: a Poisson model with $\lambda$ estimated
+
+Absences per class meeting in 150 meetings:
+
+```{python}
+#| label: absent-data
+absent_vals = list(range(7))
+absent_freq = [22, 38, 39, 29, 15, 5, 2]
+pd.DataFrame({"students absent": absent_vals, "class meetings": absent_freq}).set_index("students absent").T
+```
+
+$H_0$ says absences follow *a* Poisson distribution, without stating its
+mean. So $\lambda$ must be estimated from the data,
+$\bar{x}=300/150=2.0$, and that costs a degree of freedom. The Poisson
+probability of 6 or more is small enough that its expected count falls below
+5, so "5" and "6 or more" are merged into "5 or more."
+
+```{python}
+#| label: absent
+pois_tab, pois_res = poisson_gof(absent_vals, absent_freq, top=5)
+tidy(pois_tab, 3)
+```
+
+```{python}
+#| label: absent-res
+numbers(pois_res.drop(labels=["CHISQ.TEST"]))
+```
+
+::: {.charcoal}
+$\lambda=$ `{python} f"{pois_res['lambda']:.1f}"`, six categories, one
+estimated parameter: $\text{df}=6-1-1=4$. $\chi^2=$
+`{python} f"{pois_res['chi-square statistic']:.2f}"` and $p=$
+`{python} f"{pois_res['p-value']:.2f}"`. **The data are consistent with a
+Poisson model.**
+:::
+
+::: {.scarlet}
+**Two cautions.**
+
+1. **A large p-value does not show that the model is right.** It shows the
+   data cannot tell the model apart from the truth. Using the Poisson to plan
+   an attendance policy may be a sensible business decision, but this test
+   did not prove the data are Poisson. Your textbook goes further than the
+   evidence when it says there is "more evidence supporting the use of the
+   Poisson distribution than there is to not use it."
+2. **Excel's `CHISQ.TEST` gets the df wrong here.** `=CHISQ.TEST(observed,
+   expected)` always uses $k-1$ degrees of freedom. That is right for the
+   drive-through ($m=0$) and wrong whenever a parameter was estimated: here
+   it would use 5 df instead of 4. Use `=CHISQ.DIST.RT(chi-square, k-m-1)`.
+:::
+
+::: {.brown}
+**Southwest's late flights.** Southwest flies four flights a day between
+Philadelphia and Orlando. Over 200 days, the number of late flights per day
+was 0 on 70 days, 1 on 78 days, 2 on 40 days, and 3 or 4 on 12 days.
+Nationally, 20% of Southwest flights are late. **(a)** Test at
+$\alpha=0.10$ whether late flights per day follow a binomial distribution
+with $n=4$ and $p=0.2$. **(b)** How many degrees of freedom, and why?
+**(c)** The model fails. Look at *where* it fails, and suggest why. (Hint:
+which binomial assumption does the weather violate?)
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: southwest
+sw_tab, sw_res = binomial_gof([0, 1, 2, 3, 4], [70, 78, 40, 12, 0], n=4, top=3,
+                              p=0.20, alpha=0.10)
+sw_tab.index = ["0", "1", "2", "3 or 4", "Total"]
+tidy(sw_tab, 2)
+```
+
+**(a)** $\chi^2=$ `{python} f"{sw_res['chi-square statistic']:.2f}"`, $p=$
+`{python} f"{sw_res['p-value']:.4f}"`: reject. The counts do not follow
+Binomial(4, 0.2). **(b)** Four categories after merging "3" and "4" (the
+expected count for 4 alone is 0.32); $p$ was stated, so $m=0$ and
+$\text{df}=4-0-1=3$. **(c)** There are too many days with **no** late
+flights (70 against 82 expected) and far too many with **3 or 4** (12
+against 5.4). The binomial assumes the four flights are *independent*. They
+are not: a thunderstorm in Orlando delays every flight that day, and a clear
+day delays none. Dependence between trials pushes days toward the extremes,
+which is exactly the pattern here. Your textbook concludes only that
+Southwest "needs to develop another model," and its sentence is garbled ("By
+rejecting the null hypothesis, we have no evidence to conclude that … follows
+the binomial"). Rejecting H₀ *is* the evidence that the binomial does not
+fit.
+:::
+
+::: {.brown}
+**Is it normal?** Your textbook also tests normality this way, by cutting the
+$z$-scale into intervals (Section 12.2). With 40 observations it can afford
+only four intervals, leaving **1 degree of freedom**, and such a test will
+miss almost any departure from normality. Read the section for the method.
+In practice, look at the data: the tail check from Chapter 6 (what share of
+values lie beyond $\pm2$ and $\pm3$ standard deviations, against the normal's
+4.6% and 0.27%), a histogram, or a normal probability plot. Part II shows why
+this matters.
+:::
+
+## Test 3: are two categorical variables independent?
+
+::: {.blue}
+A **contingency table** cross-classifies $n$ observations by two categorical
+variables, with $r$ rows and $c$ columns. The **test of independence** has
+
+$$H_0:\ \text{the row and column variables are independent},$$
+
+and, if $H_0$ is true, the expected count in a cell is
+
+$$f_e=\frac{(\text{row total})\times(\text{column total})}{n},
+\qquad \text{df}=(r-1)(c-1).$$
+:::
+
+::: {.charcoal}
+**Where the formula comes from.** Chapter 4 said events $A$ and $B$ are
+independent when $P(A\text{ and }B)=P(A)\,P(B)$. Estimate each probability
+from the margins, $P(\text{row})=\text{row total}/n$ and
+$P(\text{column})=\text{column total}/n$, and multiply by $n$:
+$n\cdot\frac{\text{row}}{n}\cdot\frac{\text{column}}{n}=\frac{\text{row}\times\text{column}}{n}$.
+Read it another way: if the column a customer falls in has nothing to do with
+the row, every row should split across the columns in the same proportions
+as the whole sample does. The test of independence is Chapter 4's
+definition, checked with data.
+:::
+
+### Application: does camera brand depend on age?
+
+A Best Buy store records the brand and the age group of 150 digital camera
+buyers.
+
+```{python}
+#| label: bestbuy
+bestbuy = pd.DataFrame({"Canon": [30, 22, 8], "Nikon": [16, 25, 9],
+                        "Sony": [8, 19, 13]},
+                       index=pd.Index(["18-34", "35-51", "52+"], name="age"))
+bb = independence_test(bestbuy)
+shown = bestbuy.copy()
+shown["Total"] = shown.sum(axis=1)
+shown.loc["Total"] = shown.sum()
+shown
+```
+
+```{python}
+#| label: bestbuy-math
+#| output: asis
+_r, _c, _n = bestbuy.loc["18-34"].sum(), bestbuy["Canon"].sum(), bestbuy.values.sum()
+show_math(rf"f_e(\text{{18-34, Canon}})=\frac{{{_r}\times{_c}}}{{{_n}}}"
+          rf"={bb['expected'].loc['18-34', 'Canon']:.1f}")
+```
+
+The expected counts for every cell, if brand and age are independent:
+
+```{python}
+#| label: bestbuy-exp
+bb["expected"].round(2)
+```
+
+```{python}
+#| label: bestbuy-res
+numbers(bb["result"])
+```
+
+::: {.charcoal}
+Every expected count is at least
+`{python} f"{bb['result']['smallest expected count']:.0f}"`, so the
+approximation is fine. $\chi^2=$
+`{python} f"{bb['result']['chi-square statistic']:.2f}"` with
+$(3-1)(3-1)=4$ df, $p=$ `{python} f"{bb['result']['p-value']:.4f}"`: **the
+data are evidence that brand choice and age are related.**
+:::
+
+### Where is the dependence? Standardized residuals
+
+A rejection says only that *somewhere* the table departs from independence.
+To find where, look at each cell's **standardized residual**,
+
+$$\frac{f_o-f_e}{\sqrt{f_e}}.$$
+
+Squared, these are exactly the pieces that add up to $\chi^2$. Read them
+like $z$-scores: beyond about $\pm2$ is a cell that clearly departs from
+independence, and beyond $\pm1.5$ is worth a look.
+
+```{python}
+#| label: bestbuy-resid
+bb["residuals"].round(2)
+```
+
+```{python}
+#| label: bestbuy-resid-stats
+#| include: false
+bbr = bb["residuals"]
+```
+
+::: {.charcoal}
+Three cells carry the result. Buyers aged 18-34 choose Canon more often than
+independence predicts (residual
+`{python} f"{bbr.loc['18-34', 'Canon']:+.2f}"`) and Sony less often
+(`{python} f"{bbr.loc['18-34', 'Sony']:+.2f}"`); buyers 52 and over choose
+Sony more often (`{python} f"{bbr.loc['52+', 'Sony']:+.2f}"`). The middle
+age group looks like the store as a whole. That is the sentence a category
+manager can use: where to put the Canon display, and who the Sony
+promotion should target.
+:::
+
+### How strong is the dependence? Cramér's V
+
+The $\chi^2$ statistic grows with $n$: double every count and $\chi^2$
+doubles, though the pattern is unchanged. So, as in weeks 9 and 10, a small
+p-value says the association is *real*, not that it is *large*. The effect
+size for a contingency table is **Cramér's V**:
+
+::: {.blue}
+$$V=\sqrt{\frac{\chi^2}{n\,\big(\min(r,c)-1\big)}},$$
+
+which runs from 0 (independence) to 1 (each row predicts the column
+perfectly). A rough guide for tables with a shorter side of 2 or 3: about
+0.1 is small, 0.3 medium, 0.5 large.
+:::
+
+```{python}
+#| label: bestbuy-v
+#| output: asis
+_v = bb["result"]
+bb_v = _v["Cramer's V"]
+show_math(rf"V=\sqrt{{\frac{{{_v['chi-square statistic']:.3f}}}"
+          rf"{{{_v['n']:.0f}\times(3-1)}}}}={bb_v:.3f}")
+```
+
+Now a case where $n$ is large. Your textbook's *Focus on Analytics* box
+reports a survey by Soliton Technologies of 2,069 people: were they the
+decision maker the last time their household bought a car?
+
+```{python}
+#| label: soliton
+soliton = pd.DataFrame({"Male": [207, 811], "Female": [67, 984]},
+                       index=pd.Index(["Decision maker: yes", "Decision maker: no"]))
+sol = independence_test(soliton)
+sol_v = sol["result"]["Cramer's V"]
+soliton
+```
+
+```{python}
+#| label: soliton-res
+numbers(sol["result"].drop(labels=["p-value"]))
+```
+
+::: {.charcoal}
+$\chi^2=$ `{python} f"{sol['result']['chi-square statistic']:.1f}"` with 1
+df, and the p-value is too small for Excel to show (well below one in a
+billion). Yet $V=$ `{python} f"{sol_v:.2f}"`, about
+the same as the Best Buy table, which had $p=$
+`{python} f"{bb['result']['p-value']:.3f}"`. The two associations are about
+**equally strong**. The Soliton p-value is tiny because $n$ is 14 times
+larger. Always report the effect size next to the p-value.
+:::
+
+### Application: a physician "upcoding" check
+
+Your textbook's box *Using the Chi-Square Test in Health Care* describes
+Health Care Associates (HCA), which places hospitalists at University
+Hospital. Patients are assigned to physicians at random, so a physician's
+patients should have the same mix of admission levels (Level 3 is the most
+complex, and the most expensive to bill). Insurers watch for **upcoding**:
+classifying a Level 1 admission as Level 2 or 3 to raise revenue.
+
+```{python}
+#| label: hca
+hca = pd.DataFrame([[3, 4, 9, 9, 13, 8], [15, 8, 21, 16, 13, 19],
+                    [45, 27, 13, 16, 19, 32]],
+                   index=["Level 1", "Level 2", "Level 3"],
+                   columns=[f"Phys {i}" for i in range(1, 7)])
+hc = independence_test(hca)
+hca
+```
+
+```{python}
+#| label: hca-res
+numbers(hc["result"])
+```
+
+```{python}
+#| label: hca-resid
+hc["residuals"].round(2)
+```
+
+::: {.charcoal}
+$\chi^2=$ `{python} f"{hc['result']['chi-square statistic']:.2f}"` with
+$(3-1)(6-1)=10$ df, $p=$ `{python} f"{hc['result']['p-value']:.4f}"`.
+Admission level is not independent of physician. The residuals point at
+**Physician 1**: `{python} int(hca.loc['Level 3', 'Phys 1'])` Level 3
+patients against `{python} f"{hc['expected'].loc['Level 3', 'Phys 1']:.0f}"`
+expected (`{python} f"{hc['residuals'].loc['Level 3', 'Phys 1']:+.2f}"`),
+and only `{python} int(hca.loc['Level 1', 'Phys 1'])` Level 1 patients against
+`{python} f"{hc['expected'].loc['Level 1', 'Phys 1']:.0f}"`
+(`{python} f"{hc['residuals'].loc['Level 1', 'Phys 1']:+.2f}"`). Physicians 3
+and 5 lean the other way. The test does not prove anyone upcoded: the
+assignment may not be as random as HCA thinks, or Physician 1 may take the
+night shift when the sickest patients arrive. What it does is tell the
+compliance office **which chart to pull first**. That is the business use
+of residuals.
+:::
+
+### Application: small expected counts, and combining categories
+
+The course's faculty file has the rank and sex of
+`{python} len(faculty)` economics professors at nine Big Ten universities in
+1999. Is rank independent of sex?
+
+```{python}
+#| label: fac-table
+rank_sex = pd.crosstab(faculty["rank"], faculty["sex"])
+fac = independence_test(rank_sex)
+rank_sex
+```
+
+```{python}
+#| label: fac-exp
+fac["expected"].round(2)
+```
+
+::: {.scarlet}
+**Stop before computing a p-value.** The expected counts for female
+assistant and associate professors are
+`{python} f"{fac['expected'].loc['Assistant', 'Female']:.2f}"` and
+`{python} f"{fac['expected'].loc['Associate', 'Female']:.2f}"`, below 5. With
+counts this small, the chi-square distribution is a poor approximation to
+the statistic's real distribution, and the p-value it gives
+(`{python} f"{fac['result']['p-value']:.4f}"`, as it happens) cannot be
+trusted. Software will compute it anyway, sometimes with a warning, sometimes
+not.
+:::
+
+The fix is to **combine categories** that belong together. Assistant and
+associate professors are both below full professor, so merge them:
+
+```{python}
+#| label: fac-merged
+rank2 = faculty["rank"].replace({"Assistant": "Assistant or Associate",
+                                 "Associate": "Assistant or Associate"})
+rank_sex2 = pd.crosstab(rank2, faculty["sex"])
+fac2 = independence_test(rank_sex2)
+pd.concat({"observed": rank_sex2, "expected": fac2["expected"].round(2)}, axis=1)
+```
+
+```{python}
+#| label: fac-merged-res
+numbers(fac2["result"])
+```
+
+```{python}
+#| label: fac-shares
+#| include: false
+share_f = rank_sex2["Female"] / rank_sex2.sum(axis=1)
+```
+
+::: {.charcoal}
+Every expected count is now at least
+`{python} f"{fac2['result']['smallest expected count']:.1f}"`, and with
+1 df, $\chi^2=$ `{python} f"{fac2['result']['chi-square statistic']:.2f}"`,
+$p=$ `{python} f"{fac2['result']['p-value']:.4f}"`. Women are
+`{python} pct(share_f['Assistant or Associate'], 1)` of assistant and
+associate professors but `{python} pct(share_f['Professor'], 1)` of full
+professors. The data are evidence that rank and sex are related in these
+departments. Combine on meaning (adjacent ranks, adjacent counts, the top
+values of a count variable), never by searching for the merge that gives
+the smallest p-value.
+:::
+
+::: {.scarlet}
+**Association is not causation.** Every table in this section is
+observational, so the test of independence says the variables *move
+together*, not *why*. Your textbook says so correctly. The faculty table
+shows how much this matters. One explanation is that women were promoted
+less often. Another is **timing**: if women entered economics faculties in
+larger numbers only in the 1980s and 1990s, many would not yet have had the
+years to reach full professor in 1999. The chi-square test cannot tell
+these apart; data on hiring year and promotion would be needed. The same
+caution applies to Best Buy (age might stand in for income or for
+experience with a brand) and to HCA.
+:::
+
+::: {.gray}
+**Three tests, one statistic.**
+
+| Test | $H_0$ | Expected count $f_e$ | df |
+|:--|:--|:--|:--|
+| $k$ proportions | $p_1=\cdots=p_k$ | $\bar{p}\,n_j$ and $(1-\bar{p})\,n_j$ | $k-1$ |
+| Goodness of fit | the counts follow a stated model | $n\times$ model probability | $k-m-1$ |
+| Independence | rows and columns are independent | row × column / $n$ | $(r-1)(c-1)$ |
+
+In all three: $\chi^2=\sum(f_o-f_e)^2/f_e$, the p-value is the right tail,
+and every $f_e$ should be at least 5. The $k$-proportions test is in fact a
+test of independence on a $2\times k$ table (success/failure by group), so
+the first and third rows always give the same answer.
+:::
+
+# Part II: Tests for a Population Variance (Chapter 13)
+
+## One variance
+
+::: {.blue}
+If the population is **normal**, the statistic
+
+$$\chi^2=\frac{(n-1)s^2}{\sigma_0^2}$$
+
+follows a chi-square distribution with $n-1$ df when $H_0:\sigma^2=\sigma_0^2$
+is true. Unlike Chapter 12, the test can be lower-tailed, upper-tailed, or
+two-tailed, depending on $H_1$. A claim about a standard deviation is tested
+as a claim about its square: $\sigma<2$ minutes is $\sigma^2<4$
+minutes².
+:::
+
+::: {.charcoal}
+The intuition: $s^2/\sigma_0^2$ is the ratio of the variance you saw to the
+variance claimed, and should be near 1 if the claim is right. Multiplying by
+$n-1$ puts it on the chi-square scale, whose mean is $n-1$. A statistic far
+below $n-1$ says the data are less variable than claimed; far above says more.
+:::
+
+### Application: self-serve checkout (lower tail)
+
+A grocery chain will install self-serve checkout in more stores if the
+standard deviation of self-serve checkout times is **less than 2 minutes**:
+a large standard deviation would mean some customers struggle with the
+machines. A pilot store times 24 self-serve customers. Test at $\alpha=0.05$:
+
+$$H_0:\sigma^2\ge4\qquad H_1:\sigma^2<4.$$
+
+```{python}
+#| label: checkout
+co = variance_test_from_data(CHECKOUT, 4.0, alternative="less")
+numbers(co)
+```
+
+```{python}
+#| label: checkout-math
+#| output: asis
+show_math(rf"\chi^2=\frac{{(n-1)s^2}}{{\sigma_0^2}}=\frac{{({co['n']}-1)"
+          rf"({co['sample variance s^2']:.4f})}}{{4.0}}"
+          rf"={co['chi-square statistic (n-1)s^2/sigma0^2']:.3f}")
+```
+
+```{python}
+#| label: checkout-chart
+vx = np.linspace(0.01, 50, 600)
+_ = test_chart(vx, chi2_pdf(vx, 23), co["chi-square statistic (n-1)s^2/sigma0^2"],
+               critical=chi2_inv(0.05, 23), alternative="less",
+               p_value=co["p-value"],
+               title="Checkout times: chi-square with 23 df, if sigma = 2",
+               xlab="chi-square")
+```
+
+::: {.charcoal}
+$s=$ `{python} f"{co['sample sd s']:.3f}"` minutes, and $\chi^2=$
+`{python} f"{co['chi-square statistic (n-1)s^2/sigma0^2']:.2f}"`, well below
+the df of 23. The lower-tail p-value, Excel's
+`=CHISQ.DIST(x, 23, TRUE)`, is `{python} f"{co['p-value']:.4f}"`. **The
+data are evidence that the standard deviation is below 2 minutes**, and by
+the chain's rule the systems should go into more stores.
+:::
+
+### Application: refrigerator temperatures (two tails), and an interval for $\sigma$
+
+Amana wants a refrigerator model whose temperature has a standard deviation
+of **4.0°F**: more variation freezes or spoils food, less means the
+compressor cycles too often. A test unit records 30 temperatures. Test at
+$\alpha=0.05$:
+
+$$H_0:\sigma^2=16\qquad H_1:\sigma^2\ne16.$$
+
+```{python}
+#| label: amana
+am = variance_test_from_data(AMANA, 16.0, alternative="two-sided")
+numbers(am)
+```
+
+::: {.charcoal}
+$\chi^2=$ `{python} f"{am['chi-square statistic (n-1)s^2/sigma0^2']:.2f}"` sits
+between the two critical values, and the two-sided p-value (twice the
+smaller tail) is `{python} f"{am['p-value']:.3f}"`. **The data are not
+evidence that the standard deviation differs from 4.0°F.**
+:::
+
+How close to 4.0°F is the standard deviation, then? A confidence interval
+answers that. Because the chi-square distribution is skewed, the interval
+is **not** "estimate ± margin":
+
+::: {.blue}
+For a normal population, a $(1-\alpha)$ confidence interval for $\sigma$ is
+
+$$\sqrt{\frac{(n-1)s^2}{\chi^2_{\alpha/2,\ \text{upper}}}}\ \le\ \sigma\ \le\
+\sqrt{\frac{(n-1)s^2}{\chi^2_{\alpha/2,\ \text{lower}}}},$$
+
+where the two $\chi^2$ values cut off $\alpha/2$ in each tail with $n-1$ df.
+In Excel they are `=CHISQ.INV.RT(alpha/2, n-1)` and `=CHISQ.INV(alpha/2, n-1)`.
+:::
+
+```{python}
+#| label: amana-ci
+am_ci = sigma_interval(am["sample sd s"], am["n"], 0.95)
+numbers(am_ci)
+```
+
+::: {.scarlet}
+**Failing to reject is not showing that $\sigma=4$.** Your textbook
+concludes that "choosing to find support for the null hypothesis … is the
+appropriate business decision" and that the design "is working properly."
+The 95% interval says $\sigma$ could be anywhere from
+`{python} f"{am_ci['lower limit for sigma']:.2f}"`°F to
+`{python} f"{am_ci['upper limit for sigma']:.2f}"`°F. At the top of that range,
+the refrigerator's temperature varies about 50% more than the target. Thirty
+readings cannot tell a good design from a mediocre one. The business
+decision might still be to ship, but the honest summary is "we found no
+problem, and our test could not have found a moderate one." If the
+decision matters, collect more data, and decide in advance how far from
+4.0°F would be unacceptable.
+:::
+
+::: {.brown}
+**Canon Business Solutions (CBS)** will hire more service staff if the
+standard deviation of customer wait times for a copier repair **exceeds 30
+minutes**. A random sample of 20 service calls has $s=32.4$ minutes.
+**(a)** State the hypotheses and test at $\alpha=0.10$. **(b)** Find and
+interpret the p-value. **(c)** Does $s>30$ mean CBS should hire?
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+```{python}
+#| label: cbs
+cbs = variance_test(32.4 ** 2, 20, 30.0 ** 2, alternative="greater", alpha=0.10)
+numbers(cbs)
+```
+
+**(a)** $H_0:\sigma^2\le900$, $H_1:\sigma^2>900$ (minutes²).
+$\chi^2=19(32.4^2)/900=$
+`{python} f"{cbs['chi-square statistic (n-1)s^2/sigma0^2']:.2f}"`, below the
+critical value
+`{python} cbs['critical value(s)'].split(' ')[0]`: do not reject.
+**(b)** $p=$ `{python} f"{cbs['p-value']:.3f}"`, from
+`=CHISQ.DIST.RT(22.16, 19)`. If $\sigma$ were exactly 30 minutes, a sample
+standard deviation at least this large would turn up in about
+`{python} pct(cbs['p-value'], 0)` of samples of 20. **(c)** No. A sample
+standard deviation slightly above 30 is what samples from a $\sigma=30$
+population often produce; the data are not evidence that $\sigma>30$, so by
+its own rule CBS does not hire. (This is not evidence that $\sigma\le30$
+either.)
+:::
+
+## Two variances: the F test
+
+::: {.blue}
+For independent random samples from two **normal** populations,
+
+$$F=\frac{s_1^2}{s_2^2}$$
+
+follows an $F$ distribution with $(n_1-1,\ n_2-1)$ df when
+$H_0:\sigma_1^2=\sigma_2^2$ is true. You met this distribution in week 10's
+ANOVA slice. $F$ near 1 means similar spread.
+
+**Which population is "1" is fixed by the question, before looking at the
+data.** For $H_1:\sigma_1^2>\sigma_2^2$, the p-value is the right tail,
+`=F.DIST.RT(F, n1-1, n2-1)`. For $H_1:\sigma_1^2\ne\sigma_2^2$, it is twice
+the smaller tail.
+:::
+
+### Application: does outsourcing make drive-through times more consistent? (one tail)
+
+A Taco Bell owner is considering outsourcing drive-through order-taking to a
+call center. His goal is **more consistent** service times. He times 12
+customers under the current on-site system and 14 under a trial of the
+outsourced system. The question is whether the outsourced system has the
+smaller variance, so population 1 is the on-site system:
+
+$$H_0:\sigma^2_{\text{on-site}}\le\sigma^2_{\text{outsourced}}\qquad
+H_1:\sigma^2_{\text{on-site}}>\sigma^2_{\text{outsourced}}.$$
+
+```{python}
+#| label: tacobell-strip
+_tb = pd.DataFrame({"seconds": ON_SITE + OUTSOURCED,
+                    "system": ["on-site"] * len(ON_SITE) + ["outsourced"] * len(OUTSOURCED)})
+_tb.groupby("system")["seconds"].agg(["count", "mean", "std"]).round(1)
+```
+
+```{python}
+#| label: tacobell
+tb = f_test_from_data(ON_SITE, OUTSOURCED, alternative="greater",
+                      labels=("on-site", "outsourced"))
+numbers(tb)
+```
+
+```{python}
+#| label: tacobell-chart
+fx = np.linspace(0.01, 5, 600)
+_ = test_chart(fx, f_pdf(fx, 11, 13), tb["F = s1^2/s2^2"],
+               critical=float(tb["critical value(s)"].split(" ")[0]),
+               alternative="greater", p_value=tb["p-value"],
+               title="Taco Bell: F with (11, 13) df, if the variances are equal",
+               xlab="F")
+```
+
+::: {.charcoal}
+$F=$ `{python} f"{tb['s1^2']:.1f}"` / `{python} f"{tb['s2^2']:.1f}"` $=$
+`{python} f"{tb['F = s1^2/s2^2']:.3f}"`, $p=$ `{python} f"{tb['p-value']:.4f}"`.
+**The data are evidence that the outsourced system gives more consistent
+service times.** The outsourced mean is, if anything, a little *higher*
+(`{python} f"{np.mean(OUTSOURCED):.0f}"` against
+`{python} f"{np.mean(ON_SITE):.0f}"` seconds). The case for outsourcing is
+entirely about spread, which a $t$-test of the means would never see.
+:::
+
+### Application: hospital stays (two tails)
+
+Blue Cross Blue Shield (BCBS) compares the variability of the length of stay
+for one procedure at two hospitals, with no prior view of which is more
+variable. From 20 patients at each: Christiana $s=0.92$ days, Bayhealth
+$s=0.71$ days. Test at $\alpha=0.05$.
+
+```{python}
+#| label: bcbs
+bc = f_test_variances(0.92, 20, 0.71, 20, alternative="two-sided",
+                      labels=("Christiana", "Bayhealth"))
+numbers(bc)
+```
+
+::: {.charcoal}
+$F=0.92^2/0.71^2=$ `{python} f"{bc['F = s1^2/s2^2']:.3f}"`, and the two-sided
+$p=$ `{python} f"{bc['p-value']:.3f}"`, twice `=F.DIST.RT(1.679, 19, 19)`. **The
+data are not evidence that the hospitals differ in variability.** Note the
+units: the test is about variances (days²), so square the standard deviations
+first. Your textbook warns about this, and it is the most common error in
+this section.
+:::
+
+::: {.scarlet}
+**Your textbook's rule, "always put the larger sample variance in the
+numerator and do a right-tail test," is safe only for two-tailed tests.**
+For a two-tailed test, larger-on-top with $\alpha/2$ in the right tail gives
+exactly the p-value above. For a **one-tailed** test, it lets the data choose
+the direction, the tail-picking problem from week 9. In the Taco Bell case
+the question and the data happen to agree. Had the outsourced sample come out
+*more* variable, the rule would have flipped the populations and tested a
+question the owner never asked. Set the direction from the question. If the
+data go the other way, $F<1$ and you simply do not reject.
+:::
+
+## The catch: these tests need normal data, and more data does not help
+
+Every test in weeks 9 and 10 leaned on the Central Limit Theorem: whatever
+the population's shape, $\bar{x}$ is close to normal once $n$ is large
+enough. **Nothing like that rescues $s^2$.** The distribution of
+$(n-1)s^2/\sigma^2$ is chi-square only for a normal population, and for a
+skewed or heavy-tailed population it is wrong at every sample size: its
+spread depends on how heavy the population's tails are.
+
+To see how much this matters, take the course's Nevada income file,
+`{python} f"{len(agi):,}"` simulated tax returns (AGI in tens of thousands of
+dollars), strongly right-skewed. Treat it as the population. Draw 20,000
+samples of size $n$, test the **true** variance at $\alpha=0.05$ two-sided,
+and count how often the test rejects. Every rejection is a false positive,
+so a valid test should reject 5% of the time. For comparison, do the same
+with a $t$-test of the true mean, and with a normal population.
+
+```{python}
+#| label: robust-sim
+sizes = [10, 20, 30, 50, 100, 200, 400]
+rows = []
+for n_ in sizes:
+    a_ = variance_test_error_rate(agi.values, n_, reps=20_000)
+    z_ = variance_test_error_rate(None, n_, reps=20_000)
+    rows.append({"n": n_,
+                 "variance test, AGI": a_["variance test rejects a true H0"],
+                 "t-test, AGI": a_["t-test rejects a true H0"],
+                 "variance test, normal": z_["variance test rejects a true H0"],
+                 "t-test, normal": z_["t-test rejects a true H0"]})
+robust = pd.DataFrame(rows).set_index("n")
+robust.round(3)
+```
+
+```{python}
+#| label: robust-chart
+_ = line_chart(robust.index, {c: robust[c] for c in robust.columns},
+               title="How often a 5% test rejects a TRUE null",
+               xlab="sample size n", ylab="false-positive rate",
+               hlines=[0.05], ylim=(0, 0.3))
+```
+
+::: {.charcoal}
+With normal data, both tests reject about 5% of the time, as advertised. With
+the skewed income data, the $t$-test starts too high
+(`{python} pct(robust.loc[10, 't-test, AGI'], 1)` at $n=10$) and settles to
+about 5% as $n$ grows, the Central Limit Theorem at work. **The variance
+test does not settle.** It rejects a true null about
+`{python} pct(robust.loc[30, 'variance test, AGI'], 0)` of the time at
+$n=30$ and still `{python} pct(robust.loc[400, 'variance test, AGI'], 0)`
+at $n=400$: four times the advertised rate, and a larger sample buys
+nothing. The $F$ test, built from two sample variances, has the same
+weakness.
+:::
+
+::: {.scarlet}
+**What to do about it.**
+
+1. **Use the variance tests only for data you have reason to think are
+   normal:** measurements from a stable process (fill weights,
+   temperatures, machined parts), not incomes, sales, or waiting times with
+   a long right tail. Check first: a histogram, and the Chapter 6 tail
+   check.
+2. **Do not use the $F$ test to choose between the pooled and Welch
+   $t$-tests.** Your textbook suggests it (the rat Your Turn). The $F$ test
+   is the *less* reliable of the two procedures, and choosing a test based
+   on a pretest changes the error rates of the test you end up running.
+   Use Welch, as in week 10. It is valid whether or not the variances are
+   equal.
+3. When a variance question matters on non-normal data, more robust
+   methods exist (Levene's test in most software, or a bootstrap interval).
+   They are beyond our textbook; ask Claude to run one and explain it.
+:::
+
+# Which Test Is It?
+
+```{python}
+#| label: catalog
+pd.DataFrame([
+    ("Are k proportions equal?", "counts of successes in k groups",
+     "pooled p-bar times n_j", "k - 1", "right tail"),
+    ("Do counts follow a stated model?", "counts in k categories",
+     "n times model probability", "k - m - 1", "right tail"),
+    ("Are two categorical variables independent?", "an r x c table of counts",
+     "row x column / n", "(r - 1)(c - 1)", "right tail"),
+    ("Is a variance equal to a claimed value?", "one sample, normal population",
+     "(n - 1)s^2 / sigma0^2", "n - 1", "from H1"),
+    ("Are two variances equal?", "two independent samples, normal populations",
+     "F = s1^2 / s2^2", "(n1 - 1, n2 - 1)", "from H1"),
+], columns=["question", "data", "statistic / expected count", "df", "tail"]
+).set_index("question")
+```
+
+::: {.brown}
+Name the test, state $H_0$, and give the degrees of freedom.
+
+**(a)** A casino records which of four table games 400 guests chose, and
+whether each guest was a loyalty member or not.
+
+**(b)** A call center claims 50% of its calls arrive in the morning, 30% in
+the afternoon, and 20% in the evening. A day's 600 calls are classified.
+
+**(c)** A bottler's filling machine is specified to have a standard
+deviation of no more than 0.15 ounces. Thirty bottles are weighed.
+
+**(d)** Three Las Vegas hotels each survey guests on whether they would
+return: 180 of 240, 150 of 220, and 200 of 250 say yes.
+
+**(e)** The number of customer complaints per day over 90 days is tabulated
+to decide whether a Poisson model can be used for staffing.
+:::
+
+::: {.callout-note collapse="true"}
+## Solution
+
+**(a)** Independence on a $2\times4$ table: $H_0$: game choice is
+independent of membership; $\text{df}=(2-1)(4-1)=3$. It cannot show that
+membership *causes* a game choice. **(b)** Goodness of fit with a stated
+model: $H_0$: the shares are 0.5, 0.3, 0.2; $\text{df}=3-0-1=2$.
+**(c)** One-variance test, upper tail: $H_0:\sigma^2\le0.0225$ against
+$H_1:\sigma^2>0.0225$, with 29 df. Fill weights from a stable process are a
+reasonable place to assume normality, but check a histogram. **(d)** $k$
+proportions: $H_0:p_1=p_2=p_3$, $\text{df}=2$. **(e)** Goodness of fit with
+$\lambda$ estimated by $\bar{x}$, so $m=1$ and $\text{df}=k-2$ after
+combining the top categories until every expected count is at least 5.
+Remember that a large p-value means "no evidence against Poisson," not
+"Poisson confirmed."
+:::
+
+# Doing It in Excel
+
+```{python}
+#| label: crosswalk
+chisq_crosswalk()
+```
+
+::: {.scarlet}
+**Two Excel traps.** `CHISQ.TEST` returns a p-value directly from the
+observed and expected ranges, but it always uses $k-1$ df for a single
+column (or $(r-1)(c-1)$ for a table), so it is wrong for a goodness-of-fit
+test in which a parameter was estimated. And the **Data Analysis → F-Test
+Two-Sample for Variances** tool reports one-tailed results only, for the
+populations in the order you entered them. For a two-tailed test, double its
+p-value, or use `=F.TEST(range1, range2)`, which is already two-tailed.
+:::
+
+# Reading the Textbook: Corrections
+
+::: {.scarlet}
+1. **"A smaller chi-square test statistic … increases the likelihood that
+   there is support for the null hypothesis"** (Section 12.1). A small
+   $\chi^2$ means the data fail to contradict $H_0$. It is not support for
+   $H_0$.
+2. **The drive-through example sets $\alpha=0.10$**, then compares the
+   p-value with 0.05 in its last step. The conclusion is the same either
+   way, but use the $\alpha$ you set.
+3. **Southwest's late flights.** "By rejecting the null hypothesis, we have
+   no evidence to conclude that the number of late flights … follows the
+   binomial distribution" is garbled: rejecting $H_0$ *is* the evidence that
+   the binomial does not fit. And the book never says why it fails (weather
+   makes a day's flights dependent; see the exercise above).
+4. **"More evidence supporting the use of the Poisson distribution than
+   there is to not use it"** ($p=0.94$), and similarly for the normal fit to
+   SAT scores. A large p-value is not evidence for the model. The normal fit
+   used 1 df on 40 scores and would miss almost any departure.
+5. **`CHISQ.TEST` is presented as equivalent to `CHISQ.DIST.RT`.** It is
+   only when no parameter was estimated ($m=0$).
+6. **"Always assign the larger sample variance to Population 1"** (Section
+   13.2). Fine for a two-tailed test; for a one-tailed test, the direction
+   comes from the question (above).
+7. **Using the $F$ test to decide whether to pool** (the rat Your Turn).
+   Don't pretest; use Welch.
+8. **The waiting-line *Focus on Analytics* box** gives a variance "of 7.2
+   minutes" and says times "would vary by less than 7.2 minutes." A variance
+   is in minutes²; the standard deviation is $\sqrt{7.2}\approx2.7$ minutes.
+9. **Typos.** `CHI.DIST.RT` should be `CHISQ.DIST.RT`. The checkout
+   example's hand-computed variance is misprinted; Excel's `VAR.S` value,
+   2.1464, is correct.
+10. **The refrigerator: "choosing to find support for the null
+    hypothesis."** This is accepting $H_0$. The interval for $\sigma$ above
+    shows how little 30 readings pin down.
+11. **The book's normality warning is right and understated.** It calls the
+    normal requirement "fairly rigid." The AGI simulation shows a nominal 5%
+    test rejecting a true null about 21% of the time at every sample size.
+:::
+
+# Laboratory 12–13
+
+There are two ways to get these files to Claude. **Start with Path 1.** It
+works on every Claude account, including the free tier, and needs nothing
+turned on.
+
+## Path 1 — upload the files
+
+**[Download the Laboratory 12–13 pack](../upload_packs/lab-12-chapters-12-13.zip)**
+— one file. Unzip it and you will have a folder holding 11 files. Drag all 11
+into a new Claude conversation, wait for each to show as attached, then paste
+this:
+
+::: {.prompt}
+Prompt
+
+> I have uploaded 11 files for a graduate business statistics course. Read
+> `COURSE_CONTEXT.md` first — it explains how this course expects analytical
+> work to be done.
+>
+> Then run `12_13_chi_square_and_variance_tests.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+:::
+
+## Path 2 — let Claude fetch the files
+
+If web access is working on your account, Claude can retrieve the files
+itself:
+
+::: {.prompt}
+Prompt
+
+> Open <https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/> — it is a plain page listing
+> the files for each laboratory. Follow the links for Laboratory
+> 12-13 and read `COURSE_CONTEXT.md` first; it explains how
+> this course expects analytical work to be done.
+>
+> Then run `12_13_chi_square_and_variance_tests.py` and show me its actual
+> output, verbatim. Walk me through what each section does and what the
+> results mean. Do not report any number you did not compute, and if
+> anything fails, show me the error rather than describing what the output
+> would have been.
+>
+> If you cannot open that page, tell me plainly and I will upload the files
+> instead.
+:::
+
+::: {.brown}
+If Claude answers that it cannot reach the page, **nothing is wrong with your
+work or with the repository.** Claude's web access is a setting, and even when
+it is on, Claude cannot always retrieve a file by direct link. Use Path 1
+instead — it is the ordinary route, not a consolation prize.
+:::
+
+### Your own junior analyst
+
+::: {.prompt}
+Prompt
+
+> A hotel group surveyed 390 guests about the booking channel they used
+> (direct website, online travel agency, phone, travel agent) and their
+> trip purpose (business, leisure). The counts are: business = 92, 58, 24,
+> 4; leisure = 88, 102, 16, 6 (in the channel order above). By running
+> code, (1) test at alpha = 0.05 whether channel and trip purpose are
+> independent, and check every expected count before trusting the p-value;
+> if any is below 5, combine categories sensibly and test again;
+> (2) show me the standardized residuals and tell me in plain English which
+> cells drive the result; (3) report Cramer's V and say whether the
+> association is weak, moderate, or strong; and (4) tell me whether these
+> data show that trip purpose causes the choice of channel.
+:::
+
+Check four things in the reply: the expected count for business travelers
+booking through a travel agent is below 5, so the reply should combine
+"phone" and "travel agent" (or explain another sensible merge) before
+concluding; the residual discussion names specific cells rather than
+repeating "reject"; Cramér's V is reported with a verbal size; and the answer
+to the last question says the survey is observational, so it shows
+association only.
+
+### Working in Excel
+
+::: {.prompt}
+Prompt
+
+> Build me an Excel workbook that shows why the variance test needs normal
+> data. Sheet 1: in A2:A31, 30 values from a normal population with
+> standard deviation 10, =NORM.INV(RAND(), 50, 10). In B2:B31, 30 values
+> from a skewed population with the same standard deviation 10,
+> =-10*LN(RAND()) (an exponential with mean 10 and standard deviation 10).
+> At the top, for each column, compute the sample variance =VAR.S, the
+> statistic =29*VAR.S(...)/100, and the two-sided p-value
+> =2*MIN(CHISQ.DIST(x, 29, TRUE), CHISQ.DIST.RT(x, 29)), and a cell that
+> says "reject" when the p-value is below 0.05. (Use formulas rather than
+> the Data Analysis tool, whose output does not recalculate.) Give me the
+> file to download.
+:::
+
+Press F9 forty times and count how often each column says "reject." Both
+columns test a **true** null ($\sigma=10$). Which column rejects close to
+5% of the time, and which rejects far more often? In one paragraph, explain
+what this means for a manager who wants to use the variance test on waiting
+times or sales.

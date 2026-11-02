@@ -322,3 +322,22 @@ rounded to whole dollars; no other values were changed.
 The Chapter 7 note treats these 215 people as a **population**, so that every
 sampling design can be checked against the true mean.
 
+
+# Chapters 12 and 13 files
+
+## sp500_daily.csv
+
+| | |
+|---|---|
+| Series | `SP500` — S&P 500 index, daily close |
+| Source | <https://fred.stlouisfed.org/series/SP500> |
+| Units | Index level, not seasonally adjusted |
+| Frequency | Daily, business days |
+| Date range | 2016-08-15 to 2026-08-14 (FRED distributes only the most recent ten years of this series) |
+| Rows | 2,610 |
+| Missing values | 96 (market holidays, which FRED lists with a blank value) |
+| Retrieved | 2026-08-16 |
+
+Columns: `date`, `sp500_close`. A reshaped copy of `raw/SP500__1990-01-01__none.csv`;
+no values were edited. An "up day" is a close above the previous trading day's
+close (close-to-close, skipping the blank holiday rows).
