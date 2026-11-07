@@ -87,6 +87,30 @@ If `quarto` resolves to RStudio's bundled copy (1.6.x, too old for
 & "C:\Users\crookj3\AppData\Local\Programs\Quarto\bin\quarto.exe" render
 ```
 
+### 3b. Rebuild the printable PDFs
+
+Run this **after** the HTML render. It writes `docs/pdf/notes/`, which is
+where the PDF links on the index page point.
+
+```powershell
+python tools\build_pdfs.py                # every note (about 4 minutes)
+python tools\build_pdfs.py 2040           # just the notes whose names contain 2040
+```
+
+It uses the `pdf` profile (`_quarto-pdf.yml`) and Quarto's built-in Typst
+engine, so no LaTeX install is needed. Fonts come from `_fonts/`, so it also
+works offline. If `quarto` is RStudio's old copy, point the script at the
+standalone one first:
+
+```powershell
+$env:QUARTO = "C:\Users\crookj3\AppData\Local\Programs\Quarto\bin\quarto.exe"
+```
+
+What the PDF does differently from the web page: the colored blocks print
+as light tints with a colored rule (easier on toner), code that the web page
+folds away is left out, and every Solution is printed open. Put
+`pdf-show-code: true` in a note's YAML to keep its code in the PDF.
+
 ### 4. Rebuild the student upload packs
 
 Run this **after** the render. It writes `docs/upload_packs/`, which is where
@@ -154,6 +178,7 @@ The whole thing, assuming the data has not changed:
 cd C:\Users\crookj3\repos\mba775
 & "C:\Users\crookj3\AppData\Local\venvs\mba775\Scripts\Activate.ps1"
 quarto render notes\lecture-notes-1010-chapter-02-displaying-descriptive-statistics.qmd
+python tools\build_pdfs.py 1010
 python tools\build_upload_packs.py --verify
 git add -A
 git commit -m "Describe the change here"
@@ -173,4 +198,6 @@ Then cPanel: **Update from Remote**, **Deploy HEAD Commit**, then Ctrl+F5.
 | The page renders but is unstyled | A `*_files/` folder did not get committed. `.gitignore` deliberately has no blanket `*_files/` rule — do not add one. |
 | Quarto complains about `_brand.yml` | RStudio's bundled Quarto 1.6.x is being used. Call the standalone one by full path. |
 | A note fails on a FRED download | `fred_tools` caches to `data/raw/`. Re-seed with `Rscript`, which FRED serves; Python's client is refused on this machine. |
+| A PDF fails with "unknown variable" | Pandoc's Typst writer mangled some math. The fix for the common case is in `_pdf/pdf-notes.lua` (`brace_scripts`); a `{}` or a space in the LaTeX usually clears a new one. |
+| A PDF is stale | `quarto render` updates only the HTML. Re-run `tools\build_pdfs.py`. |
 | The workbooks disagree with the CSV | You changed the data and did not re-run `build_chapter02_workbooks.py`. |

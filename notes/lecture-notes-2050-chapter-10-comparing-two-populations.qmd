@@ -547,7 +547,7 @@ golfer's drive. Eight golfers each hit the new ball and their own ball:
 | New ball | 201 | 228 | 256 | 233 | 248 | 255 | 239 | 220 |
 | Own ball | 204 | 213 | 231 | 241 | 223 | 226 | 212 | 186 |
 
-**(a)** State the hypotheses. **(b)** Test at $\alpha=0.10$. **(c)** Give a
+**(a)** State the hypotheses. **(b)** Test at $\alpha=0.05$. **(c)** Give a
 90% interval for the mean gain. **(d)** What must be assumed with only 8
 pairs?
 :::
@@ -557,7 +557,7 @@ pairs?
 
 ```{python}
 #| label: golf
-golf = paired_t_from_data(GOLF_MINE, GOLF_THEIRS, 15, "greater", 0.10, level=0.90)
+golf = paired_t_from_data(GOLF_MINE, GOLF_THEIRS, 15, "greater", 0.05, level=0.90)
 numbers(golf)
 ```
 

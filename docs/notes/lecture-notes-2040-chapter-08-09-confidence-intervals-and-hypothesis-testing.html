@@ -210,7 +210,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Saturday, October 3, 2026</p>
+      <p class="date">Saturday, November 7, 2026</p>
     </div>
   </div>
   
@@ -1400,12 +1400,12 @@ window.Quarto = {
 </section>
 <section id="application-a-two-tailed-t-test" class="level2">
 <h2 class="anchored" data-anchor-id="application-a-two-tailed-t-test">Application: a two-tailed <span class="math inline">\(t\)</span>-test</h2>
-<p>Nielsen says the average American watches 34.5 hours of television a week. Ten people average <span class="math inline">\(\bar{x}=39.6\)</span> hours with <span class="math inline">\(s=16.4\)</span>. Is the claim wrong, in either direction? Use <span class="math inline">\(\alpha=0.02\)</span>.</p>
+<p>Nielsen says the average American watches 34.5 hours of television a week. Ten people average <span class="math inline">\(\bar{x}=39.6\)</span> hours with <span class="math inline">\(s=16.4\)</span>. Is the claim wrong, in either direction? Use <span class="math inline">\(\alpha=0.05\)</span>.</p>
 <p><span class="math display">\[H_0:\mu=34.5\qquad H_1:\mu\ne34.5\]</span></p>
 <div id="cell-nielsen" class="cell" data-execution_count="25">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nielsen <span class="op">=</span> t_test(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">34.5</span>, <span class="st">"two-sided"</span>, <span class="fl">0.02</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nielsen <span class="op">=</span> t_test(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">34.5</span>, <span class="st">"two-sided"</span>, <span class="fl">0.05</span>)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>numbers(nielsen)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="nielsen" class="cell-output cell-output-display" data-execution_count="25">
@@ -1454,7 +1454,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">critical value</th>
-<td>+/- 2.8214</td>
+<td>+/- 2.2622</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">p-value</th>
@@ -1462,7 +1462,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">alpha</th>
-<td>0.02</td>
+<td>0.05</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">reject H0?</th>
@@ -1481,7 +1481,7 @@ window.Quarto = {
 <div id="cell-nielsen-chart" class="cell" data-execution_count="26">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>c_n <span class="op">=</span> critical_value(alpha<span class="op">=</span><span class="fl">0.02</span>, tails<span class="op">=</span><span class="dv">2</span>, df<span class="op">=</span><span class="dv">9</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>c_n <span class="op">=</span> critical_value(alpha<span class="op">=</span><span class="fl">0.05</span>, tails<span class="op">=</span><span class="dv">2</span>, df<span class="op">=</span><span class="dv">9</span>)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> test_chart(grid, t_pdf(grid, <span class="dv">9</span>), nielsen[<span class="st">"test statistic t"</span>],</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>               critical<span class="op">=</span>c_n, alternative<span class="op">=</span><span class="st">"two-sided"</span>,</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>               p_value<span class="op">=</span>nielsen[<span class="st">"p-value"</span>],</span>
@@ -1497,7 +1497,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="charcoal">
-<p><span class="math inline">\(t=\)</span> 0.98. In a two-tailed test, a result as far <em>below</em> 34.5 would be just as much evidence against <span class="math inline">\(H_0\)</span>, so the p-value counts both tails: 0.351 (Excel: =T.DIST.2T(0.9834, 9), which needs the <em>absolute value</em> of <span class="math inline">\(t\)</span>). That is far above 0.02, so we do not reject <span class="math inline">\(H_0\)</span>: <strong>the sample is not evidence that Americans’ average viewing differs from 34.5 hours.</strong></p>
+<p><span class="math inline">\(t=\)</span> 0.98. In a two-tailed test, a result as far <em>below</em> 34.5 would be just as much evidence against <span class="math inline">\(H_0\)</span>, so the p-value counts both tails: 0.351 (Excel: =T.DIST.2T(0.9834, 9), which needs the <em>absolute value</em> of <span class="math inline">\(t\)</span>). That is far above 0.05, so we do not reject <span class="math inline">\(H_0\)</span>: <strong>the sample is not evidence that Americans’ average viewing differs from 34.5 hours.</strong></p>
 <p>It is <em>not</em> evidence that the average <strong>is</strong> 34.5. Ten people with a standard deviation of 16 hours could hardly contradict any claim within several hours of 39.6. The next section makes “several hours” precise.</p>
 </div>
 </section>
@@ -1509,12 +1509,12 @@ window.Quarto = {
 <div id="cell-duality" class="cell" data-execution_count="27">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>nielsen_ci <span class="op">=</span> mean_interval(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">0.98</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"98% interval: </span><span class="sc">{</span>nielsen_ci[<span class="st">'lower'</span>]<span class="sc">:.2f}</span><span class="ss"> to </span><span class="sc">{</span>nielsen_ci[<span class="st">'upper'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>interval_test_agreement(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, [<span class="dv">20</span>, <span class="dv">25</span>, <span class="fl">34.5</span>, <span class="dv">50</span>, <span class="dv">55</span>], alpha<span class="op">=</span><span class="fl">0.02</span>).<span class="bu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>nielsen_ci <span class="op">=</span> mean_interval(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">0.95</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"95% interval: </span><span class="sc">{</span>nielsen_ci[<span class="st">'lower'</span>]<span class="sc">:.2f}</span><span class="ss"> to </span><span class="sc">{</span>nielsen_ci[<span class="st">'upper'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>interval_test_agreement(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, [<span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="fl">34.5</span>, <span class="dv">50</span>, <span class="dv">55</span>], alpha<span class="op">=</span><span class="fl">0.05</span>).<span class="bu">round</span>(<span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>98% interval: 24.97 to 54.23
+<pre><code>95% interval: 27.87 to 51.33
 </code></pre>
 </div>
 <div id="duality" class="cell-output cell-output-display" data-execution_count="27">
@@ -1545,23 +1545,29 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">25.0</th>
-<td>True</td>
-<td>0.0202</td>
 <td>False</td>
+<td>0.0202</td>
+<td>True</td>
 </tr>
 <tr class="odd">
+<th data-quarto-table-cell-role="th">30.0</th>
+<td>True</td>
+<td>0.0972</td>
+<td>False</td>
+</tr>
+<tr class="even">
 <th data-quarto-table-cell-role="th">34.5</th>
 <td>True</td>
 <td>0.3511</td>
 <td>False</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <th data-quarto-table-cell-role="th">50.0</th>
 <td>True</td>
 <td>0.0759</td>
 <td>False</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <th data-quarto-table-cell-role="th">55.0</th>
 <td>False</td>
 <td>0.0157</td>
@@ -1574,7 +1580,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="charcoal">
-<p>The 98% interval runs from 25.0 to 54.2 hours. Any claim in that range survives a two-tailed test at <span class="math inline">\(\alpha=0.02\)</span>; any claim outside it is rejected. Notice how wide that is: the same ten people “fail to reject” 25 hours and 50 hours. That is why failing to reject 34.5 says so little.</p>
+<p>The 95% interval runs from 27.9 to 51.3 hours. Any claim in that range survives a two-tailed test at <span class="math inline">\(\alpha=0.05\)</span>; any claim outside it is rejected. Notice how wide that is: the same ten people “fail to reject” 30 hours and 50 hours. That is why failing to reject 34.5 says so little.</p>
 <p>This is the most useful fact in these two chapters. <strong>The interval tells you everything the two-tailed test does, and more</strong>: not only whether the claim survives, but which other values would. When you report a test, report the interval too. (Your textbook does this with an iPhone price claim of $811: the 95% interval <span class="math inline">\(797.8\pm1.96(5.41)\)</span> excludes 811, so the claim is rejected.)</p>
 </div>
 <div class="scarlet">
@@ -2368,7 +2374,7 @@ window.Quarto = {
           text-decoration:none; border-radius:6px; font-weight:bold;"> Launch the interactive simulation </a></p>
 </div>
 <div class="brown">
-<p>Buick owners have averaged 59 years old. After an advertising campaign aimed at younger buyers, Buick will survey 41 new owners and test <span class="math inline">\(H_0:\mu\ge59\)</span> against <span class="math inline">\(H_1:\mu&lt;59\)</span> at <span class="math inline">\(\alpha=0.10\)</span>, with <span class="math inline">\(\sigma=10\)</span> years. <strong>(a)</strong> Find the critical sample mean. <strong>(b)</strong> If the campaign really lowered the average age to 58, what is the power? <strong>(c)</strong> Is this a well-designed study? How many owners would give 80% power against a true mean of 58?</p>
+<p>Buick owners have averaged 59 years old. After an advertising campaign aimed at younger buyers, Buick will survey 41 new owners and test <span class="math inline">\(H_0:\mu\ge59\)</span> against <span class="math inline">\(H_1:\mu&lt;59\)</span> at <span class="math inline">\(\alpha=0.05\)</span>, with <span class="math inline">\(\sigma=10\)</span> years. <strong>(a)</strong> Find the critical sample mean. <strong>(b)</strong> If the campaign really lowered the average age to 58, what is the power? <strong>(c)</strong> Is this a well-designed study? How many owners would give 80% power against a true mean of 58?</p>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
@@ -2385,8 +2391,8 @@ window.Quarto = {
 <div id="cell-buick" class="cell" data-execution_count="41">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>buick <span class="op">=</span> power_mean(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">41</span>, <span class="dv">58</span>, <span class="fl">0.10</span>, <span class="st">"less"</span>)</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>buick_n <span class="op">=</span> n_for_power(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">58</span>, <span class="fl">0.80</span>, <span class="fl">0.10</span>, <span class="st">"less"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>buick <span class="op">=</span> power_mean(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">41</span>, <span class="dv">58</span>, <span class="fl">0.05</span>, <span class="st">"less"</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>buick_n <span class="op">=</span> n_for_power(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">58</span>, <span class="fl">0.80</span>, <span class="fl">0.05</span>, <span class="st">"less"</span>)</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>numbers(buick)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="buick" class="cell-output cell-output-display" data-execution_count="41">
@@ -2419,7 +2425,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">alpha</th>
-<td>0.1</td>
+<td>0.05</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">standard error</th>
@@ -2427,15 +2433,15 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">critical x-bar</th>
-<td>56.9986</td>
+<td>56.4312</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">beta = P(Type II error)</th>
-<td>0.7393</td>
+<td>0.8424</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">power = 1 - beta</th>
-<td>0.2607</td>
+<td>0.1576</td>
 </tr>
 </tbody>
 </table>
@@ -2443,7 +2449,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p><strong>(a)</strong> 57.00 years: Buick rejects <span class="math inline">\(H_0\)</span> if the sample averages less than that. <strong>(b)</strong> 0.2607. <strong>(c)</strong> No.&nbsp;Even at <span class="math inline">\(\alpha=0.10\)</span>, the survey would detect a one-year drop only about 26% of the time. Reaching 80% power takes 451 owners. Either survey far more people or decide in advance that a one-year change is too small to matter.</p>
+<p><strong>(a)</strong> 56.43 years: Buick rejects <span class="math inline">\(H_0\)</span> if the sample averages less than that. <strong>(b)</strong> 0.1576. <strong>(c)</strong> No.&nbsp;The survey would detect a one-year drop only about 16% of the time. Reaching 80% power takes 619 owners. Either survey far more people or decide in advance that a one-year change is too small to matter.</p>
 </div>
 </div>
 </div>
@@ -4103,19 +4109,19 @@ window.Quarto = {
 <span id="cb35-948"><a href="#cb35-948" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-949"><a href="#cb35-949" aria-hidden="true" tabindex="-1"></a>Nielsen says the average American watches 34.5 hours of television a week.</span>
 <span id="cb35-950"><a href="#cb35-950" aria-hidden="true" tabindex="-1"></a>Ten people average $\bar{x}=39.6$ hours with $s=16.4$. Is the claim wrong,</span>
-<span id="cb35-951"><a href="#cb35-951" aria-hidden="true" tabindex="-1"></a>in either direction? Use $\alpha=0.02$.</span>
+<span id="cb35-951"><a href="#cb35-951" aria-hidden="true" tabindex="-1"></a>in either direction? Use $\alpha=0.05$.</span>
 <span id="cb35-952"><a href="#cb35-952" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-953"><a href="#cb35-953" aria-hidden="true" tabindex="-1"></a>$$H_0:\mu=34.5\qquad H_1:\mu\ne34.5$$</span>
 <span id="cb35-954"><a href="#cb35-954" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-957"><a href="#cb35-957" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb35-958"><a href="#cb35-958" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: nielsen</span></span>
-<span id="cb35-959"><a href="#cb35-959" aria-hidden="true" tabindex="-1"></a>nielsen <span class="op">=</span> t_test(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">34.5</span>, <span class="st">"two-sided"</span>, <span class="fl">0.02</span>)</span>
+<span id="cb35-959"><a href="#cb35-959" aria-hidden="true" tabindex="-1"></a>nielsen <span class="op">=</span> t_test(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">34.5</span>, <span class="st">"two-sided"</span>, <span class="fl">0.05</span>)</span>
 <span id="cb35-960"><a href="#cb35-960" aria-hidden="true" tabindex="-1"></a>numbers(nielsen)</span>
 <span id="cb35-961"><a href="#cb35-961" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb35-962"><a href="#cb35-962" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-965"><a href="#cb35-965" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb35-966"><a href="#cb35-966" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: nielsen-chart</span></span>
-<span id="cb35-967"><a href="#cb35-967" aria-hidden="true" tabindex="-1"></a>c_n <span class="op">=</span> critical_value(alpha<span class="op">=</span><span class="fl">0.02</span>, tails<span class="op">=</span><span class="dv">2</span>, df<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb35-967"><a href="#cb35-967" aria-hidden="true" tabindex="-1"></a>c_n <span class="op">=</span> critical_value(alpha<span class="op">=</span><span class="fl">0.05</span>, tails<span class="op">=</span><span class="dv">2</span>, df<span class="op">=</span><span class="dv">9</span>)</span>
 <span id="cb35-968"><a href="#cb35-968" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> test_chart(grid, t_pdf(grid, <span class="dv">9</span>), nielsen[<span class="st">"test statistic t"</span>],</span>
 <span id="cb35-969"><a href="#cb35-969" aria-hidden="true" tabindex="-1"></a>               critical<span class="op">=</span>c_n, alternative<span class="op">=</span><span class="st">"two-sided"</span>,</span>
 <span id="cb35-970"><a href="#cb35-970" aria-hidden="true" tabindex="-1"></a>               p_value<span class="op">=</span>nielsen[<span class="st">"p-value"</span>],</span>
@@ -4129,7 +4135,7 @@ window.Quarto = {
 <span id="cb35-978"><a href="#cb35-978" aria-hidden="true" tabindex="-1"></a>so the p-value counts both tails:</span>
 <span id="cb35-979"><a href="#cb35-979" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} f"{nielsen['p-value']:.3f}"`</span> (Excel:</span>
 <span id="cb35-980"><a href="#cb35-980" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} nielsen["Excel p-value"]`</span>, which needs the *absolute value* of</span>
-<span id="cb35-981"><a href="#cb35-981" aria-hidden="true" tabindex="-1"></a>$t$). That is far above 0.02, so we do not reject $H_0$: **the sample is</span>
+<span id="cb35-981"><a href="#cb35-981" aria-hidden="true" tabindex="-1"></a>$t$). That is far above 0.05, so we do not reject $H_0$: **the sample is</span>
 <span id="cb35-982"><a href="#cb35-982" aria-hidden="true" tabindex="-1"></a>not evidence that Americans' average viewing differs from 34.5 hours.**</span>
 <span id="cb35-983"><a href="#cb35-983" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-984"><a href="#cb35-984" aria-hidden="true" tabindex="-1"></a>It is *not* evidence that the average **is** 34.5. Ten people with a</span>
@@ -4148,17 +4154,17 @@ window.Quarto = {
 <span id="cb35-997"><a href="#cb35-997" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-1000"><a href="#cb35-1000" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb35-1001"><a href="#cb35-1001" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: duality</span></span>
-<span id="cb35-1002"><a href="#cb35-1002" aria-hidden="true" tabindex="-1"></a>nielsen_ci <span class="op">=</span> mean_interval(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">0.98</span>)</span>
-<span id="cb35-1003"><a href="#cb35-1003" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"98% interval: </span><span class="sc">{</span>nielsen_ci[<span class="st">'lower'</span>]<span class="sc">:.2f}</span><span class="ss"> to </span><span class="sc">{</span>nielsen_ci[<span class="st">'upper'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb35-1004"><a href="#cb35-1004" aria-hidden="true" tabindex="-1"></a>interval_test_agreement(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, [<span class="dv">20</span>, <span class="dv">25</span>, <span class="fl">34.5</span>, <span class="dv">50</span>, <span class="dv">55</span>], alpha<span class="op">=</span><span class="fl">0.02</span>).<span class="bu">round</span>(<span class="dv">4</span>)</span>
+<span id="cb35-1002"><a href="#cb35-1002" aria-hidden="true" tabindex="-1"></a>nielsen_ci <span class="op">=</span> mean_interval(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, <span class="fl">0.95</span>)</span>
+<span id="cb35-1003"><a href="#cb35-1003" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"95% interval: </span><span class="sc">{</span>nielsen_ci[<span class="st">'lower'</span>]<span class="sc">:.2f}</span><span class="ss"> to </span><span class="sc">{</span>nielsen_ci[<span class="st">'upper'</span>]<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb35-1004"><a href="#cb35-1004" aria-hidden="true" tabindex="-1"></a>interval_test_agreement(<span class="fl">39.6</span>, <span class="fl">16.4</span>, <span class="dv">10</span>, [<span class="dv">20</span>, <span class="dv">25</span>, <span class="dv">30</span>, <span class="fl">34.5</span>, <span class="dv">50</span>, <span class="dv">55</span>], alpha<span class="op">=</span><span class="fl">0.05</span>).<span class="bu">round</span>(<span class="dv">4</span>)</span>
 <span id="cb35-1005"><a href="#cb35-1005" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb35-1006"><a href="#cb35-1006" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-1007"><a href="#cb35-1007" aria-hidden="true" tabindex="-1"></a>::: {.charcoal}</span>
-<span id="cb35-1008"><a href="#cb35-1008" aria-hidden="true" tabindex="-1"></a>The 98% interval runs from <span class="in">`{python} f"{nielsen_ci['lower']:.1f}"`</span> to</span>
+<span id="cb35-1008"><a href="#cb35-1008" aria-hidden="true" tabindex="-1"></a>The 95% interval runs from <span class="in">`{python} f"{nielsen_ci['lower']:.1f}"`</span> to</span>
 <span id="cb35-1009"><a href="#cb35-1009" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} f"{nielsen_ci['upper']:.1f}"`</span> hours. Any claim in that range</span>
-<span id="cb35-1010"><a href="#cb35-1010" aria-hidden="true" tabindex="-1"></a>survives a two-tailed test at $\alpha=0.02$; any claim outside it is</span>
+<span id="cb35-1010"><a href="#cb35-1010" aria-hidden="true" tabindex="-1"></a>survives a two-tailed test at $\alpha=0.05$; any claim outside it is</span>
 <span id="cb35-1011"><a href="#cb35-1011" aria-hidden="true" tabindex="-1"></a>rejected. Notice how wide that is: the same ten people "fail to reject"</span>
-<span id="cb35-1012"><a href="#cb35-1012" aria-hidden="true" tabindex="-1"></a>25 hours and 50 hours. That is why failing to reject 34.5 says so little.</span>
+<span id="cb35-1012"><a href="#cb35-1012" aria-hidden="true" tabindex="-1"></a>30 hours and 50 hours. That is why failing to reject 34.5 says so little.</span>
 <span id="cb35-1013"><a href="#cb35-1013" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-1014"><a href="#cb35-1014" aria-hidden="true" tabindex="-1"></a>This is the most useful fact in these two chapters. **The interval tells you</span>
 <span id="cb35-1015"><a href="#cb35-1015" aria-hidden="true" tabindex="-1"></a>everything the two-tailed test does, and more**: not only whether the claim</span>
@@ -4499,7 +4505,7 @@ window.Quarto = {
 <span id="cb35-1376"><a href="#cb35-1376" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
 <span id="cb35-1377"><a href="#cb35-1377" aria-hidden="true" tabindex="-1"></a>Buick owners have averaged 59 years old. After an advertising campaign aimed</span>
 <span id="cb35-1378"><a href="#cb35-1378" aria-hidden="true" tabindex="-1"></a>at younger buyers, Buick will survey 41 new owners and test</span>
-<span id="cb35-1379"><a href="#cb35-1379" aria-hidden="true" tabindex="-1"></a>$H_0:\mu\ge59$ against $H_1:\mu&lt;59$ at $\alpha=0.10$, with $\sigma=10$</span>
+<span id="cb35-1379"><a href="#cb35-1379" aria-hidden="true" tabindex="-1"></a>$H_0:\mu\ge59$ against $H_1:\mu&lt;59$ at $\alpha=0.05$, with $\sigma=10$</span>
 <span id="cb35-1380"><a href="#cb35-1380" aria-hidden="true" tabindex="-1"></a>years. **(a)** Find the critical sample mean. **(b)** If the campaign really</span>
 <span id="cb35-1381"><a href="#cb35-1381" aria-hidden="true" tabindex="-1"></a>lowered the average age to 58, what is the power? **(c)** Is this a</span>
 <span id="cb35-1382"><a href="#cb35-1382" aria-hidden="true" tabindex="-1"></a>well-designed study? How many owners would give 80% power against a true</span>
@@ -4511,15 +4517,15 @@ window.Quarto = {
 <span id="cb35-1388"><a href="#cb35-1388" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-1391"><a href="#cb35-1391" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb35-1392"><a href="#cb35-1392" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: buick</span></span>
-<span id="cb35-1393"><a href="#cb35-1393" aria-hidden="true" tabindex="-1"></a>buick <span class="op">=</span> power_mean(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">41</span>, <span class="dv">58</span>, <span class="fl">0.10</span>, <span class="st">"less"</span>)</span>
-<span id="cb35-1394"><a href="#cb35-1394" aria-hidden="true" tabindex="-1"></a>buick_n <span class="op">=</span> n_for_power(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">58</span>, <span class="fl">0.80</span>, <span class="fl">0.10</span>, <span class="st">"less"</span>)</span>
+<span id="cb35-1393"><a href="#cb35-1393" aria-hidden="true" tabindex="-1"></a>buick <span class="op">=</span> power_mean(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">41</span>, <span class="dv">58</span>, <span class="fl">0.05</span>, <span class="st">"less"</span>)</span>
+<span id="cb35-1394"><a href="#cb35-1394" aria-hidden="true" tabindex="-1"></a>buick_n <span class="op">=</span> n_for_power(<span class="dv">59</span>, <span class="dv">10</span>, <span class="dv">58</span>, <span class="fl">0.80</span>, <span class="fl">0.05</span>, <span class="st">"less"</span>)</span>
 <span id="cb35-1395"><a href="#cb35-1395" aria-hidden="true" tabindex="-1"></a>numbers(buick)</span>
 <span id="cb35-1396"><a href="#cb35-1396" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb35-1397"><a href="#cb35-1397" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-1398"><a href="#cb35-1398" aria-hidden="true" tabindex="-1"></a>**(a)** <span class="in">`{python} f"{critical_mean(59, 10, 41, 0.10, 'less'):.2f}"`</span> years: Buick</span>
+<span id="cb35-1398"><a href="#cb35-1398" aria-hidden="true" tabindex="-1"></a>**(a)** <span class="in">`{python} f"{critical_mean(59, 10, 41, 0.05, 'less'):.2f}"`</span> years: Buick</span>
 <span id="cb35-1399"><a href="#cb35-1399" aria-hidden="true" tabindex="-1"></a>rejects $H_0$ if the sample averages less than that. **(b)**</span>
-<span id="cb35-1400"><a href="#cb35-1400" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} f"{buick['power = 1 - beta']:.4f}"`</span>. **(c)** No. Even at</span>
-<span id="cb35-1401"><a href="#cb35-1401" aria-hidden="true" tabindex="-1"></a>$\alpha=0.10$, the survey would detect a one-year drop only about</span>
+<span id="cb35-1400"><a href="#cb35-1400" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} f"{buick['power = 1 - beta']:.4f}"`</span>. **(c)** No. The</span>
+<span id="cb35-1401"><a href="#cb35-1401" aria-hidden="true" tabindex="-1"></a>survey would detect a one-year drop only about</span>
 <span id="cb35-1402"><a href="#cb35-1402" aria-hidden="true" tabindex="-1"></a><span class="in">`{python} pct(buick['power = 1 - beta'], 0)`</span> of the time. Reaching 80% power</span>
 <span id="cb35-1403"><a href="#cb35-1403" aria-hidden="true" tabindex="-1"></a>takes <span class="in">`{python} f"{buick_n['n (round UP)']:,.0f}"`</span> owners. Either survey far</span>
 <span id="cb35-1404"><a href="#cb35-1404" aria-hidden="true" tabindex="-1"></a>more people or decide in advance that a one-year change is too small to</span>

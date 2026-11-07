@@ -320,13 +320,13 @@ bend toward the data, and costs one degree of freedom.
 
 A bank's managers believe drive-through demand is spread across the week as
 20%, 10%, 10%, 15%, 25%, 20% (Monday to Saturday). One week brings 240
-customers. Test at $\alpha=0.10$.
+customers. Test at $\alpha=0.05$.
 
 ```{python}
 #| label: drive
 drive_tab, drive_res = gof_test([58, 21, 27, 20, 71, 43], drive_p,
                                 ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                                m=0, alpha=0.10)
+                                m=0, alpha=0.05)
 tidy(drive_tab, 3)
 ```
 
@@ -400,7 +400,7 @@ Poisson model.**
 Philadelphia and Orlando. Over 200 days, the number of late flights per day
 was 0 on 70 days, 1 on 78 days, 2 on 40 days, and 3 or 4 on 12 days.
 Nationally, 20% of Southwest flights are late. **(a)** Test at
-$\alpha=0.10$ whether late flights per day follow a binomial distribution
+$\alpha=0.05$ whether late flights per day follow a binomial distribution
 with $n=4$ and $p=0.2$. **(b)** How many degrees of freedom, and why?
 **(c)** The model fails. Look at *where* it fails, and suggest why. (Hint:
 which binomial assumption does the weather violate?)
@@ -412,7 +412,7 @@ which binomial assumption does the weather violate?)
 ```{python}
 #| label: southwest
 sw_tab, sw_res = binomial_gof([0, 1, 2, 3, 4], [70, 78, 40, 12, 0], n=4, top=3,
-                              p=0.20, alpha=0.10)
+                              p=0.20, alpha=0.05)
 sw_tab.index = ["0", "1", "2", "3 or 4", "Total"]
 tidy(sw_tab, 2)
 ```
@@ -867,7 +867,7 @@ decision matters, collect more data, and decide in advance how far from
 **Canon Business Solutions (CBS)** will hire more service staff if the
 standard deviation of customer wait times for a copier repair **exceeds 30
 minutes**. A random sample of 20 service calls has $s=32.4$ minutes.
-**(a)** State the hypotheses and test at $\alpha=0.10$. **(b)** Find and
+**(a)** State the hypotheses and test at $\alpha=0.05$. **(b)** Find and
 interpret the p-value. **(c)** Does $s>30$ mean CBS should hire?
 :::
 
@@ -876,7 +876,7 @@ interpret the p-value. **(c)** Does $s>30$ mean CBS should hire?
 
 ```{python}
 #| label: cbs
-cbs = variance_test(32.4 ** 2, 20, 30.0 ** 2, alternative="greater", alpha=0.10)
+cbs = variance_test(32.4 ** 2, 20, 30.0 ** 2, alternative="greater", alpha=0.05)
 numbers(cbs)
 ```
 
@@ -1144,9 +1144,11 @@ p-value, or use `=F.TEST(range1, range2)`, which is already two-tailed.
    there is support for the null hypothesis"** (Section 12.1). A small
    $\chi^2$ means the data fail to contradict $H_0$. It is not support for
    $H_0$.
-2. **The drive-through example sets $\alpha=0.10$**, then compares the
-   p-value with 0.05 in its last step. The conclusion is the same either
-   way, but use the $\alpha$ you set.
+2. **Significance levels.** This course uses $\alpha=0.05$ for every
+   test. Your textbook uses $\alpha=0.10$ for the drive-through, Southwest,
+   and Canon Business Solutions examples (and the drive-through example then
+   compares its p-value with 0.05 anyway). These notes restate all three at
+   $\alpha=0.05$; none of the conclusions changes.
 3. **Southwest's late flights.** "By rejecting the null hypothesis, we have
    no evidence to conclude that the number of late flights … follows the
    binomial distribution" is garbled: rejecting $H_0$ *is* the evidence that

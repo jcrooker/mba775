@@ -201,7 +201,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Friday, October 30, 2026</p>
+      <p class="date">Saturday, November 7, 2026</p>
     </div>
   </div>
   
@@ -1066,7 +1066,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 </tr>
 </tbody>
 </table>
-<p><strong>(a)</strong> State the hypotheses. <strong>(b)</strong> Test at <span class="math inline">\(\alpha=0.10\)</span>. <strong>(c)</strong> Give a 90% interval for the mean gain. <strong>(d)</strong> What must be assumed with only 8 pairs?</p>
+<p><strong>(a)</strong> State the hypotheses. <strong>(b)</strong> Test at <span class="math inline">\(\alpha=0.05\)</span>. <strong>(c)</strong> Give a 90% interval for the mean gain. <strong>(d)</strong> What must be assumed with only 8 pairs?</p>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
@@ -1083,7 +1083,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 <div id="cell-golf" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>golf <span class="op">=</span> paired_t_from_data(GOLF_MINE, GOLF_THEIRS, <span class="dv">15</span>, <span class="st">"greater"</span>, <span class="fl">0.10</span>, level<span class="op">=</span><span class="fl">0.90</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>golf <span class="op">=</span> paired_t_from_data(GOLF_MINE, GOLF_THEIRS, <span class="dv">15</span>, <span class="st">"greater"</span>, <span class="fl">0.05</span>, level<span class="op">=</span><span class="fl">0.90</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>numbers(golf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="golf" class="cell-output cell-output-display" data-execution_count="16">
@@ -1128,7 +1128,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">critical value</th>
-<td>1.4149</td>
+<td>1.8946</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">p-value</th>
@@ -1136,7 +1136,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">alpha</th>
-<td>0.1</td>
+<td>0.05</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">reject H0?</th>
@@ -3411,7 +3411,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 <span id="cb27-577"><a href="#cb27-577" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> New ball <span class="pp">|</span> 201 <span class="pp">|</span> 228 <span class="pp">|</span> 256 <span class="pp">|</span> 233 <span class="pp">|</span> 248 <span class="pp">|</span> 255 <span class="pp">|</span> 239 <span class="pp">|</span> 220 <span class="pp">|</span></span>
 <span id="cb27-578"><a href="#cb27-578" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Own ball <span class="pp">|</span> 204 <span class="pp">|</span> 213 <span class="pp">|</span> 231 <span class="pp">|</span> 241 <span class="pp">|</span> 223 <span class="pp">|</span> 226 <span class="pp">|</span> 212 <span class="pp">|</span> 186 <span class="pp">|</span></span>
 <span id="cb27-579"><a href="#cb27-579" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-580"><a href="#cb27-580" aria-hidden="true" tabindex="-1"></a>**(a)** State the hypotheses. **(b)** Test at $\alpha=0.10$. **(c)** Give a</span>
+<span id="cb27-580"><a href="#cb27-580" aria-hidden="true" tabindex="-1"></a>**(a)** State the hypotheses. **(b)** Test at $\alpha=0.05$. **(c)** Give a</span>
 <span id="cb27-581"><a href="#cb27-581" aria-hidden="true" tabindex="-1"></a>90% interval for the mean gain. **(d)** What must be assumed with only 8</span>
 <span id="cb27-582"><a href="#cb27-582" aria-hidden="true" tabindex="-1"></a>pairs?</span>
 <span id="cb27-583"><a href="#cb27-583" aria-hidden="true" tabindex="-1"></a>:::</span>
@@ -3421,7 +3421,7 @@ t=\frac{(\bar{x}_1-\bar{x}_2)-(\mu_1-\mu_2)_{H_0}}{\sqrt{s_p^2}\,\sqrt{\dfrac{1}
 <span id="cb27-587"><a href="#cb27-587" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-590"><a href="#cb27-590" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb27-591"><a href="#cb27-591" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: golf</span></span>
-<span id="cb27-592"><a href="#cb27-592" aria-hidden="true" tabindex="-1"></a>golf <span class="op">=</span> paired_t_from_data(GOLF_MINE, GOLF_THEIRS, <span class="dv">15</span>, <span class="st">"greater"</span>, <span class="fl">0.10</span>, level<span class="op">=</span><span class="fl">0.90</span>)</span>
+<span id="cb27-592"><a href="#cb27-592" aria-hidden="true" tabindex="-1"></a>golf <span class="op">=</span> paired_t_from_data(GOLF_MINE, GOLF_THEIRS, <span class="dv">15</span>, <span class="st">"greater"</span>, <span class="fl">0.05</span>, level<span class="op">=</span><span class="fl">0.90</span>)</span>
 <span id="cb27-593"><a href="#cb27-593" aria-hidden="true" tabindex="-1"></a>numbers(golf)</span>
 <span id="cb27-594"><a href="#cb27-594" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb27-595"><a href="#cb27-595" aria-hidden="true" tabindex="-1"></a></span>

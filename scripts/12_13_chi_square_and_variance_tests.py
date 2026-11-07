@@ -112,11 +112,11 @@ print(f"  p-values: z test {z['p-value']:.4f}, chi-square {chi['p-value']:.4f}")
 
 
 # ===========================================================================
-banner("4. GOODNESS OF FIT, model fully stated: bank drive-through (alpha = 0.10)")
+banner("4. GOODNESS OF FIT, model fully stated: bank drive-through (alpha = 0.05)")
 # ===========================================================================
 
 tab, res = gof_test([58, 21, 27, 20, 71, 43], drive_p,
-                    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], m=0, alpha=0.10)
+                    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], m=0, alpha=0.05)
 print(tab.round(3).to_string(na_rep=""), "\n")
 show(res.drop(labels=["CHISQ.TEST"]))
 

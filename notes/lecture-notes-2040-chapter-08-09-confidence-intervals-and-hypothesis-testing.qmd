@@ -900,19 +900,19 @@ step is a confidence interval for how much faster.
 
 Nielsen says the average American watches 34.5 hours of television a week.
 Ten people average $\bar{x}=39.6$ hours with $s=16.4$. Is the claim wrong,
-in either direction? Use $\alpha=0.02$.
+in either direction? Use $\alpha=0.05$.
 
 $$H_0:\mu=34.5\qquad H_1:\mu\ne34.5$$
 
 ```{python}
 #| label: nielsen
-nielsen = t_test(39.6, 16.4, 10, 34.5, "two-sided", 0.02)
+nielsen = t_test(39.6, 16.4, 10, 34.5, "two-sided", 0.05)
 numbers(nielsen)
 ```
 
 ```{python}
 #| label: nielsen-chart
-c_n = critical_value(alpha=0.02, tails=2, df=9)
+c_n = critical_value(alpha=0.05, tails=2, df=9)
 _ = test_chart(grid, t_pdf(grid, 9), nielsen["test statistic t"],
                critical=c_n, alternative="two-sided",
                p_value=nielsen["p-value"],
@@ -926,7 +926,7 @@ a result as far *below* 34.5 would be just as much evidence against $H_0$,
 so the p-value counts both tails:
 `{python} f"{nielsen['p-value']:.3f}"` (Excel:
 `{python} nielsen["Excel p-value"]`, which needs the *absolute value* of
-$t$). That is far above 0.02, so we do not reject $H_0$: **the sample is
+$t$). That is far above 0.05, so we do not reject $H_0$: **the sample is
 not evidence that Americans' average viewing differs from 34.5 hours.**
 
 It is *not* evidence that the average **is** 34.5. Ten people with a
@@ -945,17 +945,17 @@ reject.
 
 ```{python}
 #| label: duality
-nielsen_ci = mean_interval(39.6, 16.4, 10, 0.98)
-print(f"98% interval: {nielsen_ci['lower']:.2f} to {nielsen_ci['upper']:.2f}\n")
-interval_test_agreement(39.6, 16.4, 10, [20, 25, 34.5, 50, 55], alpha=0.02).round(4)
+nielsen_ci = mean_interval(39.6, 16.4, 10, 0.95)
+print(f"95% interval: {nielsen_ci['lower']:.2f} to {nielsen_ci['upper']:.2f}\n")
+interval_test_agreement(39.6, 16.4, 10, [20, 25, 30, 34.5, 50, 55], alpha=0.05).round(4)
 ```
 
 ::: {.charcoal}
-The 98% interval runs from `{python} f"{nielsen_ci['lower']:.1f}"` to
+The 95% interval runs from `{python} f"{nielsen_ci['lower']:.1f}"` to
 `{python} f"{nielsen_ci['upper']:.1f}"` hours. Any claim in that range
-survives a two-tailed test at $\alpha=0.02$; any claim outside it is
+survives a two-tailed test at $\alpha=0.05$; any claim outside it is
 rejected. Notice how wide that is: the same ten people "fail to reject"
-25 hours and 50 hours. That is why failing to reject 34.5 says so little.
+30 hours and 50 hours. That is why failing to reject 34.5 says so little.
 
 This is the most useful fact in these two chapters. **The interval tells you
 everything the two-tailed test does, and more**: not only whether the claim
@@ -1296,7 +1296,7 @@ the power move.
 ::: {.brown}
 Buick owners have averaged 59 years old. After an advertising campaign aimed
 at younger buyers, Buick will survey 41 new owners and test
-$H_0:\mu\ge59$ against $H_1:\mu<59$ at $\alpha=0.10$, with $\sigma=10$
+$H_0:\mu\ge59$ against $H_1:\mu<59$ at $\alpha=0.05$, with $\sigma=10$
 years. **(a)** Find the critical sample mean. **(b)** If the campaign really
 lowered the average age to 58, what is the power? **(c)** Is this a
 well-designed study? How many owners would give 80% power against a true
@@ -1308,15 +1308,15 @@ mean of 58?
 
 ```{python}
 #| label: buick
-buick = power_mean(59, 10, 41, 58, 0.10, "less")
-buick_n = n_for_power(59, 10, 58, 0.80, 0.10, "less")
+buick = power_mean(59, 10, 41, 58, 0.05, "less")
+buick_n = n_for_power(59, 10, 58, 0.80, 0.05, "less")
 numbers(buick)
 ```
 
-**(a)** `{python} f"{critical_mean(59, 10, 41, 0.10, 'less'):.2f}"` years: Buick
+**(a)** `{python} f"{critical_mean(59, 10, 41, 0.05, 'less'):.2f}"` years: Buick
 rejects $H_0$ if the sample averages less than that. **(b)**
-`{python} f"{buick['power = 1 - beta']:.4f}"`. **(c)** No. Even at
-$\alpha=0.10$, the survey would detect a one-year drop only about
+`{python} f"{buick['power = 1 - beta']:.4f}"`. **(c)** No. The
+survey would detect a one-year drop only about
 `{python} pct(buick['power = 1 - beta'], 0)` of the time. Reaching 80% power
 takes `{python} f"{buick_n['n (round UP)']:,.0f}"` owners. Either survey far
 more people or decide in advance that a one-year change is too small to

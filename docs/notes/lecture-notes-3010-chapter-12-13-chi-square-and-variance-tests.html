@@ -204,7 +204,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Sunday, November 1, 2026</p>
+      <p class="date">Saturday, November 7, 2026</p>
     </div>
   </div>
   
@@ -695,13 +695,13 @@ window.Quarto = {
 </div>
 <section id="application-a-fully-stated-distribution" class="level3">
 <h3 class="anchored" data-anchor-id="application-a-fully-stated-distribution">Application: a fully stated distribution</h3>
-<p>A bank’s managers believe drive-through demand is spread across the week as 20%, 10%, 10%, 15%, 25%, 20% (Monday to Saturday). One week brings 240 customers. Test at <span class="math inline">\(\alpha=0.10\)</span>.</p>
+<p>A bank’s managers believe drive-through demand is spread across the week as 20%, 10%, 10%, 15%, 25%, 20% (Monday to Saturday). One week brings 240 customers. Test at <span class="math inline">\(\alpha=0.05\)</span>.</p>
 <div id="cell-drive" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>drive_tab, drive_res <span class="op">=</span> gof_test([<span class="dv">58</span>, <span class="dv">21</span>, <span class="dv">27</span>, <span class="dv">20</span>, <span class="dv">71</span>, <span class="dv">43</span>], drive_p,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                                [<span class="st">"Mon"</span>, <span class="st">"Tue"</span>, <span class="st">"Wed"</span>, <span class="st">"Thu"</span>, <span class="st">"Fri"</span>, <span class="st">"Sat"</span>],</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                                m<span class="op">=</span><span class="dv">0</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                                m<span class="op">=</span><span class="dv">0</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>tidy(drive_tab, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="drive" class="cell-output cell-output-display" data-execution_count="11">
@@ -805,11 +805,11 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">critical value</th>
-<td>9.2364</td>
+<td>11.0705</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">alpha</th>
-<td>0.1</td>
+<td>0.05</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">reject H0?</th>
@@ -821,7 +821,7 @@ window.Quarto = {
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">Excel critical value</th>
-<td>=CHISQ.INV.RT(0.1, 5)</td>
+<td>=CHISQ.INV.RT(0.05, 5)</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">categories k</th>
@@ -1052,7 +1052,7 @@ window.Quarto = {
 </ol>
 </div>
 <div class="brown">
-<p><strong>Southwest’s late flights.</strong> Southwest flies four flights a day between Philadelphia and Orlando. Over 200 days, the number of late flights per day was 0 on 70 days, 1 on 78 days, 2 on 40 days, and 3 or 4 on 12 days. Nationally, 20% of Southwest flights are late. <strong>(a)</strong> Test at <span class="math inline">\(\alpha=0.10\)</span> whether late flights per day follow a binomial distribution with <span class="math inline">\(n=4\)</span> and <span class="math inline">\(p=0.2\)</span>. <strong>(b)</strong> How many degrees of freedom, and why? <strong>(c)</strong> The model fails. Look at <em>where</em> it fails, and suggest why. (Hint: which binomial assumption does the weather violate?)</p>
+<p><strong>Southwest’s late flights.</strong> Southwest flies four flights a day between Philadelphia and Orlando. Over 200 days, the number of late flights per day was 0 on 70 days, 1 on 78 days, 2 on 40 days, and 3 or 4 on 12 days. Nationally, 20% of Southwest flights are late. <strong>(a)</strong> Test at <span class="math inline">\(\alpha=0.05\)</span> whether late flights per day follow a binomial distribution with <span class="math inline">\(n=4\)</span> and <span class="math inline">\(p=0.2\)</span>. <strong>(b)</strong> How many degrees of freedom, and why? <strong>(c)</strong> The model fails. Look at <em>where</em> it fails, and suggest why. (Hint: which binomial assumption does the weather violate?)</p>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
@@ -1070,7 +1070,7 @@ window.Quarto = {
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sw_tab, sw_res <span class="op">=</span> binomial_gof([<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">70</span>, <span class="dv">78</span>, <span class="dv">40</span>, <span class="dv">12</span>, <span class="dv">0</span>], n<span class="op">=</span><span class="dv">4</span>, top<span class="op">=</span><span class="dv">3</span>,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                              p<span class="op">=</span><span class="fl">0.20</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                              p<span class="op">=</span><span class="fl">0.20</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>sw_tab.index <span class="op">=</span> [<span class="st">"0"</span>, <span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3 or 4"</span>, <span class="st">"Total"</span>]</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>tidy(sw_tab, <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
@@ -2300,7 +2300,7 @@ window.Quarto = {
 <p><strong>Failing to reject is not showing that <span class="math inline">\(\sigma=4\)</span>.</strong> Your textbook concludes that “choosing to find support for the null hypothesis … is the appropriate business decision” and that the design “is working properly.” The 95% interval says <span class="math inline">\(\sigma\)</span> could be anywhere from 3.49°F to 5.88°F. At the top of that range, the refrigerator’s temperature varies about 50% more than the target. Thirty readings cannot tell a good design from a mediocre one. The business decision might still be to ship, but the honest summary is “we found no problem, and our test could not have found a moderate one.” If the decision matters, collect more data, and decide in advance how far from 4.0°F would be unacceptable.</p>
 </div>
 <div class="brown">
-<p><strong>Canon Business Solutions (CBS)</strong> will hire more service staff if the standard deviation of customer wait times for a copier repair <strong>exceeds 30 minutes</strong>. A random sample of 20 service calls has <span class="math inline">\(s=32.4\)</span> minutes. <strong>(a)</strong> State the hypotheses and test at <span class="math inline">\(\alpha=0.10\)</span>. <strong>(b)</strong> Find and interpret the p-value. <strong>(c)</strong> Does <span class="math inline">\(s&gt;30\)</span> mean CBS should hire?</p>
+<p><strong>Canon Business Solutions (CBS)</strong> will hire more service staff if the standard deviation of customer wait times for a copier repair <strong>exceeds 30 minutes</strong>. A random sample of 20 service calls has <span class="math inline">\(s=32.4\)</span> minutes. <strong>(a)</strong> State the hypotheses and test at <span class="math inline">\(\alpha=0.05\)</span>. <strong>(b)</strong> Find and interpret the p-value. <strong>(c)</strong> Does <span class="math inline">\(s&gt;30\)</span> mean CBS should hire?</p>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
@@ -2317,7 +2317,7 @@ window.Quarto = {
 <div id="cell-cbs" class="cell" data-execution_count="39">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>cbs <span class="op">=</span> variance_test(<span class="fl">32.4</span> <span class="op">**</span> <span class="dv">2</span>, <span class="dv">20</span>, <span class="fl">30.0</span> <span class="op">**</span> <span class="dv">2</span>, alternative<span class="op">=</span><span class="st">"greater"</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>cbs <span class="op">=</span> variance_test(<span class="fl">32.4</span> <span class="op">**</span> <span class="dv">2</span>, <span class="dv">20</span>, <span class="fl">30.0</span> <span class="op">**</span> <span class="dv">2</span>, alternative<span class="op">=</span><span class="st">"greater"</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>numbers(cbs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div id="cbs" class="cell-output cell-output-display" data-execution_count="39">
@@ -2366,7 +2366,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">critical value(s)</th>
-<td>27.2036 (reject above)</td>
+<td>30.1435 (reject above)</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">p-value</th>
@@ -2374,7 +2374,7 @@ window.Quarto = {
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">alpha</th>
-<td>0.1</td>
+<td>0.05</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">reject H0?</th>
@@ -2390,7 +2390,7 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p><strong>(a)</strong> <span class="math inline">\(H_0:\sigma^2\le900\)</span>, <span class="math inline">\(H_1:\sigma^2&gt;900\)</span> (minutes²). <span class="math inline">\(\chi^2=19(32.4^2)/900=\)</span> 22.16, below the critical value 27.2036: do not reject. <strong>(b)</strong> <span class="math inline">\(p=\)</span> 0.276, from <code>=CHISQ.DIST.RT(22.16, 19)</code>. If <span class="math inline">\(\sigma\)</span> were exactly 30 minutes, a sample standard deviation at least this large would turn up in about 28% of samples of 20. <strong>(c)</strong> No.&nbsp;A sample standard deviation slightly above 30 is what samples from a <span class="math inline">\(\sigma=30\)</span> population often produce; the data are not evidence that <span class="math inline">\(\sigma&gt;30\)</span>, so by its own rule CBS does not hire. (This is not evidence that <span class="math inline">\(\sigma\le30\)</span> either.)</p>
+<p><strong>(a)</strong> <span class="math inline">\(H_0:\sigma^2\le900\)</span>, <span class="math inline">\(H_1:\sigma^2&gt;900\)</span> (minutes²). <span class="math inline">\(\chi^2=19(32.4^2)/900=\)</span> 22.16, below the critical value 30.1435: do not reject. <strong>(b)</strong> <span class="math inline">\(p=\)</span> 0.276, from <code>=CHISQ.DIST.RT(22.16, 19)</code>. If <span class="math inline">\(\sigma\)</span> were exactly 30 minutes, a sample standard deviation at least this large would turn up in about 28% of samples of 20. <strong>(c)</strong> No.&nbsp;A sample standard deviation slightly above 30 is what samples from a <span class="math inline">\(\sigma=30\)</span> population often produce; the data are not evidence that <span class="math inline">\(\sigma&gt;30\)</span>, so by its own rule CBS does not hire. (This is not evidence that <span class="math inline">\(\sigma\le30\)</span> either.)</p>
 </div>
 </div>
 </div>
@@ -2959,7 +2959,7 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <div class="scarlet">
 <ol type="1">
 <li><strong>“A smaller chi-square test statistic … increases the likelihood that there is support for the null hypothesis”</strong> (Section 12.1). A small <span class="math inline">\(\chi^2\)</span> means the data fail to contradict <span class="math inline">\(H_0\)</span>. It is not support for <span class="math inline">\(H_0\)</span>.</li>
-<li><strong>The drive-through example sets <span class="math inline">\(\alpha=0.10\)</span></strong>, then compares the p-value with 0.05 in its last step. The conclusion is the same either way, but use the <span class="math inline">\(\alpha\)</span> you set.</li>
+<li><strong>Significance levels.</strong> This course uses <span class="math inline">\(\alpha=0.05\)</span> for every test. Your textbook uses <span class="math inline">\(\alpha=0.10\)</span> for the drive-through, Southwest, and Canon Business Solutions examples (and the drive-through example then compares its p-value with 0.05 anyway). These notes restate all three at <span class="math inline">\(\alpha=0.05\)</span>; none of the conclusions changes.</li>
 <li><strong>Southwest’s late flights.</strong> “By rejecting the null hypothesis, we have no evidence to conclude that the number of late flights … follows the binomial distribution” is garbled: rejecting <span class="math inline">\(H_0\)</span> <em>is</em> the evidence that the binomial does not fit. And the book never says why it fails (weather makes a day’s flights dependent; see the exercise above).</li>
 <li><strong>“More evidence supporting the use of the Poisson distribution than there is to not use it”</strong> (<span class="math inline">\(p=0.94\)</span>), and similarly for the normal fit to SAT scores. A large p-value is not evidence for the model. The normal fit used 1 df on 40 scores and would miss almost any departure.</li>
 <li><strong><code>CHISQ.TEST</code> is presented as equivalent to <code>CHISQ.DIST.RT</code>.</strong> It is only when no parameter was estimated (<span class="math inline">\(m=0\)</span>).</li>
@@ -3800,13 +3800,13 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-340"><a href="#cb44-340" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-341"><a href="#cb44-341" aria-hidden="true" tabindex="-1"></a>A bank's managers believe drive-through demand is spread across the week as</span>
 <span id="cb44-342"><a href="#cb44-342" aria-hidden="true" tabindex="-1"></a>20%, 10%, 10%, 15%, 25%, 20% (Monday to Saturday). One week brings 240</span>
-<span id="cb44-343"><a href="#cb44-343" aria-hidden="true" tabindex="-1"></a>customers. Test at $\alpha=0.10$.</span>
+<span id="cb44-343"><a href="#cb44-343" aria-hidden="true" tabindex="-1"></a>customers. Test at $\alpha=0.05$.</span>
 <span id="cb44-344"><a href="#cb44-344" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-347"><a href="#cb44-347" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb44-348"><a href="#cb44-348" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: drive</span></span>
 <span id="cb44-349"><a href="#cb44-349" aria-hidden="true" tabindex="-1"></a>drive_tab, drive_res <span class="op">=</span> gof_test([<span class="dv">58</span>, <span class="dv">21</span>, <span class="dv">27</span>, <span class="dv">20</span>, <span class="dv">71</span>, <span class="dv">43</span>], drive_p,</span>
 <span id="cb44-350"><a href="#cb44-350" aria-hidden="true" tabindex="-1"></a>                                [<span class="st">"Mon"</span>, <span class="st">"Tue"</span>, <span class="st">"Wed"</span>, <span class="st">"Thu"</span>, <span class="st">"Fri"</span>, <span class="st">"Sat"</span>],</span>
-<span id="cb44-351"><a href="#cb44-351" aria-hidden="true" tabindex="-1"></a>                                m<span class="op">=</span><span class="dv">0</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<span id="cb44-351"><a href="#cb44-351" aria-hidden="true" tabindex="-1"></a>                                m<span class="op">=</span><span class="dv">0</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb44-352"><a href="#cb44-352" aria-hidden="true" tabindex="-1"></a>tidy(drive_tab, <span class="dv">3</span>)</span>
 <span id="cb44-353"><a href="#cb44-353" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb44-354"><a href="#cb44-354" aria-hidden="true" tabindex="-1"></a></span>
@@ -3880,7 +3880,7 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-430"><a href="#cb44-430" aria-hidden="true" tabindex="-1"></a>Philadelphia and Orlando. Over 200 days, the number of late flights per day</span>
 <span id="cb44-431"><a href="#cb44-431" aria-hidden="true" tabindex="-1"></a>was 0 on 70 days, 1 on 78 days, 2 on 40 days, and 3 or 4 on 12 days.</span>
 <span id="cb44-432"><a href="#cb44-432" aria-hidden="true" tabindex="-1"></a>Nationally, 20% of Southwest flights are late. **(a)** Test at</span>
-<span id="cb44-433"><a href="#cb44-433" aria-hidden="true" tabindex="-1"></a>$\alpha=0.10$ whether late flights per day follow a binomial distribution</span>
+<span id="cb44-433"><a href="#cb44-433" aria-hidden="true" tabindex="-1"></a>$\alpha=0.05$ whether late flights per day follow a binomial distribution</span>
 <span id="cb44-434"><a href="#cb44-434" aria-hidden="true" tabindex="-1"></a>with $n=4$ and $p=0.2$. **(b)** How many degrees of freedom, and why?</span>
 <span id="cb44-435"><a href="#cb44-435" aria-hidden="true" tabindex="-1"></a>**(c)** The model fails. Look at *where* it fails, and suggest why. (Hint:</span>
 <span id="cb44-436"><a href="#cb44-436" aria-hidden="true" tabindex="-1"></a>which binomial assumption does the weather violate?)</span>
@@ -3892,7 +3892,7 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-444"><a href="#cb44-444" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb44-445"><a href="#cb44-445" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: southwest</span></span>
 <span id="cb44-446"><a href="#cb44-446" aria-hidden="true" tabindex="-1"></a>sw_tab, sw_res <span class="op">=</span> binomial_gof([<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], [<span class="dv">70</span>, <span class="dv">78</span>, <span class="dv">40</span>, <span class="dv">12</span>, <span class="dv">0</span>], n<span class="op">=</span><span class="dv">4</span>, top<span class="op">=</span><span class="dv">3</span>,</span>
-<span id="cb44-447"><a href="#cb44-447" aria-hidden="true" tabindex="-1"></a>                              p<span class="op">=</span><span class="fl">0.20</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<span id="cb44-447"><a href="#cb44-447" aria-hidden="true" tabindex="-1"></a>                              p<span class="op">=</span><span class="fl">0.20</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb44-448"><a href="#cb44-448" aria-hidden="true" tabindex="-1"></a>sw_tab.index <span class="op">=</span> [<span class="st">"0"</span>, <span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3 or 4"</span>, <span class="st">"Total"</span>]</span>
 <span id="cb44-449"><a href="#cb44-449" aria-hidden="true" tabindex="-1"></a>tidy(sw_tab, <span class="dv">2</span>)</span>
 <span id="cb44-450"><a href="#cb44-450" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -4347,7 +4347,7 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-943"><a href="#cb44-943" aria-hidden="true" tabindex="-1"></a>**Canon Business Solutions (CBS)** will hire more service staff if the</span>
 <span id="cb44-944"><a href="#cb44-944" aria-hidden="true" tabindex="-1"></a>standard deviation of customer wait times for a copier repair **exceeds 30</span>
 <span id="cb44-945"><a href="#cb44-945" aria-hidden="true" tabindex="-1"></a>minutes**. A random sample of 20 service calls has $s=32.4$ minutes.</span>
-<span id="cb44-946"><a href="#cb44-946" aria-hidden="true" tabindex="-1"></a>**(a)** State the hypotheses and test at $\alpha=0.10$. **(b)** Find and</span>
+<span id="cb44-946"><a href="#cb44-946" aria-hidden="true" tabindex="-1"></a>**(a)** State the hypotheses and test at $\alpha=0.05$. **(b)** Find and</span>
 <span id="cb44-947"><a href="#cb44-947" aria-hidden="true" tabindex="-1"></a>interpret the p-value. **(c)** Does $s&gt;30$ mean CBS should hire?</span>
 <span id="cb44-948"><a href="#cb44-948" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb44-949"><a href="#cb44-949" aria-hidden="true" tabindex="-1"></a></span>
@@ -4356,7 +4356,7 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-952"><a href="#cb44-952" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-955"><a href="#cb44-955" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb44-956"><a href="#cb44-956" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: cbs</span></span>
-<span id="cb44-957"><a href="#cb44-957" aria-hidden="true" tabindex="-1"></a>cbs <span class="op">=</span> variance_test(<span class="fl">32.4</span> <span class="op">**</span> <span class="dv">2</span>, <span class="dv">20</span>, <span class="fl">30.0</span> <span class="op">**</span> <span class="dv">2</span>, alternative<span class="op">=</span><span class="st">"greater"</span>, alpha<span class="op">=</span><span class="fl">0.10</span>)</span>
+<span id="cb44-957"><a href="#cb44-957" aria-hidden="true" tabindex="-1"></a>cbs <span class="op">=</span> variance_test(<span class="fl">32.4</span> <span class="op">**</span> <span class="dv">2</span>, <span class="dv">20</span>, <span class="fl">30.0</span> <span class="op">**</span> <span class="dv">2</span>, alternative<span class="op">=</span><span class="st">"greater"</span>, alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
 <span id="cb44-958"><a href="#cb44-958" aria-hidden="true" tabindex="-1"></a>numbers(cbs)</span>
 <span id="cb44-959"><a href="#cb44-959" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb44-960"><a href="#cb44-960" aria-hidden="true" tabindex="-1"></a></span>
@@ -4624,145 +4624,147 @@ H_1:\sigma^2_{\text{on-site}}&gt;\sigma^2_{\text{outsourced}}.\]</span></p>
 <span id="cb44-1238"><a href="#cb44-1238" aria-hidden="true" tabindex="-1"></a>   there is support for the null hypothesis"** (Section 12.1). A small</span>
 <span id="cb44-1239"><a href="#cb44-1239" aria-hidden="true" tabindex="-1"></a>   $\chi^2$ means the data fail to contradict $H_0$. It is not support for</span>
 <span id="cb44-1240"><a href="#cb44-1240" aria-hidden="true" tabindex="-1"></a>   $H_0$.</span>
-<span id="cb44-1241"><a href="#cb44-1241" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**The drive-through example sets $\alpha=0.10$**, then compares the</span>
-<span id="cb44-1242"><a href="#cb44-1242" aria-hidden="true" tabindex="-1"></a>   p-value with 0.05 in its last step. The conclusion is the same either</span>
-<span id="cb44-1243"><a href="#cb44-1243" aria-hidden="true" tabindex="-1"></a>   way, but use the $\alpha$ you set.</span>
-<span id="cb44-1244"><a href="#cb44-1244" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Southwest's late flights.** "By rejecting the null hypothesis, we have</span>
-<span id="cb44-1245"><a href="#cb44-1245" aria-hidden="true" tabindex="-1"></a>   no evidence to conclude that the number of late flights … follows the</span>
-<span id="cb44-1246"><a href="#cb44-1246" aria-hidden="true" tabindex="-1"></a>   binomial distribution" is garbled: rejecting $H_0$ *is* the evidence that</span>
-<span id="cb44-1247"><a href="#cb44-1247" aria-hidden="true" tabindex="-1"></a>   the binomial does not fit. And the book never says why it fails (weather</span>
-<span id="cb44-1248"><a href="#cb44-1248" aria-hidden="true" tabindex="-1"></a>   makes a day's flights dependent; see the exercise above).</span>
-<span id="cb44-1249"><a href="#cb44-1249" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**"More evidence supporting the use of the Poisson distribution than</span>
-<span id="cb44-1250"><a href="#cb44-1250" aria-hidden="true" tabindex="-1"></a>   there is to not use it"** ($p=0.94$), and similarly for the normal fit to</span>
-<span id="cb44-1251"><a href="#cb44-1251" aria-hidden="true" tabindex="-1"></a>   SAT scores. A large p-value is not evidence for the model. The normal fit</span>
-<span id="cb44-1252"><a href="#cb44-1252" aria-hidden="true" tabindex="-1"></a>   used 1 df on 40 scores and would miss almost any departure.</span>
-<span id="cb44-1253"><a href="#cb44-1253" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**`CHISQ.TEST` is presented as equivalent to `CHISQ.DIST.RT`.** It is</span>
-<span id="cb44-1254"><a href="#cb44-1254" aria-hidden="true" tabindex="-1"></a>   only when no parameter was estimated ($m=0$).</span>
-<span id="cb44-1255"><a href="#cb44-1255" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**"Always assign the larger sample variance to Population 1"** (Section</span>
-<span id="cb44-1256"><a href="#cb44-1256" aria-hidden="true" tabindex="-1"></a>   13.2). Fine for a two-tailed test; for a one-tailed test, the direction</span>
-<span id="cb44-1257"><a href="#cb44-1257" aria-hidden="true" tabindex="-1"></a>   comes from the question (above).</span>
-<span id="cb44-1258"><a href="#cb44-1258" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**Using the $F$ test to decide whether to pool** (the rat Your Turn).</span>
-<span id="cb44-1259"><a href="#cb44-1259" aria-hidden="true" tabindex="-1"></a>   Don't pretest; use Welch.</span>
-<span id="cb44-1260"><a href="#cb44-1260" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**The waiting-line *Focus on Analytics* box** gives a variance "of 7.2</span>
-<span id="cb44-1261"><a href="#cb44-1261" aria-hidden="true" tabindex="-1"></a>   minutes" and says times "would vary by less than 7.2 minutes." A variance</span>
-<span id="cb44-1262"><a href="#cb44-1262" aria-hidden="true" tabindex="-1"></a>   is in minutes²; the standard deviation is $\sqrt{7.2}\approx2.7$ minutes.</span>
-<span id="cb44-1263"><a href="#cb44-1263" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**Typos.** <span class="in">`CHI.DIST.RT`</span> should be <span class="in">`CHISQ.DIST.RT`</span>. The checkout</span>
-<span id="cb44-1264"><a href="#cb44-1264" aria-hidden="true" tabindex="-1"></a>   example's hand-computed variance is misprinted; Excel's <span class="in">`VAR.S`</span> value,</span>
-<span id="cb44-1265"><a href="#cb44-1265" aria-hidden="true" tabindex="-1"></a>   2.1464, is correct.</span>
-<span id="cb44-1266"><a href="#cb44-1266" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**The refrigerator: "choosing to find support for the null</span>
-<span id="cb44-1267"><a href="#cb44-1267" aria-hidden="true" tabindex="-1"></a>    hypothesis."** This is accepting $H_0$. The interval for $\sigma$ above</span>
-<span id="cb44-1268"><a href="#cb44-1268" aria-hidden="true" tabindex="-1"></a>    shows how little 30 readings pin down.</span>
-<span id="cb44-1269"><a href="#cb44-1269" aria-hidden="true" tabindex="-1"></a><span class="ss">11. </span>**The book's normality warning is right and understated.** It calls the</span>
-<span id="cb44-1270"><a href="#cb44-1270" aria-hidden="true" tabindex="-1"></a>    normal requirement "fairly rigid." The AGI simulation shows a nominal 5%</span>
-<span id="cb44-1271"><a href="#cb44-1271" aria-hidden="true" tabindex="-1"></a>    test rejecting a true null about 21% of the time at every sample size.</span>
-<span id="cb44-1272"><a href="#cb44-1272" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb44-1273"><a href="#cb44-1273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1274"><a href="#cb44-1274" aria-hidden="true" tabindex="-1"></a><span class="fu"># Laboratory 12–13</span></span>
+<span id="cb44-1241"><a href="#cb44-1241" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Significance levels.** This course uses $\alpha=0.05$ for every</span>
+<span id="cb44-1242"><a href="#cb44-1242" aria-hidden="true" tabindex="-1"></a>   test. Your textbook uses $\alpha=0.10$ for the drive-through, Southwest,</span>
+<span id="cb44-1243"><a href="#cb44-1243" aria-hidden="true" tabindex="-1"></a>   and Canon Business Solutions examples (and the drive-through example then</span>
+<span id="cb44-1244"><a href="#cb44-1244" aria-hidden="true" tabindex="-1"></a>   compares its p-value with 0.05 anyway). These notes restate all three at</span>
+<span id="cb44-1245"><a href="#cb44-1245" aria-hidden="true" tabindex="-1"></a>   $\alpha=0.05$; none of the conclusions changes.</span>
+<span id="cb44-1246"><a href="#cb44-1246" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Southwest's late flights.** "By rejecting the null hypothesis, we have</span>
+<span id="cb44-1247"><a href="#cb44-1247" aria-hidden="true" tabindex="-1"></a>   no evidence to conclude that the number of late flights … follows the</span>
+<span id="cb44-1248"><a href="#cb44-1248" aria-hidden="true" tabindex="-1"></a>   binomial distribution" is garbled: rejecting $H_0$ *is* the evidence that</span>
+<span id="cb44-1249"><a href="#cb44-1249" aria-hidden="true" tabindex="-1"></a>   the binomial does not fit. And the book never says why it fails (weather</span>
+<span id="cb44-1250"><a href="#cb44-1250" aria-hidden="true" tabindex="-1"></a>   makes a day's flights dependent; see the exercise above).</span>
+<span id="cb44-1251"><a href="#cb44-1251" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**"More evidence supporting the use of the Poisson distribution than</span>
+<span id="cb44-1252"><a href="#cb44-1252" aria-hidden="true" tabindex="-1"></a>   there is to not use it"** ($p=0.94$), and similarly for the normal fit to</span>
+<span id="cb44-1253"><a href="#cb44-1253" aria-hidden="true" tabindex="-1"></a>   SAT scores. A large p-value is not evidence for the model. The normal fit</span>
+<span id="cb44-1254"><a href="#cb44-1254" aria-hidden="true" tabindex="-1"></a>   used 1 df on 40 scores and would miss almost any departure.</span>
+<span id="cb44-1255"><a href="#cb44-1255" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**`CHISQ.TEST` is presented as equivalent to `CHISQ.DIST.RT`.** It is</span>
+<span id="cb44-1256"><a href="#cb44-1256" aria-hidden="true" tabindex="-1"></a>   only when no parameter was estimated ($m=0$).</span>
+<span id="cb44-1257"><a href="#cb44-1257" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**"Always assign the larger sample variance to Population 1"** (Section</span>
+<span id="cb44-1258"><a href="#cb44-1258" aria-hidden="true" tabindex="-1"></a>   13.2). Fine for a two-tailed test; for a one-tailed test, the direction</span>
+<span id="cb44-1259"><a href="#cb44-1259" aria-hidden="true" tabindex="-1"></a>   comes from the question (above).</span>
+<span id="cb44-1260"><a href="#cb44-1260" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**Using the $F$ test to decide whether to pool** (the rat Your Turn).</span>
+<span id="cb44-1261"><a href="#cb44-1261" aria-hidden="true" tabindex="-1"></a>   Don't pretest; use Welch.</span>
+<span id="cb44-1262"><a href="#cb44-1262" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**The waiting-line *Focus on Analytics* box** gives a variance "of 7.2</span>
+<span id="cb44-1263"><a href="#cb44-1263" aria-hidden="true" tabindex="-1"></a>   minutes" and says times "would vary by less than 7.2 minutes." A variance</span>
+<span id="cb44-1264"><a href="#cb44-1264" aria-hidden="true" tabindex="-1"></a>   is in minutes²; the standard deviation is $\sqrt{7.2}\approx2.7$ minutes.</span>
+<span id="cb44-1265"><a href="#cb44-1265" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**Typos.** <span class="in">`CHI.DIST.RT`</span> should be <span class="in">`CHISQ.DIST.RT`</span>. The checkout</span>
+<span id="cb44-1266"><a href="#cb44-1266" aria-hidden="true" tabindex="-1"></a>   example's hand-computed variance is misprinted; Excel's <span class="in">`VAR.S`</span> value,</span>
+<span id="cb44-1267"><a href="#cb44-1267" aria-hidden="true" tabindex="-1"></a>   2.1464, is correct.</span>
+<span id="cb44-1268"><a href="#cb44-1268" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**The refrigerator: "choosing to find support for the null</span>
+<span id="cb44-1269"><a href="#cb44-1269" aria-hidden="true" tabindex="-1"></a>    hypothesis."** This is accepting $H_0$. The interval for $\sigma$ above</span>
+<span id="cb44-1270"><a href="#cb44-1270" aria-hidden="true" tabindex="-1"></a>    shows how little 30 readings pin down.</span>
+<span id="cb44-1271"><a href="#cb44-1271" aria-hidden="true" tabindex="-1"></a><span class="ss">11. </span>**The book's normality warning is right and understated.** It calls the</span>
+<span id="cb44-1272"><a href="#cb44-1272" aria-hidden="true" tabindex="-1"></a>    normal requirement "fairly rigid." The AGI simulation shows a nominal 5%</span>
+<span id="cb44-1273"><a href="#cb44-1273" aria-hidden="true" tabindex="-1"></a>    test rejecting a true null about 21% of the time at every sample size.</span>
+<span id="cb44-1274"><a href="#cb44-1274" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb44-1275"><a href="#cb44-1275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1276"><a href="#cb44-1276" aria-hidden="true" tabindex="-1"></a>There are two ways to get these files to Claude. **Start with Path 1.** It</span>
-<span id="cb44-1277"><a href="#cb44-1277" aria-hidden="true" tabindex="-1"></a>works on every Claude account, including the free tier, and needs nothing</span>
-<span id="cb44-1278"><a href="#cb44-1278" aria-hidden="true" tabindex="-1"></a>turned on.</span>
-<span id="cb44-1279"><a href="#cb44-1279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1280"><a href="#cb44-1280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 1 — upload the files</span></span>
+<span id="cb44-1276"><a href="#cb44-1276" aria-hidden="true" tabindex="-1"></a><span class="fu"># Laboratory 12–13</span></span>
+<span id="cb44-1277"><a href="#cb44-1277" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1278"><a href="#cb44-1278" aria-hidden="true" tabindex="-1"></a>There are two ways to get these files to Claude. **Start with Path 1.** It</span>
+<span id="cb44-1279"><a href="#cb44-1279" aria-hidden="true" tabindex="-1"></a>works on every Claude account, including the free tier, and needs nothing</span>
+<span id="cb44-1280"><a href="#cb44-1280" aria-hidden="true" tabindex="-1"></a>turned on.</span>
 <span id="cb44-1281"><a href="#cb44-1281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1282"><a href="#cb44-1282" aria-hidden="true" tabindex="-1"></a>**[Download the Laboratory 12–13 pack](../upload_packs/lab-12-chapters-12-13.zip)**</span>
-<span id="cb44-1283"><a href="#cb44-1283" aria-hidden="true" tabindex="-1"></a>— one file. Unzip it and you will have a folder holding 11 files. Drag all 11</span>
-<span id="cb44-1284"><a href="#cb44-1284" aria-hidden="true" tabindex="-1"></a>into a new Claude conversation, wait for each to show as attached, then paste</span>
-<span id="cb44-1285"><a href="#cb44-1285" aria-hidden="true" tabindex="-1"></a>this:</span>
-<span id="cb44-1286"><a href="#cb44-1286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1287"><a href="#cb44-1287" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb44-1288"><a href="#cb44-1288" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb44-1289"><a href="#cb44-1289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1290"><a href="#cb44-1290" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I have uploaded 11 files for a graduate business statistics course. Read</span></span>
-<span id="cb44-1291"><a href="#cb44-1291" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first — it explains how this course expects analytical</span></span>
-<span id="cb44-1292"><a href="#cb44-1292" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; work to be done.</span></span>
-<span id="cb44-1293"><a href="#cb44-1293" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb44-1294"><a href="#cb44-1294" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`12_13_chi_square_and_variance_tests.py`</span><span class="at"> and show me its actual</span></span>
-<span id="cb44-1295"><a href="#cb44-1295" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; output, verbatim. Walk me through what each section does and what the</span></span>
-<span id="cb44-1296"><a href="#cb44-1296" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; results mean. Do not report any number you did not compute, and if</span></span>
-<span id="cb44-1297"><a href="#cb44-1297" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; anything fails, show me the error rather than describing what the output</span></span>
-<span id="cb44-1298"><a href="#cb44-1298" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; would have been.</span></span>
-<span id="cb44-1299"><a href="#cb44-1299" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb44-1300"><a href="#cb44-1300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1301"><a href="#cb44-1301" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 2 — let Claude fetch the files</span></span>
+<span id="cb44-1282"><a href="#cb44-1282" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 1 — upload the files</span></span>
+<span id="cb44-1283"><a href="#cb44-1283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1284"><a href="#cb44-1284" aria-hidden="true" tabindex="-1"></a>**[Download the Laboratory 12–13 pack](../upload_packs/lab-12-chapters-12-13.zip)**</span>
+<span id="cb44-1285"><a href="#cb44-1285" aria-hidden="true" tabindex="-1"></a>— one file. Unzip it and you will have a folder holding 11 files. Drag all 11</span>
+<span id="cb44-1286"><a href="#cb44-1286" aria-hidden="true" tabindex="-1"></a>into a new Claude conversation, wait for each to show as attached, then paste</span>
+<span id="cb44-1287"><a href="#cb44-1287" aria-hidden="true" tabindex="-1"></a>this:</span>
+<span id="cb44-1288"><a href="#cb44-1288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1289"><a href="#cb44-1289" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb44-1290"><a href="#cb44-1290" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb44-1291"><a href="#cb44-1291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1292"><a href="#cb44-1292" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; I have uploaded 11 files for a graduate business statistics course. Read</span></span>
+<span id="cb44-1293"><a href="#cb44-1293" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first — it explains how this course expects analytical</span></span>
+<span id="cb44-1294"><a href="#cb44-1294" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; work to be done.</span></span>
+<span id="cb44-1295"><a href="#cb44-1295" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb44-1296"><a href="#cb44-1296" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`12_13_chi_square_and_variance_tests.py`</span><span class="at"> and show me its actual</span></span>
+<span id="cb44-1297"><a href="#cb44-1297" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; output, verbatim. Walk me through what each section does and what the</span></span>
+<span id="cb44-1298"><a href="#cb44-1298" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; results mean. Do not report any number you did not compute, and if</span></span>
+<span id="cb44-1299"><a href="#cb44-1299" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; anything fails, show me the error rather than describing what the output</span></span>
+<span id="cb44-1300"><a href="#cb44-1300" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; would have been.</span></span>
+<span id="cb44-1301"><a href="#cb44-1301" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
 <span id="cb44-1302"><a href="#cb44-1302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1303"><a href="#cb44-1303" aria-hidden="true" tabindex="-1"></a>If web access is working on your account, Claude can retrieve the files</span>
-<span id="cb44-1304"><a href="#cb44-1304" aria-hidden="true" tabindex="-1"></a>itself:</span>
-<span id="cb44-1305"><a href="#cb44-1305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1306"><a href="#cb44-1306" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb44-1307"><a href="#cb44-1307" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb44-1308"><a href="#cb44-1308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1309"><a href="#cb44-1309" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Open </span><span class="ot">&lt;https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/&gt;</span><span class="at"> — it is a plain page listing</span></span>
-<span id="cb44-1310"><a href="#cb44-1310" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; the files for each laboratory. Follow the links for Laboratory</span></span>
-<span id="cb44-1311"><a href="#cb44-1311" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 12-13 and read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first; it explains how</span></span>
-<span id="cb44-1312"><a href="#cb44-1312" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; this course expects analytical work to be done.</span></span>
-<span id="cb44-1313"><a href="#cb44-1313" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb44-1314"><a href="#cb44-1314" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`12_13_chi_square_and_variance_tests.py`</span><span class="at"> and show me its actual</span></span>
-<span id="cb44-1315"><a href="#cb44-1315" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; output, verbatim. Walk me through what each section does and what the</span></span>
-<span id="cb44-1316"><a href="#cb44-1316" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; results mean. Do not report any number you did not compute, and if</span></span>
-<span id="cb44-1317"><a href="#cb44-1317" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; anything fails, show me the error rather than describing what the output</span></span>
-<span id="cb44-1318"><a href="#cb44-1318" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; would have been.</span></span>
-<span id="cb44-1319"><a href="#cb44-1319" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
-<span id="cb44-1320"><a href="#cb44-1320" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; If you cannot open that page, tell me plainly and I will upload the files</span></span>
-<span id="cb44-1321"><a href="#cb44-1321" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; instead.</span></span>
-<span id="cb44-1322"><a href="#cb44-1322" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb44-1323"><a href="#cb44-1323" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1324"><a href="#cb44-1324" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
-<span id="cb44-1325"><a href="#cb44-1325" aria-hidden="true" tabindex="-1"></a>If Claude answers that it cannot reach the page, **nothing is wrong with your</span>
-<span id="cb44-1326"><a href="#cb44-1326" aria-hidden="true" tabindex="-1"></a>work or with the repository.** Claude's web access is a setting, and even when</span>
-<span id="cb44-1327"><a href="#cb44-1327" aria-hidden="true" tabindex="-1"></a>it is on, Claude cannot always retrieve a file by direct link. Use Path 1</span>
-<span id="cb44-1328"><a href="#cb44-1328" aria-hidden="true" tabindex="-1"></a>instead — it is the ordinary route, not a consolation prize.</span>
-<span id="cb44-1329"><a href="#cb44-1329" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb44-1330"><a href="#cb44-1330" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1331"><a href="#cb44-1331" aria-hidden="true" tabindex="-1"></a><span class="fu">### Your own junior analyst</span></span>
+<span id="cb44-1303"><a href="#cb44-1303" aria-hidden="true" tabindex="-1"></a><span class="fu">## Path 2 — let Claude fetch the files</span></span>
+<span id="cb44-1304"><a href="#cb44-1304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1305"><a href="#cb44-1305" aria-hidden="true" tabindex="-1"></a>If web access is working on your account, Claude can retrieve the files</span>
+<span id="cb44-1306"><a href="#cb44-1306" aria-hidden="true" tabindex="-1"></a>itself:</span>
+<span id="cb44-1307"><a href="#cb44-1307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1308"><a href="#cb44-1308" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb44-1309"><a href="#cb44-1309" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb44-1310"><a href="#cb44-1310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1311"><a href="#cb44-1311" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Open </span><span class="ot">&lt;https://crooker.faculty.unlv.edu/mba775/fall2026/upload_packs/&gt;</span><span class="at"> — it is a plain page listing</span></span>
+<span id="cb44-1312"><a href="#cb44-1312" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; the files for each laboratory. Follow the links for Laboratory</span></span>
+<span id="cb44-1313"><a href="#cb44-1313" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 12-13 and read </span><span class="in">`COURSE_CONTEXT.md`</span><span class="at"> first; it explains how</span></span>
+<span id="cb44-1314"><a href="#cb44-1314" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; this course expects analytical work to be done.</span></span>
+<span id="cb44-1315"><a href="#cb44-1315" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb44-1316"><a href="#cb44-1316" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Then run </span><span class="in">`12_13_chi_square_and_variance_tests.py`</span><span class="at"> and show me its actual</span></span>
+<span id="cb44-1317"><a href="#cb44-1317" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; output, verbatim. Walk me through what each section does and what the</span></span>
+<span id="cb44-1318"><a href="#cb44-1318" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; results mean. Do not report any number you did not compute, and if</span></span>
+<span id="cb44-1319"><a href="#cb44-1319" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; anything fails, show me the error rather than describing what the output</span></span>
+<span id="cb44-1320"><a href="#cb44-1320" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; would have been.</span></span>
+<span id="cb44-1321"><a href="#cb44-1321" aria-hidden="true" tabindex="-1"></a><span class="at">&gt;</span></span>
+<span id="cb44-1322"><a href="#cb44-1322" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; If you cannot open that page, tell me plainly and I will upload the files</span></span>
+<span id="cb44-1323"><a href="#cb44-1323" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; instead.</span></span>
+<span id="cb44-1324"><a href="#cb44-1324" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb44-1325"><a href="#cb44-1325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1326"><a href="#cb44-1326" aria-hidden="true" tabindex="-1"></a>::: {.brown}</span>
+<span id="cb44-1327"><a href="#cb44-1327" aria-hidden="true" tabindex="-1"></a>If Claude answers that it cannot reach the page, **nothing is wrong with your</span>
+<span id="cb44-1328"><a href="#cb44-1328" aria-hidden="true" tabindex="-1"></a>work or with the repository.** Claude's web access is a setting, and even when</span>
+<span id="cb44-1329"><a href="#cb44-1329" aria-hidden="true" tabindex="-1"></a>it is on, Claude cannot always retrieve a file by direct link. Use Path 1</span>
+<span id="cb44-1330"><a href="#cb44-1330" aria-hidden="true" tabindex="-1"></a>instead — it is the ordinary route, not a consolation prize.</span>
+<span id="cb44-1331"><a href="#cb44-1331" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb44-1332"><a href="#cb44-1332" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1333"><a href="#cb44-1333" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb44-1334"><a href="#cb44-1334" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb44-1335"><a href="#cb44-1335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1336"><a href="#cb44-1336" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; A hotel group surveyed 390 guests about the booking channel they used</span></span>
-<span id="cb44-1337"><a href="#cb44-1337" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; (direct website, online travel agency, phone, travel agent) and their</span></span>
-<span id="cb44-1338"><a href="#cb44-1338" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; trip purpose (business, leisure). The counts are: business = 92, 58, 24,</span></span>
-<span id="cb44-1339"><a href="#cb44-1339" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 4; leisure = 88, 102, 16, 6 (in the channel order above). By running</span></span>
-<span id="cb44-1340"><a href="#cb44-1340" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; code, (1) test at alpha = 0.05 whether channel and trip purpose are</span></span>
-<span id="cb44-1341"><a href="#cb44-1341" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; independent, and check every expected count before trusting the p-value;</span></span>
-<span id="cb44-1342"><a href="#cb44-1342" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; if any is below 5, combine categories sensibly and test again;</span></span>
-<span id="cb44-1343"><a href="#cb44-1343" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; (2) show me the standardized residuals and tell me in plain English which</span></span>
-<span id="cb44-1344"><a href="#cb44-1344" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; cells drive the result; (3) report Cramer's V and say whether the</span></span>
-<span id="cb44-1345"><a href="#cb44-1345" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; association is weak, moderate, or strong; and (4) tell me whether these</span></span>
-<span id="cb44-1346"><a href="#cb44-1346" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; data show that trip purpose causes the choice of channel.</span></span>
-<span id="cb44-1347"><a href="#cb44-1347" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb44-1348"><a href="#cb44-1348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1349"><a href="#cb44-1349" aria-hidden="true" tabindex="-1"></a>Check four things in the reply: the expected count for business travelers</span>
-<span id="cb44-1350"><a href="#cb44-1350" aria-hidden="true" tabindex="-1"></a>booking through a travel agent is below 5, so the reply should combine</span>
-<span id="cb44-1351"><a href="#cb44-1351" aria-hidden="true" tabindex="-1"></a>"phone" and "travel agent" (or explain another sensible merge) before</span>
-<span id="cb44-1352"><a href="#cb44-1352" aria-hidden="true" tabindex="-1"></a>concluding; the residual discussion names specific cells rather than</span>
-<span id="cb44-1353"><a href="#cb44-1353" aria-hidden="true" tabindex="-1"></a>repeating "reject"; Cramér's V is reported with a verbal size; and the answer</span>
-<span id="cb44-1354"><a href="#cb44-1354" aria-hidden="true" tabindex="-1"></a>to the last question says the survey is observational, so it shows</span>
-<span id="cb44-1355"><a href="#cb44-1355" aria-hidden="true" tabindex="-1"></a>association only.</span>
-<span id="cb44-1356"><a href="#cb44-1356" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1357"><a href="#cb44-1357" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
+<span id="cb44-1333"><a href="#cb44-1333" aria-hidden="true" tabindex="-1"></a><span class="fu">### Your own junior analyst</span></span>
+<span id="cb44-1334"><a href="#cb44-1334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1335"><a href="#cb44-1335" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb44-1336"><a href="#cb44-1336" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb44-1337"><a href="#cb44-1337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1338"><a href="#cb44-1338" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; A hotel group surveyed 390 guests about the booking channel they used</span></span>
+<span id="cb44-1339"><a href="#cb44-1339" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; (direct website, online travel agency, phone, travel agent) and their</span></span>
+<span id="cb44-1340"><a href="#cb44-1340" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; trip purpose (business, leisure). The counts are: business = 92, 58, 24,</span></span>
+<span id="cb44-1341"><a href="#cb44-1341" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; 4; leisure = 88, 102, 16, 6 (in the channel order above). By running</span></span>
+<span id="cb44-1342"><a href="#cb44-1342" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; code, (1) test at alpha = 0.05 whether channel and trip purpose are</span></span>
+<span id="cb44-1343"><a href="#cb44-1343" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; independent, and check every expected count before trusting the p-value;</span></span>
+<span id="cb44-1344"><a href="#cb44-1344" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; if any is below 5, combine categories sensibly and test again;</span></span>
+<span id="cb44-1345"><a href="#cb44-1345" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; (2) show me the standardized residuals and tell me in plain English which</span></span>
+<span id="cb44-1346"><a href="#cb44-1346" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; cells drive the result; (3) report Cramer's V and say whether the</span></span>
+<span id="cb44-1347"><a href="#cb44-1347" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; association is weak, moderate, or strong; and (4) tell me whether these</span></span>
+<span id="cb44-1348"><a href="#cb44-1348" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; data show that trip purpose causes the choice of channel.</span></span>
+<span id="cb44-1349"><a href="#cb44-1349" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb44-1350"><a href="#cb44-1350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1351"><a href="#cb44-1351" aria-hidden="true" tabindex="-1"></a>Check four things in the reply: the expected count for business travelers</span>
+<span id="cb44-1352"><a href="#cb44-1352" aria-hidden="true" tabindex="-1"></a>booking through a travel agent is below 5, so the reply should combine</span>
+<span id="cb44-1353"><a href="#cb44-1353" aria-hidden="true" tabindex="-1"></a>"phone" and "travel agent" (or explain another sensible merge) before</span>
+<span id="cb44-1354"><a href="#cb44-1354" aria-hidden="true" tabindex="-1"></a>concluding; the residual discussion names specific cells rather than</span>
+<span id="cb44-1355"><a href="#cb44-1355" aria-hidden="true" tabindex="-1"></a>repeating "reject"; Cramér's V is reported with a verbal size; and the answer</span>
+<span id="cb44-1356"><a href="#cb44-1356" aria-hidden="true" tabindex="-1"></a>to the last question says the survey is observational, so it shows</span>
+<span id="cb44-1357"><a href="#cb44-1357" aria-hidden="true" tabindex="-1"></a>association only.</span>
 <span id="cb44-1358"><a href="#cb44-1358" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1359"><a href="#cb44-1359" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
-<span id="cb44-1360"><a href="#cb44-1360" aria-hidden="true" tabindex="-1"></a>Prompt</span>
-<span id="cb44-1361"><a href="#cb44-1361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1362"><a href="#cb44-1362" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Build me an Excel workbook that shows why the variance test needs normal</span></span>
-<span id="cb44-1363"><a href="#cb44-1363" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; data. Sheet 1: in A2:A31, 30 values from a normal population with</span></span>
-<span id="cb44-1364"><a href="#cb44-1364" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; standard deviation 10, =NORM.INV(RAND(), 50, 10). In B2:B31, 30 values</span></span>
-<span id="cb44-1365"><a href="#cb44-1365" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; from a skewed population with the same standard deviation 10,</span></span>
-<span id="cb44-1366"><a href="#cb44-1366" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; =-10*LN(RAND()) (an exponential with mean 10 and standard deviation 10).</span></span>
-<span id="cb44-1367"><a href="#cb44-1367" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; At the top, for each column, compute the sample variance =VAR.S, the</span></span>
-<span id="cb44-1368"><a href="#cb44-1368" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; statistic =29*VAR.S(...)/100, and the two-sided p-value</span></span>
-<span id="cb44-1369"><a href="#cb44-1369" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; =2*MIN(CHISQ.DIST(x, 29, TRUE), CHISQ.DIST.RT(x, 29)), and a cell that</span></span>
-<span id="cb44-1370"><a href="#cb44-1370" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; says "reject" when the p-value is below 0.05. (Use formulas rather than</span></span>
-<span id="cb44-1371"><a href="#cb44-1371" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; the Data Analysis tool, whose output does not recalculate.) Give me the</span></span>
-<span id="cb44-1372"><a href="#cb44-1372" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; file to download.</span></span>
-<span id="cb44-1373"><a href="#cb44-1373" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
-<span id="cb44-1374"><a href="#cb44-1374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-1375"><a href="#cb44-1375" aria-hidden="true" tabindex="-1"></a>Press F9 forty times and count how often each column says "reject." Both</span>
-<span id="cb44-1376"><a href="#cb44-1376" aria-hidden="true" tabindex="-1"></a>columns test a **true** null ($\sigma=10$). Which column rejects close to</span>
-<span id="cb44-1377"><a href="#cb44-1377" aria-hidden="true" tabindex="-1"></a>5% of the time, and which rejects far more often? In one paragraph, explain</span>
-<span id="cb44-1378"><a href="#cb44-1378" aria-hidden="true" tabindex="-1"></a>what this means for a manager who wants to use the variance test on waiting</span>
-<span id="cb44-1379"><a href="#cb44-1379" aria-hidden="true" tabindex="-1"></a>times or sales.</span>
+<span id="cb44-1359"><a href="#cb44-1359" aria-hidden="true" tabindex="-1"></a><span class="fu">### Working in Excel</span></span>
+<span id="cb44-1360"><a href="#cb44-1360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1361"><a href="#cb44-1361" aria-hidden="true" tabindex="-1"></a>::: {.prompt}</span>
+<span id="cb44-1362"><a href="#cb44-1362" aria-hidden="true" tabindex="-1"></a>Prompt</span>
+<span id="cb44-1363"><a href="#cb44-1363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1364"><a href="#cb44-1364" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Build me an Excel workbook that shows why the variance test needs normal</span></span>
+<span id="cb44-1365"><a href="#cb44-1365" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; data. Sheet 1: in A2:A31, 30 values from a normal population with</span></span>
+<span id="cb44-1366"><a href="#cb44-1366" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; standard deviation 10, =NORM.INV(RAND(), 50, 10). In B2:B31, 30 values</span></span>
+<span id="cb44-1367"><a href="#cb44-1367" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; from a skewed population with the same standard deviation 10,</span></span>
+<span id="cb44-1368"><a href="#cb44-1368" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; =-10*LN(RAND()) (an exponential with mean 10 and standard deviation 10).</span></span>
+<span id="cb44-1369"><a href="#cb44-1369" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; At the top, for each column, compute the sample variance =VAR.S, the</span></span>
+<span id="cb44-1370"><a href="#cb44-1370" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; statistic =29*VAR.S(...)/100, and the two-sided p-value</span></span>
+<span id="cb44-1371"><a href="#cb44-1371" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; =2*MIN(CHISQ.DIST(x, 29, TRUE), CHISQ.DIST.RT(x, 29)), and a cell that</span></span>
+<span id="cb44-1372"><a href="#cb44-1372" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; says "reject" when the p-value is below 0.05. (Use formulas rather than</span></span>
+<span id="cb44-1373"><a href="#cb44-1373" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; the Data Analysis tool, whose output does not recalculate.) Give me the</span></span>
+<span id="cb44-1374"><a href="#cb44-1374" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; file to download.</span></span>
+<span id="cb44-1375"><a href="#cb44-1375" aria-hidden="true" tabindex="-1"></a><span class="at">:::</span></span>
+<span id="cb44-1376"><a href="#cb44-1376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-1377"><a href="#cb44-1377" aria-hidden="true" tabindex="-1"></a>Press F9 forty times and count how often each column says "reject." Both</span>
+<span id="cb44-1378"><a href="#cb44-1378" aria-hidden="true" tabindex="-1"></a>columns test a **true** null ($\sigma=10$). Which column rejects close to</span>
+<span id="cb44-1379"><a href="#cb44-1379" aria-hidden="true" tabindex="-1"></a>5% of the time, and which rejects far more often? In one paragraph, explain</span>
+<span id="cb44-1380"><a href="#cb44-1380" aria-hidden="true" tabindex="-1"></a>what this means for a manager who wants to use the variance test on waiting</span>
+<span id="cb44-1381"><a href="#cb44-1381" aria-hidden="true" tabindex="-1"></a>times or sales.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -232,19 +232,19 @@ print("""
 
 
 # ===========================================================================
-banner("10. A TWO-TAILED t-TEST: Nielsen's 34.5 hours, alpha = 0.02")
+banner("10. A TWO-TAILED t-TEST: Nielsen's 34.5 hours, alpha = 0.05")
 # ===========================================================================
 
 print("H0: mu = 34.5   H1: mu != 34.5   (n = 10, x-bar = 39.6, s = 16.4)\n")
-show(t_test(39.6, 16.4, 10, 34.5, "two-sided", 0.02))
-ci98 = mean_interval(39.6, 16.4, 10, 0.98)
-print(f"\n98% confidence interval: {ci98['lower']:.2f} to {ci98['upper']:.2f}\n")
-print(interval_test_agreement(39.6, 16.4, 10, [20, 25, 34.5, 50, 55],
-                              alpha=0.02).round(4).to_string())
+show(t_test(39.6, 16.4, 10, 34.5, "two-sided", 0.05))
+ci95 = mean_interval(39.6, 16.4, 10, 0.95)
+print(f"\n95% confidence interval: {ci95['lower']:.2f} to {ci95['upper']:.2f}\n")
+print(interval_test_agreement(39.6, 16.4, 10, [20, 25, 30, 34.5, 50, 55],
+                              alpha=0.05).round(4).to_string())
 print("""
   A two-tailed test at alpha rejects exactly the claimed values that fall
   outside the (1 - alpha) interval. Failing to reject 34.5 is weak news: the
-  same data fail to reject 25 and 50 as well.
+  same data fail to reject 30 and 50 as well.
 """)
 
 
